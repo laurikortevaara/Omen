@@ -1,5 +1,6 @@
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
+#include <stdlib.h>
 
 void RenderScene(void)
 {
@@ -9,7 +10,14 @@ void RenderScene(void)
 
 void SetupRC(void)
 {
-    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+void keyHit(unsigned char c, int i, int i2)
+{
+    if(c=='q')
+        exit(0);
+
 }
 
 int main(int argc, char *argv[]) {
@@ -17,6 +25,7 @@ int main(int argc, char *argv[]) {
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
     glutCreateWindow("Simple");
     glutDisplayFunc(RenderScene);
+    glutKeyboardFunc(keyHit);
     SetupRC();
     glutMainLoop();
     return 0;
