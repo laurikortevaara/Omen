@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.3)
 project(Omen)
 
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+
+# FORCE OS X 10.8 DEPLOYMENT TARGET ON OS X TO SUPPORT GLUT
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+endif(APPLE)
+
 #########################################################
 # FIND GLUT
 #########################################################
@@ -24,16 +32,22 @@ if(NOT OPENGL_FOUND)
     message(ERROR " OPENGL not found!")
 endif(NOT OPENGL_FOUND)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp)
-add_executable(opengl ${SOURCE_FILES})
-target_link_libraries(opengl ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
+#########################################################
+# GLFW
+#########################################################
+add_subdirectory(thirdparty/glfw)
+include_directories(thirdparty/glfw/include)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#########################################################
+# GLFW
+#########################################################
+add_subdirectory(thirdparty/glm)
+include_directories(thirdparty/glm)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h.h)
 add_executable(Omen ${SOURCE_FILES})
 
 TARGET_LINK_LIBRARIES(Omen ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(Omen ${GLUT_LIBRARIES})
+TARGET_LINK_LIBRARIES(Omen glfw ${GLFW_LIBRARIES})
