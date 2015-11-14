@@ -1,15 +1,30 @@
 #version 410 core
 
+in  vec3 vBC[];
+out vec3 patch_vBC[];
+
+in  vec4 tcInPosition[];
+out vec4 teInPosition[];
+
 layout (vertices = 4) out;
+
+uniform float innerTess;
+uniform float outerTess;
+
 void main()
 {
+	patch_vBC[gl_InvocationID]=vBC[gl_InvocationID];
+	teInPosition[gl_InvocationID]=tcInPosition[gl_InvocationID];
+
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 	
 	// and then set tessellation levels
-	gl_TessLevelOuter[0] = 2.0;
-	gl_TessLevelOuter[1] = 3.0;
-	gl_TessLevelOuter[2] = 2.0;
-	gl_TessLevelOuter[3] = 5.0;
-	gl_TessLevelInner[0] = 3.0;
-	gl_TessLevelInner[1] = 4.0;
+	gl_TessLevelInner[0] = innerTess;
+	gl_TessLevelInner[1] = innerTess;
+
+	gl_TessLevelOuter[0] = outerTess;
+	gl_TessLevelOuter[1] = outerTess;
+	gl_TessLevelOuter[2] = outerTess;
+	gl_TessLevelOuter[3] = outerTess;
+	
 }

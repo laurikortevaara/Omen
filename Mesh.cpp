@@ -24,13 +24,22 @@ GLuint shader_program = 0;
 GLboolean draw_mesh = 0;
 
 GLfloat vertices [][3] = {
-        {-1, -1, 0}, {-1, 1, 0}, { 1, -1, 0}, // vPosition
-        { 1, -1, 0}, {-1, 1, 0}, { 1,  1, 0} // vPosition
+        {-1, -1, 0}, {-1, 1, 0}, { 1,  1, 0}, { 1, -1, 0}// vPosition
 };
 
+/*
+ {-1, 0, -1}, {-1, 1, 1}, { 1, 0, -1}, // vPosition
+ { 1, 0, -1}, {-1, 1, 0}, { 1, 0,  1} // vPosition
+ */
+
+/*
+{-1, -1, 0}, {-1, 1, 0}, { 1, -1, 0}, // vPosition
+{ 1, -1, 0}, {-1, 1, 0}, { 1,  1, 0} // vPosition
+ */
+
 GLfloat baryCoords [][3] = {
-        { 1, 0, 0,}, { 0, 1, 0}, { 0,  0, 1}, // baryCentric
-        { 1, 0, 0,}, { 0, 1, 0}, { 0,  0, 1} // baryCentric
+        { 1, 0, 0}, { 0, 1, 0}, { 0,  0, 1 }, { 1, 0, 0},// baryCentric
+        { 0, 1, 0}, { 0,  0, 1} // baryCentric
 };
 
 
@@ -46,8 +55,8 @@ void loadShader( const std::string& filename, std::string& out ) {
 void Mesh::loadShaders()
 {
     std::string vertex_shader; loadShader("vs.glsl", vertex_shader);
-    std::string control_shader; loadShader("tc_triangle.glsl", control_shader);
-    std::string eval_shader; loadShader("te_triangle.glsl", eval_shader);
+    std::string control_shader; loadShader("tc_quad.glsl", control_shader);
+    std::string eval_shader; loadShader("te_quad.glsl", eval_shader);
     std::string geom_shader; loadShader("gs.glsl", geom_shader);
     std::string fragment_shader; loadShader("fs.glsl", fragment_shader);
 
@@ -94,7 +103,7 @@ void Mesh::loadShaders()
     assert(strlen(log1)==0);
     assert(strlen(log2)==0);
     assert(strlen(log3)==0);
-    assert(strlen(log4)==0);
+    //assert(strlen(log4)==0);
     assert(strlen(log5)==0);
 
     shader_program = glCreateProgram();
@@ -227,9 +236,12 @@ void Mesh::render()
         GLint mvp = glGetUniformLocation(shader_program, "ModelViewProjectionMatrix");
         if(mvp>=0)
         {
+            static float i = 0.0;
+            i += 0.05;
             glm::mat4 mvpi = glm::mat4(1.0);
-            mvpi = glm::translate(mvpi, glm::vec3(0,0,0));
-            mvpi = glm::scale(mvpi, glm::vec3(0.75,0.75,0.75));
+            //mvpi = glm::translate(mvpi, glm::vec3(0,0,0));
+            mvpi = glm::scale(mvpi, glm::vec3(0.25,0.25,0.25));
+            //mvpi = glm::rotate(mvpi, i, glm::vec3(0,0,1));
             check_gl_error();
             glUniformMatrix4fv(mvp, 1, GL_FALSE, glm::value_ptr(mvpi));
             check_gl_error();
@@ -249,9 +261,9 @@ void Mesh::render()
             }
             else
             {
-                glPatchParameteri(GL_PATCH_VERTICES,3);
+                glPatchParameteri(GL_PATCH_VERTICES,4);
                 check_gl_error();
-                glDrawArrays(GL_PATCHES, 0, 3);
+                glDrawArrays(GL_PATCHES, 0, 4);
                 check_gl_error();
             }
         }
