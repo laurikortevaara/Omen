@@ -20,6 +20,10 @@ public:
     std::vector< std::shared_ptr<Triangle> > m_triangles;
     std::shared_ptr<VertexArrayObject> m_vao;
     std::shared_ptr<VertexBufferObject> m_vbo;
+
+    void loadShaders();
+
+    void createMesh();
 };
 
 
