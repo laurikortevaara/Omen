@@ -19,6 +19,7 @@ GLuint vao = 0;
 GLuint vbo = 0;
 GLuint vbo_barycentric = 0;
 GLuint shader_program = 0;
+GLboolean draw_mesh = GL_FALSE;
 
 void loadShader( const std::string& filename, std::string& out ) {
     std::string line;
@@ -84,11 +85,42 @@ void Mesh::loadShaders()
 
     shader_program = glCreateProgram();
     glAttachShader(shader_program, vs);
-    //glAttachShader(shader_program, tc);
-    //glAttachShader(shader_program, te);
-    //glAttachShader(shader_program, gs);
+    if(!draw_mesh) {
+        glAttachShader(shader_program, tc);
+        check_gl_error();
+        glAttachShader(shader_program, te);
+        check_gl_error();
+        //glAttachShader(shader_program, gs);
+    }
     glAttachShader(shader_program, fs);
     glLinkProgram(shader_program);
+}
+
+void Mesh::createPatches()
+{
+    GLint inputVertices = glGetAttribLocation(shader_program, "vPosition" );
+    GLfloat vertices [][2] = {
+            {-0.75, -0.25}, {-0.25, -0.25}, {-0.25, 0.25}, {-0.75, 0.25},
+            { 0.25, -0.25}, { 0.75, -0.25}, { 0.75, 0.25}, { 0.25, 0.25}
+    };
+    glGenVertexArrays(1, &vao);
+    check_gl_error();
+    glBindVertexArray(vao);
+    check_gl_error();
+    glBindVertexArray(vao);
+    check_gl_error();
+    glGenBuffers(1,&vbo);
+    check_gl_error();
+    glEnableVertexAttribArray(inputVertices);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    check_gl_error();
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+                 GL_STATIC_DRAW);
+    check_gl_error();
+    glVertexAttribPointer(inputVertices, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    check_gl_error();
+
+
 }
 
 void Mesh::createMesh()
@@ -151,7 +183,11 @@ void Mesh::createMesh()
 Mesh::Mesh()
 {
     loadShaders();
-    createMesh();
+    check_gl_error();
+    if(draw_mesh)
+        createMesh();
+    else
+        createPatches();
 }
 
 Mesh::~Mesh()
@@ -162,6 +198,7 @@ Mesh::~Mesh()
 void Mesh::render()
 {
     glUseProgram(shader_program);
+
     check_gl_error();
     {
         ////
@@ -205,11 +242,20 @@ void Mesh::render()
             glEnableVertexAttribArray(pos_in);
             check_gl_error();
 */
-            glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-            check_gl_error();
+            if(draw_mesh)
+            {
+                glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                check_gl_error();
+            }
+            else
+            {
+                glPatchParameteri(GL_PATCH_VERTICES, 4);
+                check_gl_error();
+                glDrawArrays(GL_PATCHES, 0, 8);
+                check_gl_error();
+            }
         }
     }
-    // glPatchParameteri(GL_PATCH_VERTICES, 3);
-   // glDrawArrays( GL_PATCHES, 0, 3);
+
 }
 

@@ -24,6 +24,8 @@ public:
     void loadShaders();
 
     void createMesh();
+
+    void createPatches();
 };
 
 

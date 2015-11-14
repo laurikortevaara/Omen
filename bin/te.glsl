@@ -1,20 +1,17 @@
 #version 410
 
-layout(triangles, equal_spacing) in;
+layout (quads, equal_spacing, ccw) in;
 
-// Input attributs
-in vec3 WorldPos_ES_in[];
+out vec4 color;
 
-// Output attributs
-out vec3 WorldPos_FS_in;
-
-vec3 interpolate3D(vec3 v0, vec3 v1, vec3 v2)                                                   
-{                                                                                               
-    return vec3(gl_TessCoord.x) * v0 + vec3(gl_TessCoord.y) * v1 + vec3(gl_TessCoord.z) * v2;   
-}      
-
-void main(void)
+void main()
 {
-    WorldPos_FS_in = interpolate3D(WorldPos_ES_in[0],WorldPos_ES_in[1],WorldPos_ES_in[2]);
-    gl_Position = vec4(WorldPos_FS_in, 1.0);   
+	float u = gl_TessCoord.x;
+	float omu = 1 - u; // one minus "u"
+	float v = gl_TessCoord.y;
+	float omv = 1 - v; // one minus "v"
+	color = vec4(gl_TessCoord,1);
+	gl_Position =
+		omu * omv * gl_in[0].gl_Position + u * omv * gl_in[1].gl_Position +
+		u * v * gl_in[2].gl_Position + omu * v * gl_in[3].gl_Position;
 }
