@@ -13,13 +13,26 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 
+#include <stb/stb.h>
+
 #define BUFFER_OFFSET(offset)  (0 + offset)
 
 GLuint vao = 0;
 GLuint vbo = 0;
 GLuint vbo_barycentric = 0;
 GLuint shader_program = 0;
-GLboolean draw_mesh = GL_FALSE;
+GLboolean draw_mesh = 0;
+
+GLfloat vertices [][3] = {
+        {-1, -1, 0}, {-1, 1, 0}, { 1, -1, 0}, // vPosition
+        { 1, -1, 0}, {-1, 1, 0}, { 1,  1, 0} // vPosition
+};
+
+GLfloat baryCoords [][3] = {
+        { 1, 0, 0,}, { 0, 1, 0}, { 0,  0, 1}, // baryCentric
+        { 1, 0, 0,}, { 0, 1, 0}, { 0,  0, 1} // baryCentric
+};
+
 
 void loadShader( const std::string& filename, std::string& out ) {
     std::string line;
@@ -33,8 +46,8 @@ void loadShader( const std::string& filename, std::string& out ) {
 void Mesh::loadShaders()
 {
     std::string vertex_shader; loadShader("vs.glsl", vertex_shader);
-    std::string control_shader; loadShader("tc.glsl", control_shader);
-    std::string eval_shader; loadShader("te.glsl", eval_shader);
+    std::string control_shader; loadShader("tc_triangle.glsl", control_shader);
+    std::string eval_shader; loadShader("te_triangle.glsl", eval_shader);
     std::string geom_shader; loadShader("gs.glsl", geom_shader);
     std::string fragment_shader; loadShader("fs.glsl", fragment_shader);
 
@@ -45,6 +58,7 @@ void Mesh::loadShaders()
     GLchar log3[255];
     GLchar log4[255];
     GLchar log5[255];
+    GLchar log_program[255];
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     const GLchar* ss = vertex_shader.c_str();
@@ -94,15 +108,15 @@ void Mesh::loadShaders()
     }
     glAttachShader(shader_program, fs);
     glLinkProgram(shader_program);
+    glGetProgramInfoLog(shader_program,255, &sizei, log_program);
+
+    assert(strlen(log5)==0);
 }
 
 void Mesh::createPatches()
 {
     GLint inputVertices = glGetAttribLocation(shader_program, "vPosition" );
-    GLfloat vertices [][2] = {
-            {-0.75, -0.25}, {-0.25, -0.25}, {-0.25, 0.25}, {-0.75, 0.25},
-            { 0.25, -0.25}, { 0.75, -0.25}, { 0.75, 0.25}, { 0.25, 0.25}
-    };
+    GLint baryCentric = glGetAttribLocation(shader_program, "baryCentric" );
     glGenVertexArrays(1, &vao);
     check_gl_error();
     glBindVertexArray(vao);
@@ -117,9 +131,19 @@ void Mesh::createPatches()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW);
     check_gl_error();
-    glVertexAttribPointer(inputVertices, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(inputVertices, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     check_gl_error();
 
+    glGenBuffers(1,&vbo_barycentric);
+    check_gl_error();
+    glEnableVertexAttribArray(baryCentric);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_barycentric);
+    check_gl_error();
+    glBufferData(GL_ARRAY_BUFFER, sizeof(baryCoords), baryCoords,
+                 GL_STATIC_DRAW);
+    check_gl_error();
+    glVertexAttribPointer(baryCentric, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    check_gl_error();
 
 }
 
@@ -131,21 +155,12 @@ void Mesh::createMesh()
     check_gl_error();
 
     GLint inputVertices = glGetAttribLocation(shader_program, "vPosition" );
-    GLint inputBaryCentric = glGetAttribLocation(shader_program, "Barycentric_VS_in" );
+    GLint inputBaryCentric = glGetAttribLocation(shader_program, "baryCentric" );
 
     if(inputVertices>=0) {
-        float points[] = {
-                -1.0f, -1.0f, 0.0f,
-                -1.0f,  1.0f, 0.0f,
-                1.0f, -1.0f, 0.0f,
-                /*-1.0f, 1.0f, 0.0f,
-                1.0f, 1.0f, 0.0f,
-                1.0f, -1.0f, 0.0f*/
-        };
-
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         check_gl_error();
         glEnableVertexAttribArray(inputVertices);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -155,19 +170,9 @@ void Mesh::createMesh()
     }
 
     if(inputBaryCentric>=0) {
-
-        float barycentric[] = {
-                1.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 1.0f,
-                /*1.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 1.0f,*/
-        };
-
         glGenBuffers(1, &vbo_barycentric);
         glBindBuffer(GL_ARRAY_BUFFER, vbo_barycentric);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(barycentric), barycentric, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(baryCoords), baryCoords, GL_STATIC_DRAW);
         check_gl_error();
 
         glEnableVertexAttribArray(inputBaryCentric);
@@ -180,7 +185,7 @@ void Mesh::createMesh()
     }
 }
 
-Mesh::Mesh()
+Mesh::Mesh() : fInnerTess(1.0),fOuterTess(1.0)
 {
     loadShaders();
     check_gl_error();
@@ -197,6 +202,7 @@ Mesh::~Mesh()
 
 void Mesh::render()
 {
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     glUseProgram(shader_program);
 
     check_gl_error();
@@ -204,17 +210,16 @@ void Mesh::render()
         ////
         //// Tessellation parameters
         ////
-        /*
+
         GLint tessLevelInner = glGetUniformLocation(shader_program, "innerTess");
         check_gl_error();
 
         GLint tessLevelOuter = glGetUniformLocation(shader_program, "outerTess");
         check_gl_error();
 
-        glUniform1f(tessLevelInner, 1);
-        glUniform1f(tessLevelOuter, 1);
+        glUniform1f(tessLevelInner, fInnerTess);
+        glUniform1f(tessLevelOuter, fOuterTess);
         check_gl_error();
-        */
 
         ////
         //// Projection Matrix
@@ -224,11 +229,11 @@ void Mesh::render()
         {
             glm::mat4 mvpi = glm::mat4(1.0);
             mvpi = glm::translate(mvpi, glm::vec3(0,0,0));
+            mvpi = glm::scale(mvpi, glm::vec3(0.75,0.75,0.75));
             check_gl_error();
             glUniformMatrix4fv(mvp, 1, GL_FALSE, glm::value_ptr(mvpi));
             check_gl_error();
         }
-
 
         ////
         //// Drawing the mesh
@@ -237,25 +242,19 @@ void Mesh::render()
             glBindVertexArray(vao);
             check_gl_error();
 
-/*
-            GLint pos_in = glGetAttribLocation(shader_program, "Position_VS_in");
-            glEnableVertexAttribArray(pos_in);
-            check_gl_error();
-*/
             if(draw_mesh)
             {
-                glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                glDrawArrays(GL_TRIANGLES, 0, 6); // Starting from vertex 0; 3 vertices total -> 1 triangle
                 check_gl_error();
             }
             else
             {
-                glPatchParameteri(GL_PATCH_VERTICES, 4);
+                glPatchParameteri(GL_PATCH_VERTICES,3);
                 check_gl_error();
-                glDrawArrays(GL_PATCHES, 0, 8);
+                glDrawArrays(GL_PATCHES, 0, 3);
                 check_gl_error();
             }
         }
     }
-
 }
 

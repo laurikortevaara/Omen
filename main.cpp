@@ -25,6 +25,27 @@ void keyHit(GLFWwindow *window, int c, int c2, int c3, int c4)
     if(c==GLFW_KEY_Q || c == GLFW_KEY_ESCAPE)
         exit(0);
 
+    if(gScene!= nullptr){
+        if(c==GLFW_KEY_W){
+            for(auto model : gScene->m_models)
+                model->m_mesh->fInnerTess -= 1;
+        }
+        if(c==GLFW_KEY_E){
+            for(auto model : gScene->m_models)
+                model->m_mesh->fInnerTess += 1;
+        }
+        if(c==GLFW_KEY_S){
+            for(auto model : gScene->m_models)
+                model->m_mesh->fOuterTess -= 1;
+        }
+        if(c==GLFW_KEY_D){
+            for(auto model : gScene->m_models)
+                model->m_mesh->fOuterTess += 1;
+        }
+
+
+    }
+
 }
 
 int main(int argc, char *argv[]) {

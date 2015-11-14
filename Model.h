@@ -12,7 +12,7 @@ class Model {
 public:
     Model();
     void render();
-private:
+
     std::shared_ptr<Mesh> m_mesh;
 };
 

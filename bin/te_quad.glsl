@@ -13,5 +13,5 @@ void main()
 	color = vec4(gl_TessCoord,1);
 	gl_Position =
 		omu * omv * gl_in[0].gl_Position + u * omv * gl_in[1].gl_Position +
-		u * v * gl_in[2].gl_Position + omu * v * gl_in[3].gl_Position;
+		u * v * gl_in[2].gl_Position; // + omu * v * gl_in[3].gl_Position;
 }

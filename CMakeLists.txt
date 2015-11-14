@@ -40,10 +40,16 @@ add_subdirectory(thirdparty/glfw)
 include_directories(thirdparty/glfw/include)
 
 #########################################################
-# GLFW
+# GLM
 #########################################################
 add_subdirectory(thirdparty/glm)
 include_directories(thirdparty/glm)
+
+#########################################################
+# STB
+#########################################################
+#add_subdirectory(thirdparty/stb)
+include_directories(thirdparty)
 
 set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h.h)
 add_executable(Omen ${SOURCE_FILES})

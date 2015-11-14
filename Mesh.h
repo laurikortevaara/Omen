@@ -26,6 +26,8 @@ public:
     void createMesh();
 
     void createPatches();
+
+    float fOuterTess, fInnerTess;
 };
 
 
