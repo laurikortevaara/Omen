@@ -1,8 +1,11 @@
 #version 410 core
 
 in vec3 vBC;
+in vec2 fs_texcoord;
 
 out vec4 fColor;
+
+uniform sampler2D tex;
 
 void main() 
 {
@@ -10,7 +13,8 @@ void main()
     	fColor = vec4(0.0, 0.0, 0.0, 1.0);
 	}
 	else{
-    	fColor = vec4(0.5, 0.5, 0.5, 1.0);
+    	fColor = texture(tex, fs_texcoord);
 	}
-	fColor = vec4(vBC,1);
+	fColor = texture(tex, fs_texcoord);
+	//fColor = vec4(vBC,1);
 }

@@ -28,6 +28,8 @@ public:
     void createPatches();
 
     float fOuterTess, fInnerTess;
+
+    void loadTextures();
 };
 
 
