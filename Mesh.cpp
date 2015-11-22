@@ -28,7 +28,7 @@ GLint attrib_texcoord;
 
 GLuint shader_program = 0;
 GLuint textureID = 0;
-GLboolean draw_mesh = 1;
+GLboolean draw_mesh = 0;
 
 GLfloat vertices [][3] = {
         {-1, -1, 0}, {-1, 1, 0}, { 1,  1, 0}, { 1, -1, 0}// vPosition
@@ -73,14 +73,16 @@ void Mesh::loadTextures()
     //glGenerateMipmap(GL_TEXTURE_2D);
 
     int x,y,btm;
-    FILE* f = fopen("checker.jpg","r");
+    FILE* f = fopen("bubble.png","r");
     stbi_uc* image = stbi_load_from_file(f, &x, &y, &btm, 0);
     /*
     x = 256;
     y = 256;
     char * image = (char*)malloc(4*x*y);
     memset(image, 0xff, x*y*4);*/
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, (const void*) image);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*) image);
     check_gl_error();
     stbi_image_free(image);
 
@@ -107,7 +109,7 @@ void Mesh::loadShaders()
         loadShader("patch_shaders/vs.glsl", vertex_shader);
         loadShader("patch_shaders/tc_quad.glsl", control_shader);
         loadShader("patch_shaders/te_quad.glsl", eval_shader);
-        loadShader("patch_shaders/gs.glsl", geom_shader);
+        //loadShader("patch_shaders/gs.glsl", geom_shader);
         loadShader("patch_shaders/fs.glsl", fragment_shader);
     }
 
@@ -247,8 +249,6 @@ Mesh::~Mesh()
 
 void Mesh::render()
 {
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
     glUseProgram(shader_program);
 
     check_gl_error();
@@ -256,7 +256,6 @@ void Mesh::render()
         ////
         //// Tessellation parameters
         ////
-        /*
         GLint tessLevelInner = glGetUniformLocation(shader_program, "innerTess");
         check_gl_error();
 
@@ -266,7 +265,7 @@ void Mesh::render()
         glUniform1f(tessLevelInner, fInnerTess);
         glUniform1f(tessLevelOuter, fOuterTess);
         check_gl_error();
-        */
+
         ////
         //// Projection Matrix
         ////
@@ -294,12 +293,15 @@ void Mesh::render()
             ////
             //// Texture
             ////
-            glEnable(GL_TEXTURE_2D);
             GLint texUniform = glGetUniformLocation(shader_program, "tex");
+            check_gl_error();
 
             glActiveTexture(GL_TEXTURE0);
+            check_gl_error();
             glBindTexture(GL_TEXTURE_2D, textureID);
+            check_gl_error();
             glUniform1i(texUniform, /*GL_TEXTURE*/0);
+            check_gl_error();
 
 
             glBindVertexArray(vao);
