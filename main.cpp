@@ -18,33 +18,35 @@ void SetupRC(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
 
-void keyHit(GLFWwindow *window, int c, int c2, int c3, int c4) {
-    if (c2 != 0) {
-        if (c == GLFW_KEY_Q || c == GLFW_KEY_ESCAPE)
+void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_Q || key== GLFW_KEY_ESCAPE)
             exit(0);
 
         if (gScene != nullptr) {
-            if (c == GLFW_KEY_W) {
+            if (key == GLFW_KEY_W) {
                 for (auto model : gScene->m_models)
-                    model->m_mesh->fInnerTess -= 1;
+                    if(model->m_mesh->fInnerTess>1)
+                        model->m_mesh->fInnerTess -= 1;
             }
-            if (c == GLFW_KEY_E) {
+            if (key == GLFW_KEY_E) {
                 for (auto model : gScene->m_models)
                     model->m_mesh->fInnerTess += 1;
             }
-            if (c == GLFW_KEY_S) {
+            if (key == GLFW_KEY_S) {
                 for (auto model : gScene->m_models)
+                    if(model->m_mesh->fOuterTess>1)
                     model->m_mesh->fOuterTess -= 1;
             }
-            if (c == GLFW_KEY_D) {
+            if (key == GLFW_KEY_D) {
                 for (auto model : gScene->m_models)
                     model->m_mesh->fOuterTess += 1;
             }
 
-            if (c == GLFW_KEY_T)
+            if (key == GLFW_KEY_T)
                 for (auto model : gScene->m_models)
                     model->m_mesh->mPolygonMode = GL_FILL;
-            if (c == GLFW_KEY_Y)
+            if (key == GLFW_KEY_Y)
                 for (auto model : gScene->m_models)
                     model->m_mesh->mPolygonMode = GL_LINE;
         }

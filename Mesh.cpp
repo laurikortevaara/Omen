@@ -89,7 +89,7 @@ void loadShader(const std::string &filename, std::string &out) {
 
 
 
-Mesh::Mesh() : fInnerTess(50.0), fOuterTess(80.0), mPolygonMode(GL_LINE) {
+Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_LINE) {
     loadShaders();
     check_gl_error();
     loadTextures();
