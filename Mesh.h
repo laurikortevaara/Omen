@@ -30,6 +30,8 @@ public:
     float fOuterTess, fInnerTess;
 
     void loadTextures();
+
+    GLenum mPolygonMode;
 };
 
 

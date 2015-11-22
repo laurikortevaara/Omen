@@ -9,25 +9,21 @@
 
 std::shared_ptr<Scene> gScene = nullptr;
 
-void RenderScene(void)
-{
+void RenderScene(void) {
     glClear(GL_COLOR_BUFFER_BIT);
     gScene->render();
 }
 
-void SetupRC(void)
-{
+void SetupRC(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
 
-void keyHit(GLFWwindow *window, int c, int c2, int c3, int c4)
-{
-    if(c2!=0)
-    {
-        if(c==GLFW_KEY_Q || c == GLFW_KEY_ESCAPE)
+void keyHit(GLFWwindow *window, int c, int c2, int c3, int c4) {
+    if (c2 != 0) {
+        if (c == GLFW_KEY_Q || c == GLFW_KEY_ESCAPE)
             exit(0);
 
-        if(gScene!= nullptr) {
+        if (gScene != nullptr) {
             if (c == GLFW_KEY_W) {
                 for (auto model : gScene->m_models)
                     model->m_mesh->fInnerTess -= 1;
@@ -44,13 +40,20 @@ void keyHit(GLFWwindow *window, int c, int c2, int c3, int c4)
                 for (auto model : gScene->m_models)
                     model->m_mesh->fOuterTess += 1;
             }
+
+            if (c == GLFW_KEY_T)
+                for (auto model : gScene->m_models)
+                    model->m_mesh->mPolygonMode = GL_FILL;
+            if (c == GLFW_KEY_Y)
+                for (auto model : gScene->m_models)
+                    model->m_mesh->mPolygonMode = GL_LINE;
         }
     }
 
 }
 
 int main(int argc, char *argv[]) {
-    GLFWwindow* window;
+    GLFWwindow *window;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -65,8 +68,7 @@ int main(int argc, char *argv[]) {
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(1280, 720, "Hello World", NULL, NULL);
-    if (!window)
-    {
+    if (!window) {
         glfwTerminate();
         return -1;
     }
@@ -81,8 +83,7 @@ int main(int argc, char *argv[]) {
     glDisable(GL_CULL_FACE);
     gScene = std::make_shared<Scene>(Scene());
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         /* Render here */
         RenderScene();
 

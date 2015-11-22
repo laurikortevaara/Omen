@@ -1,7 +1,7 @@
 #version 410 core
 
-//in  vec3 vBC[];
-//out vec3 patch_vBC[];
+in  vec3 tc_barycentric[];
+out vec3 te_barycentric[];
 
 in  vec4 tc_position[];
 out vec4 te_position[];
@@ -16,7 +16,7 @@ uniform float outerTess;
 
 void main()
 {
-	//patch_vBC[gl_InvocationID]=vBC[gl_InvocationID];
+	te_barycentric[gl_InvocationID]=tc_barycentric[gl_InvocationID];
 	te_position[gl_InvocationID]=tc_position[gl_InvocationID];
 	te_texcoord[gl_InvocationID]=tc_texcoord[gl_InvocationID];
 
