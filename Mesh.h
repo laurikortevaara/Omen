@@ -32,6 +32,7 @@ public:
     void loadTextures();
 
     GLenum mPolygonMode;
+    GLint m_use_texture;
 };
 
 

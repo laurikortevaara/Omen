@@ -49,6 +49,10 @@ void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
             if (key == GLFW_KEY_Y)
                 for (auto model : gScene->m_models)
                     model->m_mesh->mPolygonMode = GL_LINE;
+
+            if (key == GLFW_KEY_1)
+                for (auto model : gScene->m_models)
+                    model->m_mesh->m_use_texture = (++model->m_mesh->m_use_texture) % 3;
         }
     }
 

@@ -41,11 +41,11 @@ GLfloat vertices_quad[][3] = {
 
 GLfloat vertices_tri[][3] = {
         {-1, -1, 0},
-        {-1, 1,  0},
-        {1,  1,  0}, // vPosition
-        {-1, -1, 0},
-        {1,  1,  0},
-        {1,  -1, 0}
+        {-1,  1, 0},
+        { 1, -1, 0}, // vPosition
+        {-1,  1, 0},
+        { 1,  1, 0},
+        { 1, -1, 0}
 };
 
 GLfloat uvCoords_quad[][2] = {
@@ -57,8 +57,8 @@ GLfloat uvCoords_quad[][2] = {
 GLfloat uvCoords_tri[][2] = {
         {0, 0},
         {0, 1},
-        {1, 1},
-        {0, 0},
+        {1, 0},
+        {0, 1},
         {1, 1},
         {1, 0},};
 
@@ -310,7 +310,7 @@ void Mesh::render() {
             );
             // Camera matrix
             glm::mat4 View = glm::lookAt(
-                    glm::vec3(2, 1, 1), // Camera is at (4,3,3), in World Space
+                    glm::vec3(1, 0, 1), // Camera is at (4,3,3), in World Space
                     glm::vec3(0, 0, 0), // and looks at the origin
                     glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
             );
@@ -327,6 +327,10 @@ void Mesh::render() {
         //// Drawing the mesh
         ////
         {
+
+            GLint useTextureUniform = glGetUniformLocation(shader_program, "useTexture");
+            glUniform1i(useTextureUniform, m_use_texture ? 1 : 0 );
+
             ////
             //// Texture
             ////
@@ -380,7 +384,7 @@ void Mesh::render() {
                 int num_patch_vertices = draw_triangle_patches ? 3 : 4;
                 glPatchParameteri(GL_PATCH_VERTICES, num_patch_vertices);
                 check_gl_error();
-                glDrawArrays(GL_PATCHES, 0, 2 * num_patch_vertices);
+                glDrawArrays(GL_PATCHES, 0, 2*num_patch_vertices);
                 check_gl_error();
             }
         }
