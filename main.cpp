@@ -86,7 +86,8 @@ int main(int argc, char *argv[]) {
 
     SetupRC();
 
-    glDisable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
     gScene = std::make_shared<Scene>(Scene());
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {

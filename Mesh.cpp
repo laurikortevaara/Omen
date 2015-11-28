@@ -40,12 +40,12 @@ GLfloat vertices_quad[][3] = {
 };
 
 GLfloat vertices_tri[][3] = {
-        {-1, -1, 0},
-        {-1,  1, 0},
-        { 1, -1, 0}, // vPosition
-        {-1,  1, 0},
-        { 1,  1, 0},
-        { 1, -1, 0}
+        {-50, 0, -50},
+        {-50, 0,  50},
+        { 50, 0, -50}, // vPosition
+        {-50, 0,  50},
+        { 50, 0,  50},
+        { 50, 0, -50},
 };
 
 GLfloat uvCoords_quad[][2] = {
@@ -111,7 +111,7 @@ void Mesh::loadTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     int x, y, btm;
-    FILE *f = fopen("checker.jpg", "r");
+    FILE *f = fopen("heightmap.jpg", "r");
     stbi_uc *image = stbi_load_from_file(f, &x, &y, &btm, 0);
 
     glEnable(GL_BLEND);
@@ -310,10 +310,13 @@ void Mesh::render() {
             );
             // Camera matrix
             glm::mat4 View = glm::lookAt(
-                    glm::vec3(1, 0, 1), // Camera is at (4,3,3), in World Space
+                    glm::vec3(0, 40, 50), // Camera is at (4,3,3), in World Space
                     glm::vec3(0, 0, 0), // and looks at the origin
                     glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
             );
+            static float angle = 0.0f;
+            angle += 0.01f;
+            View = glm::rotate(View,  angle, glm::vec3(0.0f,1.0f,0.0f));
             // Model matrix : an identity matrix (model will be at the origin)
             glm::mat4 Model = glm::mat4(1.0f);
             // Our ModelViewProjection : multiplication of our 3 matrices

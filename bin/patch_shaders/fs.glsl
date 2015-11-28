@@ -19,6 +19,7 @@ void main()
 	/*if(useTexture == 3)
 		fColor = vec4(fc_barycentric.x, fc_barycentric.y, fc_barycentric.z, 1);		*/
 
+
 	if(any(lessThan(fs_barycentric, vec3(0.001)))){
     	fColor = vec4(0.0, 0.0, 0.0, 1.0);
 	}
