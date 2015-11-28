@@ -14,3 +14,7 @@ void Model::render() {
     m_mesh->render();
 }
 
+void Model::onCameraChanged(std::shared_ptr<Camera> camera) {
+    m_mesh->m_viewMatrix = camera->view;
+    m_mesh->m_projectionMatrix = camera->projection;
+}

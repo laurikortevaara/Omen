@@ -14,8 +14,10 @@ public:
     Scene();
     virtual ~Scene();
     void render();
+
 public:
     std::vector< std::shared_ptr<Model> > m_models;
+    std::shared_ptr<Camera> m_camera;
 };
 
 

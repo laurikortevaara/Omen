@@ -7,13 +7,19 @@
 
 
 #include "Mesh.h"
+#include "Camera.h"
 
 class Model {
 public:
     Model();
     void render();
 
+    void onCameraChanged(std::shared_ptr<Camera> camera);
+
+    std::shared_ptr<Camera> m_camera;
     std::shared_ptr<Mesh> m_mesh;
+
+    glm::mat4   m_modelMatrix;
 };
 
 

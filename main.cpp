@@ -3,6 +3,7 @@
 #include <GLUT/glut.h>
 #include <stdlib.h>
 #include <memory>
+#include <functional>
 #include <c++/v1/memory>
 #include "Scene.h"
 
@@ -20,13 +21,13 @@ void SetupRC(void) {
 
 void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
     if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_Q || key== GLFW_KEY_ESCAPE)
+        if (key == GLFW_KEY_Q || key == GLFW_KEY_ESCAPE)
             exit(0);
 
         if (gScene != nullptr) {
             if (key == GLFW_KEY_W) {
                 for (auto model : gScene->m_models)
-                    if(model->m_mesh->fInnerTess>1)
+                    if (model->m_mesh->fInnerTess > 1)
                         model->m_mesh->fInnerTess -= 1;
             }
             if (key == GLFW_KEY_E) {
@@ -35,8 +36,8 @@ void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
             }
             if (key == GLFW_KEY_S) {
                 for (auto model : gScene->m_models)
-                    if(model->m_mesh->fOuterTess>1)
-                    model->m_mesh->fOuterTess -= 1;
+                    if (model->m_mesh->fOuterTess > 1)
+                        model->m_mesh->fOuterTess -= 1;
             }
             if (key == GLFW_KEY_D) {
                 for (auto model : gScene->m_models)
@@ -56,10 +57,54 @@ void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
         }
     }
 
+    if(key == GLFW_KEY_LEFT)
+        gScene->m_camera->velocity.x -= 0.2f;
+    if(key == GLFW_KEY_RIGHT)
+        gScene->m_camera->velocity.x += 0.2f;
+    if(key == GLFW_KEY_DOWN && mods == GLFW_MOD_SHIFT)
+        gScene->m_camera->velocity.y -= 0.2f;
+    if(key == GLFW_KEY_UP && mods == GLFW_MOD_SHIFT)
+        gScene->m_camera->velocity.y += 0.2f;
+
+    if(key == GLFW_KEY_DOWN && mods != GLFW_MOD_SHIFT)
+        gScene->m_camera->velocity.z -= 0.2f;
+    if(key == GLFW_KEY_UP && mods != GLFW_MOD_SHIFT)
+        gScene->m_camera->velocity.z += 0.2f;
+
 }
+
+class c {
+public:
+    Signal<std::function<void(int, int)> >& m_s;
+
+    c(Signal<std::function<void(int, int)> >& s) : m_s(s) {
+        s.connect(this, std::function<void(int, int)>([](int i1, int i2){ std::cout << "Hello world" << std::endl;}));
+    }
+
+    ~c() {
+        m_s.disconnect(this);
+    }
+
+    void test(int i1, int i2) {
+        std::cout << "From C: " << i1 << ", " << i2 << std::endl;
+    }
+};
 
 int main(int argc, char *argv[]) {
     GLFWwindow *window;
+
+
+    {
+        Signal<std::function<void(int, int)> > my_signal;
+
+        c a(my_signal);
+        my_signal.connect(
+                std::function<void(int, int)>([](int i1, int i2) { std::cout << i1 << ", " << i2 << std::endl; }));
+        my_signal.connect(
+                std::function<void(int, int)>([](int i1, int i2) { std::cout << i2 << ", " << i1 << std::endl; }));
+        my_signal.connect(std::function<void(int, int)>([](int i1, int i2) { std::cout << i2 + i1 << std::endl; }));
+        my_signal.emit(5, 6);
+    }
 
     /* Initialize the library */
     if (!glfwInit())

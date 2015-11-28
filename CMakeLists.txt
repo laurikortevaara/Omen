@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3)
 project(Omen)
 
 set(CMAKE_C_COMPILER "/usr/bin/clang")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -Wall -pedantic -stdlib=libc++")
 
 # FORCE OS X 10.8 DEPLOYMENT TARGET ON OS X TO SUPPORT GLUT
 if(APPLE)
@@ -51,7 +51,7 @@ include_directories(thirdparty/glm)
 #add_subdirectory(thirdparty/stb)
 include_directories(thirdparty)
 
-set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h.h)
+set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h.h Camera.cpp Camera.h Signal.h)
 add_executable(Omen ${SOURCE_FILES})
 
 TARGET_LINK_LIBRARIES(Omen ${OPENGL_LIBRARIES})
