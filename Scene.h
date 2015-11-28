@@ -14,7 +14,7 @@ public:
     Scene();
     virtual ~Scene();
     void render();
-private:
+public:
     std::vector< std::shared_ptr<Model> > m_models;
 };
 
