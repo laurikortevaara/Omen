@@ -29,55 +29,8 @@ GLint attrib_texcoord;
 
 GLuint shader_program = 0;
 GLuint textureID = 0;
-GLboolean draw_mesh = 0;
+GLboolean draw_mesh = 1;
 GLboolean draw_triangle_patches = 1;
-
-GLfloat vertices_quad[][3] = {
-        {-1, -1, 0},
-        {-1, 1,  0},
-        {1,  1,  0},
-        {1,  -1, 0}// vPosition
-};
-
-GLfloat vertices_tri[][3] = {
-        {-50, 0, -50},
-        {-50, 0,  50},
-        { 50, 0, -50}, // vPosition
-        {-50, 0,  50},
-        { 50, 0,  50},
-        { 50, 0, -50},
-};
-
-GLfloat uvCoords_quad[][2] = {
-        {0, 0},
-        {0, 1},
-        {1, 1},
-        {1, 0}};
-
-GLfloat uvCoords_tri[][2] = {
-        {0, 0},
-        {0, 1},
-        {1, 0},
-        {0, 1},
-        {1, 1},
-        {1, 0},};
-
-GLfloat baryCoords_quad[][3] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1},
-        {1, 0, 0}
-};
-
-GLfloat baryCoord_tri[][3] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1},
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1}
-};
-
 
 void loadShader(const std::string &filename, std::string &out) {
     std::string line;
@@ -89,7 +42,7 @@ void loadShader(const std::string &filename, std::string &out) {
 
 
 
-Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_LINE) {
+Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_FILL) {
     loadShaders();
     check_gl_error();
     loadTextures();
@@ -222,175 +175,95 @@ void Mesh::loadShaders() {
 }
 
 void Mesh::createPatches() {
-    attrib_vPosition = glGetAttribLocation(shader_program, "vPosition");
-    attrib_barycentric = glGetAttribLocation(shader_program, "barycentric");
-    attrib_texcoord = glGetAttribLocation(shader_program, "texcoord");
+    // Create the Vertex Array
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
 
-    ///
-    /// Create Vertex Array Object
-    ///
-    glGenVertexArrays(1, &vao);
-    check_gl_error();
-    glBindVertexArray(vao);
-    check_gl_error();
-    glBindVertexArray(vao);
-    check_gl_error();
+    // Create the Vertex Buffer Object
+    std::vector<std::tuple<GLfloat, GLfloat, GLfloat>> vertices = {{-1,0,0},{0,1,0},{1,0,0}};
+    // An array of 3 vectors which represents 3 vertices
+    static const GLfloat g_vertex_buffer_data[] = {
+            -1.0f, -1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            0.0f,  1.0f, 0.0f,
+            };
+    glGenBuffers(1, &m_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), &g_vertex_buffer_data[0], GL_STATIC_DRAW );
 
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, 0, (void*)0);
 
-    ///
-    /// Create Array Buffer for vertex coordinates
-    ///
-    const GLvoid *vertices = draw_triangle_patches ? vertices_tri : vertices_quad;
-    const GLvoid *baryCoords = draw_triangle_patches ? baryCoord_tri : baryCoords_quad;
-    const GLvoid *uvCoords = draw_triangle_patches ? uvCoords_tri : uvCoords_quad;
-    int num_elements = draw_triangle_patches ? 2 * 3 : 4;
-
-    if (attrib_vPosition >= 0) {
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, num_elements * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    }
-
-    ///
-    /// Create Array Buffer for barycentric coordinates
-    ///
-    if (attrib_barycentric >= 0) {
-        glGenBuffers(1, &vbo_barycentric);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_barycentric);
-        glBufferData(GL_ARRAY_BUFFER, num_elements * 3 * sizeof(GLfloat), baryCoords, GL_STATIC_DRAW);
-    }
-
-    ///
-    /// Create Array Buffer for texture coordinates
-    ///
-    if (attrib_texcoord >= 0) {
-        // Init resources
-        glGenBuffers(1, &vbo_texcoord);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoord);
-        glBufferData(GL_ARRAY_BUFFER, num_elements * 2 * sizeof(GLfloat), uvCoords, GL_STATIC_DRAW);
-    }
+    // Create the vertex index buffer
+    //std::vector<unsigned int> indices = {0,1,2};
+    //glGenBuffers(1, &m_ibo);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    glBindVertexArray(0);
 
 }
 
+
+void Mesh::setupModelView()
+{
+    ////
+    //// Projection Matrix
+    ////
+    GLint mvp_handle = glGetUniformLocation(shader_program, "ModelViewProjectionMatrix");
+    if (mvp_handle >= 0) {
+        double ViewPortParams[4];
+        glGetDoublev(GL_VIEWPORT, ViewPortParams);
+
+        // Generates a really hard-to-read matrix, but a normal, standard 4x4 matrix nonetheless
+        glm::mat4 Projection = glm::perspective(
+                90.0f,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
+                4.0f /
+                3.0f, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
+                0.1f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+                100.0f       // Far clipping plane. Keep as little as possible.
+        );
+        // Camera matrix
+        glm::mat4 View = glm::lookAt(
+                glm::vec3(0, 0, 1), // Camera is at (4,3,3), in World Space
+                glm::vec3(0, 0, 0), // and looks at the origin
+                glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+        );
+        static float angle = 0.0f;
+        View = glm::rotate(View,  angle, glm::vec3(0.0f,1.0f,0.0f));
+        // Model matrix : an identity matrix (model will be at the origin)
+        glm::mat4 Model = glm::mat4(1.0f);
+        // Our ModelViewProjection : multiplication of our 3 matrices
+        glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+        glUniformMatrix4fv(mvp_handle, 1, GL_FALSE, &mvp[0][0]);
+        check_gl_error();
+    }
+
+}
 
 void Mesh::render() {
     glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
     glUseProgram(shader_program);
 
-    check_gl_error();
-    {
-        ////
-        //// Tessellation parameters
-        ////
-        GLint tessLevelInner = glGetUniformLocation(shader_program, "innerTess");
-        check_gl_error();
 
-        GLint tessLevelOuter = glGetUniformLocation(shader_program, "outerTess");
-        check_gl_error();
+    setupModelView();
 
-        glUniform1f(tessLevelInner, fInnerTess);
-        glUniform1f(tessLevelOuter, fOuterTess);
-        check_gl_error();
-
-        ////
-        //// Projection Matrix
-        ////
-        GLint mvp_handle = glGetUniformLocation(shader_program, "ModelViewProjectionMatrix");
-        if (mvp_handle >= 0) {
-            double ViewPortParams[4];
-            glGetDoublev(GL_VIEWPORT, ViewPortParams);
-
-            // Generates a really hard-to-read matrix, but a normal, standard 4x4 matrix nonetheless
-            glm::mat4 Projection = glm::perspective(
-                    90.0f,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
-                    4.0f /
-                    3.0f, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
-                    0.1f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
-                    100.0f       // Far clipping plane. Keep as little as possible.
-            );
-            // Camera matrix
-            glm::mat4 View = glm::lookAt(
-                    glm::vec3(0, 40, 50), // Camera is at (4,3,3), in World Space
-                    glm::vec3(0, 0, 0), // and looks at the origin
-                    glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-            );
-            static float angle = 0.0f;
-            angle += 0.01f;
-            View = glm::rotate(View,  angle, glm::vec3(0.0f,1.0f,0.0f));
-            // Model matrix : an identity matrix (model will be at the origin)
-            glm::mat4 Model = glm::mat4(1.0f);
-            // Our ModelViewProjection : multiplication of our 3 matrices
-            glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
-
-            glUniformMatrix4fv(mvp_handle, 1, GL_FALSE, &mvp[0][0]);
-            check_gl_error();
-        }
-
-        ////
-        //// Drawing the mesh
-        ////
-        {
-
-            GLint useTextureUniform = glGetUniformLocation(shader_program, "useTexture");
-            glUniform1i(useTextureUniform, m_use_texture ? 1 : 0 );
-
-            ////
-            //// Texture
-            ////
-            GLint texUniform = glGetUniformLocation(shader_program, "tex");
-            check_gl_error();
-
-            glActiveTexture(GL_TEXTURE0);
-            check_gl_error();
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            check_gl_error();
-            glUniform1i(texUniform, /*GL_TEXTURE*/0);
-            check_gl_error();
-
-
-            glBindVertexArray(vao);
-            check_gl_error();
-
-            // Render
-            if (attrib_barycentric >= 0) {
-                glBindBuffer(GL_ARRAY_BUFFER, vbo_barycentric);
-                check_gl_error();
-                glEnableVertexAttribArray(attrib_barycentric);
-                check_gl_error();
-                glVertexAttribPointer(attrib_barycentric, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-                check_gl_error();
-            }
-            if (attrib_vPosition >= 0) {
-                glBindBuffer(GL_ARRAY_BUFFER, vbo);
-                check_gl_error();
-                glEnableVertexAttribArray(attrib_vPosition);
-                check_gl_error();
-                glVertexAttribPointer(attrib_vPosition, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-                check_gl_error();
-            }
-
-            if (attrib_texcoord >= 0) {
-                glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoord);
-                check_gl_error();
-                glEnableVertexAttribArray(attrib_texcoord);
-                check_gl_error();
-                glVertexAttribPointer(attrib_texcoord, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-                check_gl_error();
-            }
-
-
-            if (draw_mesh) {
-                glDrawArrays(GL_TRIANGLES, 0, 6); // Starting from vertex 0; 3 vertices total -> 1 triangle
-                check_gl_error();
-            }
-            else {
-                int num_patch_vertices = draw_triangle_patches ? 3 : 4;
-                glPatchParameteri(GL_PATCH_VERTICES, num_patch_vertices);
-                check_gl_error();
-                glDrawArrays(GL_PATCHES, 0, 2*num_patch_vertices);
-                check_gl_error();
-            }
-        }
-    }
+    glBindVertexArray(m_vao);
+    // 1rst attribute buffer : vertices
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glVertexAttribPointer(
+    0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+    3,                  // size
+    GL_FLOAT,           // type
+    GL_FALSE,           // normalized?
+    0,                  // stride
+    (void*)0            // array buffer offset
+    );
+    // Draw the triangle !
+    glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    glDisableVertexAttribArray(0);
+    //glDrawElements(GL_TRIANGLES, 1, GL_UNSIGNED_BYTE, &m_ibo);
+    glBindVertexArray(0);
 }
 

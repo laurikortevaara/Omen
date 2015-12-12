@@ -18,8 +18,11 @@ public:
     void render();
 
     std::vector< std::shared_ptr<Triangle> > m_triangles;
-    std::shared_ptr<VertexArrayObject> m_vao;
-    std::shared_ptr<VertexBufferObject> m_vbo;
+    //std::shared_ptr<VertexArrayObject> m_vao;
+    //std::shared_ptr<VertexBufferObject> m_vbo;
+    GLuint m_vao;
+    GLuint m_vbo;
+    GLuint m_ibo;
 
     void loadShaders();
 
@@ -33,6 +36,8 @@ public:
 
     GLenum mPolygonMode;
     GLint m_use_texture;
+
+    void setupModelView();
 };
 
 
