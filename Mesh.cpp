@@ -180,16 +180,10 @@ void Mesh::createPatches() {
     glBindVertexArray(m_vao);
 
     // Create the Vertex Buffer Object
-    std::vector<std::tuple<GLfloat, GLfloat, GLfloat>> vertices = {{-1,0,0},{0,1,0},{1,0,0}};
-    // An array of 3 vectors which represents 3 vertices
-    static const GLfloat g_vertex_buffer_data[] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            0.0f,  1.0f, 0.0f,
-            };
+    std::vector<std::tuple<GLfloat, GLfloat, GLfloat>> vertices = {{-1,-1,0},{1,-1,0},{0,1,0}};
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), &g_vertex_buffer_data[0], GL_STATIC_DRAW );
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices)*3*sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW );
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, 0, (void*)0);
