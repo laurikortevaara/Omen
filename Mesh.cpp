@@ -195,10 +195,10 @@ void Mesh::createPatches() {
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, 0, (void*)0);
 
     // Create the vertex index buffer
-    //std::vector<unsigned int> indices = {0,1,2};
-    //glGenBuffers(1, &m_ibo);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    std::vector<unsigned int> indices = {0,1,2};
+    glGenBuffers(1, &m_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
     glBindVertexArray(0);
 
 }
@@ -249,8 +249,9 @@ void Mesh::render() {
     setupModelView();
 
     glBindVertexArray(m_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-    //glDrawElements(GL_TRIANGLES, 1, GL_UNSIGNED_BYTE, &m_ibo);
+    //glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT,0);
     glBindVertexArray(0);
 }
 
