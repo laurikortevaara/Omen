@@ -11,8 +11,6 @@
 #include <glm/detail/type_mat4x4.hpp>
 #include <glm/detail/type_vec3.hpp>
 
-#include "Signal.h"
-
 const GLfloat DEFAULT_VIEW_ANGLE = 90.0f;
 const glm::vec3 DEFAULT_POSITION = {0, 0, 0};
 const glm::vec3 DEFAULT_LOOKAT = {0, 0, 1};
@@ -39,9 +37,6 @@ public:
     Camera(Camera *ptrCam) {
         *this = *ptrCam;
     }
-
-    Signal<std::function<void(std::shared_ptr<Camera>)> > CameraChanged;
-
 
     glm::vec3 velocity = {0,0,0};
     glm::vec3 position = DEFAULT_POSITION;

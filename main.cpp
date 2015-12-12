@@ -73,38 +73,8 @@ void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
 
 }
 
-class c {
-public:
-    Signal<std::function<void(int, int)> >& m_s;
-
-    c(Signal<std::function<void(int, int)> >& s) : m_s(s) {
-        s.connect(this, std::function<void(int, int)>([](int i1, int i2){ std::cout << "Hello world" << std::endl;}));
-    }
-
-    ~c() {
-        m_s.disconnect(this);
-    }
-
-    void test(int i1, int i2) {
-        std::cout << "From C: " << i1 << ", " << i2 << std::endl;
-    }
-};
-
 int main(int argc, char *argv[]) {
     GLFWwindow *window;
-
-
-    {
-        Signal<std::function<void(int, int)> > my_signal;
-
-        c a(my_signal);
-        my_signal.connect(
-                std::function<void(int, int)>([](int i1, int i2) { std::cout << i1 << ", " << i2 << std::endl; }));
-        my_signal.connect(
-                std::function<void(int, int)>([](int i1, int i2) { std::cout << i2 << ", " << i1 << std::endl; }));
-        my_signal.connect(std::function<void(int, int)>([](int i1, int i2) { std::cout << i2 + i1 << std::endl; }));
-        my_signal.emit(5, 6);
-    }
 
     /* Initialize the library */
     if (!glfwInit())

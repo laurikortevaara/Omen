@@ -10,8 +10,6 @@
 Scene::Scene() {
     m_camera = std::make_shared<Camera>(new Camera());
     m_models.push_back(std::make_shared<Model>(Model()));
-    for(const auto & model : m_models)
-        m_camera->CameraChanged.connect(std::function<void(std::shared_ptr<Camera>)>([=](std::shared_ptr<Camera> camera){model->onCameraChanged(camera);}));
 }
 
 Scene::~Scene() {

@@ -14,5 +14,4 @@ void Camera::update() {
     velocity *= 0.01;
     view = glm::lookAt(position, lookAt, glm::vec3(0, 1, 0));
     projection = glm::perspective(glm::radians(viewAngle), (float) 4 / (float) 3, near, far);
-    CameraChanged.emit(std::make_shared<Camera>(this));
 }
