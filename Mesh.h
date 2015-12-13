@@ -44,6 +44,8 @@ public:
 
     std::vector<unsigned int> m_indices;
     std::vector<Vertex*> m_vertices;
+
+    bool loadModel(const char *filename, std::vector<Vertex *> &mesh);
 };
 
 

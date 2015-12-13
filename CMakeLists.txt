@@ -50,7 +50,7 @@ include_directories(thirdparty/glm)
 #add_subdirectory(thirdparty/stb)
 include_directories(thirdparty)
 
-set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h.h)
+set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h.h Alertbox.h)
 add_executable(Omen ${SOURCE_FILES})
 
 TARGET_LINK_LIBRARIES(Omen ${OPENGL_LIBRARIES})

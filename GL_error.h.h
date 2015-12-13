@@ -8,10 +8,12 @@
 #include <OpenGL/gl3.h>
 #include <iostream>
 #include <signal.h>
+#include "Alertbox.h"
 
 inline void check_gl_error(){ \
     GLenum error = glGetError();\
     if(error!=GL_NO_ERROR){\
+        showAlert("Foo");\
         std::cout << "Error at: " << __PRETTY_FUNCTION__ << ", ErrorCode: " << error << std::endl;\
         \
     }}
