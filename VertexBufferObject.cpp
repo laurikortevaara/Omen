@@ -36,19 +36,11 @@ void VertexBufferObject::initialize() {
 }
 
 void VertexBufferObject::setMesh(std::vector<std::shared_ptr<Triangle> > triangles) {
-    std::vector<GLfloat> verts;
+    std::vector<Vertex> verts;
     for(auto t : triangles) {
-        verts.push_back(t->m_p1.x);
-        verts.push_back(t->m_p1.y);
-        verts.push_back(t->m_p1.z);
-
-        verts.push_back(t->m_p2.x);
-        verts.push_back(t->m_p2.y);
-        verts.push_back(t->m_p2.z);
-
-        verts.push_back(t->m_p3.x);
-        verts.push_back(t->m_p3.y);
-        verts.push_back(t->m_p3.z);
+        verts.push_back(*t->m_p1);
+        verts.push_back(*t->m_p2);
+        verts.push_back(*t->m_p3);
     }
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*verts.size(), verts.data(), GL_STATIC_DRAW);

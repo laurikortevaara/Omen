@@ -17,11 +17,12 @@ public:
     virtual ~Mesh();
     void render();
 
-    std::vector< std::shared_ptr<Triangle> > m_triangles;
+    std::vector< Triangle* > m_triangles;
     //std::shared_ptr<VertexArrayObject> m_vao;
     //std::shared_ptr<VertexBufferObject> m_vbo;
     GLuint m_vao;
-    GLuint m_vbo;
+    GLuint m_vbo_vertices;
+    GLuint m_vbo_normals;
     GLuint m_ibo;
 
     void loadShaders();
@@ -38,6 +39,11 @@ public:
     GLint m_use_texture;
 
     void setupModelView();
+
+    void createIcosahedron(std::vector<Vertex*> &mesh);
+
+    std::vector<unsigned int> m_indices;
+    std::vector<Vertex*> m_vertices;
 };
 
 

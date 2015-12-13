@@ -5,12 +5,22 @@
 #ifndef OMEN_VERTEX_H
 #define OMEN_VERTEX_H
 
+#include <glm/glm.hpp>
+#include <set>
+
+class Triangle;
 
 class Vertex {
 public:
-    Vertex() : x(0.0f), y(0.0f), z(0.0f) {};
-    Vertex(float _x, float _y, float _z) : x(_x),y(_y),z(_z){}
-    float x, y, z;
+    Vertex() : m_position(0,0,0), m_normal(0,0,0) {};
+    Vertex(const Vertex& other);
+    Vertex(float x, float y, float z) : m_position(x,y,z) {};
+
+    Vertex& operator=(const Vertex& other);
+
+    std::set<Triangle*> m_triangles;
+    glm::vec3 m_position;
+    glm::vec3 m_normal;
 };
 
 
