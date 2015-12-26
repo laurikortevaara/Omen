@@ -8,13 +8,15 @@
 
 #include "Mesh.h"
 
-class Model {
-public:
-    Model();
-    void render();
+namespace Omen {
+    class Model {
+    public:
+        Model();
 
-    std::shared_ptr<Mesh> m_mesh;
-};
+        void render();
 
+        std::shared_ptr<Omen::Mesh> m_mesh;
+    };
+} // namespace Omen
 
 #endif //OMEN_MODEL_H

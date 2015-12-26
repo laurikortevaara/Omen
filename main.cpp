@@ -1,104 +1,46 @@
 #include <GLFW/glfw3.h>
-#include <OpenGL/gl.h>
-#include <GLUT/glut.h>
 #include <stdlib.h>
 #include <memory>
-#include <c++/v1/memory>
+#include <iostream>
 #include "Scene.h"
+#include "Window.h"
+#include "Engine.h"
+#include "system/InputSystem.h"
+#include "KeyboardInput.h"
 
+using namespace Omen;
 
-std::shared_ptr<Scene> gScene = nullptr;
+std::shared_ptr<Omen::Scene> gScene = nullptr;
 
-void RenderScene(void) {
-    glClear(GL_COLOR_BUFFER_BIT);
-    gScene->render();
-}
-
-void SetupRC(void) {
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-}
-
-void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods) {
-    if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_Q || key== GLFW_KEY_ESCAPE)
-            exit(0);
-
-        if (gScene != nullptr) {
-            if (key == GLFW_KEY_W) {
-                for (auto model : gScene->m_models)
-                    if(model->m_mesh->fInnerTess>1)
-                        model->m_mesh->fInnerTess -= 1;
-            }
-            if (key == GLFW_KEY_E) {
-                for (auto model : gScene->m_models)
-                    model->m_mesh->fInnerTess += 1;
-            }
-            if (key == GLFW_KEY_S) {
-                for (auto model : gScene->m_models)
-                    if(model->m_mesh->fOuterTess>1)
-                    model->m_mesh->fOuterTess -= 1;
-            }
-            if (key == GLFW_KEY_D) {
-                for (auto model : gScene->m_models)
-                    model->m_mesh->fOuterTess += 1;
-            }
-
-            if (key == GLFW_KEY_T)
-                for (auto model : gScene->m_models)
-                    model->m_mesh->mPolygonMode = GL_FILL;
-            if (key == GLFW_KEY_Y)
-                for (auto model : gScene->m_models)
-                    model->m_mesh->mPolygonMode = GL_LINE;
-
-            if (key == GLFW_KEY_1)
-                for (auto model : gScene->m_models)
-                    model->m_mesh->m_use_texture = (++model->m_mesh->m_use_texture) % 3;
-        }
-    }
-
-}
-
+/**
+* the main
+**/
 int main(int argc, char *argv[]) {
-    GLFWwindow *window;
 
-    /* Initialize the library */
-    if (!glfwInit())
-        return -1;
+    Omen::Engine *engine = Omen::Engine::instance();
+    Omen::Window *window = engine->createWindow(1280, 720);
 
-    glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.1
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
+    Omen::ecs::System *inputSystem = engine->findSystem<Omen::InputSystem>();
+    if (inputSystem != nullptr) {
+        Omen::KeyboardInput *keyboardInput = dynamic_cast<Omen::KeyboardInput *>(inputSystem->findComponent<Omen::KeyboardInput>());
 
 
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1280, 720, "Hello World", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return -1;
+        keyboardInput->signal_key_press.connect([&](int k, int s, int a, int m) {
+            std::cout << "Foo" << std::endl;
+        });
+
+        keyboardInput->signal_key_release.connect([&](int k, int s, int a, int m) {
+            std::cout << "Bar" << std::endl;
+        });
     }
 
-    glfwSetKeyCallback(window, keyHit);
 
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
+    //gScene = std::make_shared<Scene>(Scene());
 
-    SetupRC();
-
-    glFrontFace(GL_CCW);
-    glEnable(GL_CULL_FACE);
-    gScene = std::make_shared<Scene>(Scene());
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window)) {
-        /* Render here */
-        RenderScene();
-
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
+    while (!window->shouldClose()) {
+        engine->update();
+        engine->render();
     }
 
     glfwTerminate();

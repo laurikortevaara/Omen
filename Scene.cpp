@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include "Model.h"
 
+using namespace Omen;
 
 Scene::Scene() {
     m_models.push_back(std::make_shared<Model>(Model()));

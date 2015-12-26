@@ -4,7 +4,10 @@
 
 #include <OpenGL/gl.h>
 #include "Model.h"
+#include "Shader.h"
 #include <memory>
+
+using namespace Omen;
 
 Model::Model() {
     m_mesh = std::make_shared<Mesh>(Mesh());

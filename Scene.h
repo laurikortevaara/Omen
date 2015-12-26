@@ -9,14 +9,18 @@
 #include <vector>
 #include "Model.h"
 
-class Scene {
-public:
-    Scene();
-    virtual ~Scene();
-    void render();
-public:
-    std::vector< std::shared_ptr<Model> > m_models;
-};
+namespace Omen {
+    class Scene {
+    public:
+        Scene();
 
+        virtual ~Scene();
+
+        void render();
+
+    public:
+        std::vector<std::shared_ptr<Model> > m_models;
+    };
+} // namespace Omen
 
 #endif //OMEN_SCENE_H

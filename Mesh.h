@@ -11,29 +11,32 @@
 #include "VertexArrayObject.h"
 #include "VertexBufferObject.h"
 
-class Mesh {
-public:
-    Mesh();
-    virtual ~Mesh();
-    void render();
+namespace Omen {
+    class Mesh {
+    public:
+        Mesh();
 
-    std::vector< std::shared_ptr<Triangle> > m_triangles;
-    std::shared_ptr<VertexArrayObject> m_vao;
-    std::shared_ptr<VertexBufferObject> m_vbo;
+        virtual ~Mesh();
 
-    void loadShaders();
+        void render();
 
-    void createMesh();
+        std::vector<std::shared_ptr<Triangle> > m_triangles;
+        std::shared_ptr<VertexArrayObject> m_vao;
+        std::shared_ptr<VertexBufferObject> m_vbo;
 
-    void createPatches();
+        void loadShaders();
 
-    float fOuterTess, fInnerTess;
+        void createMesh();
 
-    void loadTextures();
+        void createPatches();
 
-    GLenum mPolygonMode;
-    GLint m_use_texture;
-};
+        float fOuterTess, fInnerTess;
 
+        void loadTextures();
+
+        GLenum mPolygonMode;
+        GLint m_use_texture;
+    };
+} // namespace Omen
 
 #endif //OMEN_MESH_H

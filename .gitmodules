@@ -10,3 +10,6 @@
 [submodule "thirdparty/glew"]
 	path = thirdparty/glew
 	url = https://github.com/nigels-com/glew.git
+[submodule "thirdparty/boxer"]
+	path = thirdparty/boxer
+	url = https://github.com/aaronmjacobs/Boxer.git

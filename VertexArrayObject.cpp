@@ -8,7 +8,7 @@
 #include <ostream>
 #include <iostream>
 #include "VertexArrayObject.h"
-#include "GL_error.h.h"
+#include "GL_error.h"
 
 
 VertexArrayObject::VertexArrayObject() :

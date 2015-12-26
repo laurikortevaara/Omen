@@ -3,19 +3,18 @@
 //
 
 #include "Mesh.h"
-#include "OpenGL/gl3.h"
-#include "GL_error.h.h"
+#include <GLFW/glfw3.h>
+#include "GL_error.h"
 
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include "Texture.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 
-#define STB_IMAGE_IMPLEMENTATION
-
-#include <stb/stb_image.h>
+using namespace Omen;
 
 #define BUFFER_OFFSET(offset)  (0 + offset)
 
@@ -28,8 +27,8 @@ GLint attrib_barycentric;
 GLint attrib_texcoord;
 
 GLuint shader_program = 0;
-GLuint textureID = 0;
-GLboolean draw_mesh = 0;
+Omen::Texture* t = nullptr;
+GLboolean draw_mesh = 1;
 GLboolean draw_triangle_patches = 1;
 
 GLfloat vertices_quad[][3] = {
@@ -103,23 +102,8 @@ Mesh::~Mesh() {
 
 
 void Mesh::loadTextures() {
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    int x, y, btm;
-    FILE *f = fopen("heightmap.jpg", "r");
-    stbi_uc *image = stbi_load_from_file(f, &x, &y, &btm, 0);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glTexImage2D(GL_TEXTURE_2D, 0, btm == 3 ? GL_RGB : GL_RGBA, x, y, 0, btm == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE,
-                 (const void *) image);
-    check_gl_error();
-    stbi_image_free(image);
+    t = new Texture("heightmap.jpg");
 }
 
 void Mesh::loadShaders() {
@@ -233,9 +217,6 @@ void Mesh::createPatches() {
     check_gl_error();
     glBindVertexArray(vao);
     check_gl_error();
-    glBindVertexArray(vao);
-    check_gl_error();
-
 
     ///
     /// Create Array Buffer for vertex coordinates
@@ -295,36 +276,12 @@ void Mesh::render() {
         ////
         //// Projection Matrix
         ////
-        GLint mvp_handle = glGetUniformLocation(shader_program, "ModelViewProjectionMatrix");
+        /*GLint mvp_handle = glGetUniformLocation(shader_program, "ModelViewProjectionMatrix");
         if (mvp_handle >= 0) {
-            double ViewPortParams[4];
-            glGetDoublev(GL_VIEWPORT, ViewPortParams);
-
-            // Generates a really hard-to-read matrix, but a normal, standard 4x4 matrix nonetheless
-            glm::mat4 Projection = glm::perspective(
-                    90.0f,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
-                    4.0f /
-                    3.0f, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
-                    0.1f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
-                    100.0f       // Far clipping plane. Keep as little as possible.
-            );
-            // Camera matrix
-            glm::mat4 View = glm::lookAt(
-                    glm::vec3(0, 40, 50), // Camera is at (4,3,3), in World Space
-                    glm::vec3(0, 0, 0), // and looks at the origin
-                    glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-            );
-            static float angle = 0.0f;
-            angle += 0.01f;
-            View = glm::rotate(View,  angle, glm::vec3(0.0f,1.0f,0.0f));
-            // Model matrix : an identity matrix (model will be at the origin)
-            glm::mat4 Model = glm::mat4(1.0f);
-            // Our ModelViewProjection : multiplication of our 3 matrices
-            glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
             glUniformMatrix4fv(mvp_handle, 1, GL_FALSE, &mvp[0][0]);
             check_gl_error();
-        }
+        }*/
 
         ////
         //// Drawing the mesh
@@ -342,7 +299,7 @@ void Mesh::render() {
 
             glActiveTexture(GL_TEXTURE0);
             check_gl_error();
-            glBindTexture(GL_TEXTURE_2D, textureID);
+            t->bind();
             check_gl_error();
             glUniform1i(texUniform, /*GL_TEXTURE*/0);
             check_gl_error();

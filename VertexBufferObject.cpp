@@ -6,7 +6,7 @@
 #include <OpenGL/gl3.h>
 #include <iostream>
 #include "VertexBufferObject.h"
-#include "GL_error.h.h"
+#include "GL_error.h"
 
 VertexBufferObject::VertexBufferObject() {
     initialize();
