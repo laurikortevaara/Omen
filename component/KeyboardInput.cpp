@@ -3,8 +3,8 @@
 //
 
 #include "KeyboardInput.h"
-#include "Window.h"
-#include "Engine.h"
+#include "../Window.h"
+#include "../Engine.h"
 
 using namespace Omen;
 
@@ -43,4 +43,7 @@ void KeyboardInput::keyHit(GLFWwindow *window, int key, int scanCode, int action
         default:
             break;
     }
+}
+
+void KeyboardInput::update(double time, double deltaTime) {
 }

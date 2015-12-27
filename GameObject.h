@@ -8,19 +8,17 @@
 
 #include <vector>
 #include "Entity.h"
-#include "Transform.h"
-#include "Component.h"
+#include "component/Transform.h"
 
 namespace Omen {
     class GameObject : public ecs::Entity {
-        Transform m_tr;
-        std::vector<Component *> m_components;
+        Transform* m_tr;
+        std::vector<ecs::Component *> m_components;
     public:
         GameObject(const std::string &name);
 
-        void addCompnent(Component *component);
-
-        void removeComponent(Component *component);
+        void addCompnent(ecs::Component *component);
+        void removeComponent(ecs::Component *component);
 
     };
 } // namespace Omen

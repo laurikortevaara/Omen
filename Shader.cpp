@@ -42,21 +42,19 @@ bool Shader::readShaderFile(const std::string& shader_file) {
 
         // ...buffer contains the entire file...
         std::string myshader = buffer;
-        std::string vsdefines = "#version 410\n#define VERTEX_SHADER\n";
-        std::string fsdefines = "#version 410\n#define FRAGMENT_SHADER\n";
-        GLchar const* c_vs[2] = {vsdefines.c_str(),myshader.data()};
-        GLchar const* c_fs[2] = {fsdefines.c_str(),myshader.data()};
-        GLint vs_lengths[] = {(int)vsdefines.size(),(int)myshader.size()};
-        GLint fs_lengths[] = {(int)fsdefines.size(),(int)myshader.size()};
+        std::string vsdefines = "#version 410\n#define VERTEX_SHADER\n"+myshader;
+        std::string fsdefines = "#version 410\n#define FRAGMENT_SHADER\n"+myshader;
 
         GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
         check_gl_error();
         GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
         check_gl_error();
 
-        glShaderSource(vShader,2,c_vs,vs_lengths);
+        const char* vertex_shader = vsdefines.c_str();
+        const char* fragment_shader = fsdefines.c_str();
+        glShaderSource(vShader,1, &vertex_shader, nullptr);
         check_gl_error();
-        glShaderSource(fShader,2,c_fs,fs_lengths);
+        glShaderSource(fShader,1, &fragment_shader, nullptr);
         check_gl_error();
         m_shader_program = glCreateProgram();
         check_gl_error();

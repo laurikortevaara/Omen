@@ -2,14 +2,17 @@
 // Created by Lauri Kortevaara(personal) on 20/12/15.
 //
 
+
+#include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
+
 #include "Engine.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "GL_error.h"
 #include "system/InputSystem.h"
-#include "KeyboardInput.h"
-#include <glm/glm.hpp>
+#include "component/KeyboardInput.h"
+#include "component/JoystickInput.h"
 
 
 using namespace Omen;
@@ -27,8 +30,12 @@ Engine *Engine::instance() {
 void Engine::initializeSystems(){
     // Initialize systems
     InputSystem* inputSystem = new InputSystem();
+    // Keyboard input
     KeyboardInput* keyboardInput = new KeyboardInput();
     inputSystem->add(keyboardInput);
+    // Joystick input
+    JoystickInput* joystickInput = new JoystickInput();
+    inputSystem->add(joystickInput);
     m_systems.push_back(inputSystem);
 
     // Connect key-hit, -press and -release signals to observers
@@ -55,7 +62,7 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
         m_window = window;
 
         initializeSystems();
-        
+
         m_camera = new Camera("Camera1",{0, 0, -1}, {0, 0, 0}, 90.0f);
         //m_scene = new Scene();
         m_shader = new Shader("shaders/pass_through.glsl");
@@ -70,15 +77,17 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
         /**
          * Setup the vertex coordinate buffer object (vbo)
          */
+        GLfloat s = 1000;
         // Enable vertex attributes
         m_vcoord_attrib = m_shader->getAttribLocation("position");
         if (m_vcoord_attrib >= 0) {
             glEnableVertexAttribArray(m_vcoord_attrib);
+
             GLfloat vertices[4][3] = {
-                    {-1, -1, 0},
-                    {1,  -1, 0},
-                    {1,  1,  0},
-                    {-1, 1,  0}};
+                    {-1, -.8, -s},
+                    {1,  -.8, -s},
+                    {1,  -.8,  s},
+                    {-1, -.8,  s}};
 
             int i = sizeof(vertices);
             // Create vbo
@@ -112,8 +121,8 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
             GLfloat texcoords[4][2] = {
                     {0, 0},
                     {1, 0},
-                    {1, 1},
-                    {0, 1}
+                    {1, s},
+                    {0, s}
             };
             glGenBuffers(1, &m_vbo_texcoord);
             check_gl_error();

@@ -6,7 +6,7 @@
 #include "Window.h"
 #include "Engine.h"
 #include "system/InputSystem.h"
-#include "KeyboardInput.h"
+#include "component/KeyboardInput.h"
 
 using namespace Omen;
 

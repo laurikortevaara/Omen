@@ -7,9 +7,10 @@
 
 
 #include <glm/glm.hpp>
+#include "Component.h"
 
 namespace Omen {
-    class Transform {
+    class Transform : public ecs::Component {
         glm::mat4 m_tr;
     public:
         glm::vec4 pos() const { return m_tr[3]; }
@@ -21,6 +22,8 @@ namespace Omen {
         glm::vec4 rot_z() const { return m_tr[2]; }
 
         glm::mat4 tr() const { return m_tr; }
+
+        virtual void update(double time, double deltaTime);
     };
 } // namespace Omen
 

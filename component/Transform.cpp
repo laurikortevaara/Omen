@@ -3,3 +3,6 @@
 //
 
 #include "Transform.h"
+
+void Omen::Transform::update(double time, double deltaTime) {
+}

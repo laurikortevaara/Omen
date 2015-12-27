@@ -8,14 +8,14 @@
 using namespace Omen::ecs;
 
 void System::update(double time, double deltaTime) {
-
+    for(auto component : m_components)
+        component->update(time, deltaTime);
 }
 
 System::System() {
     Omen::Engine *e = Omen::Engine::instance();
     e->signal_engine_update.connect([this, e](double time, double deltaTime) {
-        for (auto component : m_components)
-            component->update(time, deltaTime);
+        update(time, deltaTime);
     });
 }
 

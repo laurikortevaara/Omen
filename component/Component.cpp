@@ -4,8 +4,5 @@
 
 #include "Component.h"
 
-using namespace Omen;
+using namespace Omen::ecs;
 
-void Component::update(double time, double deltaTime) {
-
-}

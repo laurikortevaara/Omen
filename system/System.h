@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-#include "../Component.h"
+#include "../component/Component.h"
 
 namespace Omen {
     namespace ecs {

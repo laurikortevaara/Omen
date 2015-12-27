@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 #include "GameObject.h"
+#include "component/JoystickInput.h"
 
 namespace Omen {
     class Camera : public GameObject {
@@ -28,6 +29,7 @@ namespace Omen {
         glm::vec3 m_velocity;
         glm::mat4 m_view;
         float m_acceleration;
+        Joystick *m_joystick;
     };
 }
 
