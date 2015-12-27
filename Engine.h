@@ -7,12 +7,14 @@
 
 #include <string>
 #include <glm/detail/type_mat4x4.hpp>
+
 #include "Scene.h"
 #include "Camera.h"
 #include "Window.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "system/System.h"
+#include "TextRenderer.h"
 
 namespace Omen {
 
@@ -74,6 +76,8 @@ namespace Omen {
 
 
         void initializeSystems();
+
+        TextRenderer *m_text;
     };
 } // namespace Omen
 

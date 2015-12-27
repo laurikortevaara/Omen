@@ -18,6 +18,7 @@ mat4 rotationMatrix(vec3 axis, float angle)
  uniform sampler2D Texture;
  uniform sampler2D Texture2;
  uniform float     Time;
+ uniform vec4      FontColor;
 
 /**
  * Vertex Shader
@@ -36,10 +37,10 @@ out Data{
 
 void main() {
     dataOut.position = position;
-    dataOut.texcoord = texcoord;
+    dataOut.texcoord = position.zw;
     dataOut.normal = normal;
 
-    gl_Position = ModelViewProjection * position;
+    gl_Position = vec4(position.xy, 0, 1);
 }
 #endif
 
@@ -59,19 +60,8 @@ out vec4 out_color;
 void main() {
     vec4 vpos = dataIn.position;
     vec2 tcoord = dataIn.texcoord;
-    //tcoord.y += Time*abs(sin(Time)*0.1);
     vec3 normal = dataIn.normal;
-    out_color = vec4(1,0,0,1);
-    out_color = out_color+vec4(tcoord.x, tcoord.y,0,1);
-    out_color /= 2;
-    out_color = vec4(tcoord.x, tcoord.y,0,1);
-    //mat4x4 rot = rotationMatrix(vec3(0,0,1),Time);
-    mat2x2 rot = mat2(cos(Time), sin(Time), -sin(Time), cos(Time));
-    mat2x2 rot2 = mat2(cos(-Time), sin(-Time), -sin(-Time), cos(-Time));
-    //out_color = mix(texture(Texture, (tcoord-0.5)*rot),texture(Texture2, tcoord*rot2),max(0,vpos.x));
-    out_color = texture(Texture,tcoord)+vec4(0,0,mod(vpos.z/10, 2)/2,1);
-
-
+    out_color = vec4(1, 1, 1, texture(Texture, tcoord).r) * FontColor;
 }
 
 

@@ -65,9 +65,9 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
             std::vector<int> &buttons = m_joystick->getJoystickButtons();
 
             if (axes.size() >= 4) {
-                m_velocity.x = (float) (axes[Joystick::X_AXIS] * (buttons[Joystick::R2] ? 100 : 1.0));
-                m_velocity.y = (float) (axes[Joystick::Y_AXIS] * (buttons[Joystick::R2] ? 100 : 1.0));
-                m_velocity.z = (float) (axes[Joystick::Z_AXIS] * (buttons[Joystick::R2] ? 100 : 1.0));
+                m_velocity.x = (float) (axes[Joystick::X_AXIS]);
+                m_velocity.y = (float) (axes[Joystick::Y_AXIS]);
+                m_velocity.z = (float) (axes[Joystick::Z_AXIS]);
             }
 
         }

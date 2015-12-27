@@ -5,6 +5,9 @@
 
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
+#include <sstream>
+#include <iomanip>
+#include <queue>
 
 #include "Engine.h"
 #include "Shader.h"
@@ -13,12 +16,13 @@
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
 #include "component/JoystickInput.h"
+#include "TextRenderer.h"
 
 
 using namespace Omen;
 
 // Singleton instance
-Engine* Engine::m_instance = nullptr;
+Engine *Engine::m_instance = nullptr;
 
 Engine *Engine::instance() {
     if (m_instance == nullptr)
@@ -27,14 +31,14 @@ Engine *Engine::instance() {
 }
 
 
-void Engine::initializeSystems(){
+void Engine::initializeSystems() {
     // Initialize systems
-    InputSystem* inputSystem = new InputSystem();
+    InputSystem *inputSystem = new InputSystem();
     // Keyboard input
-    KeyboardInput* keyboardInput = new KeyboardInput();
+    KeyboardInput *keyboardInput = new KeyboardInput();
     inputSystem->add(keyboardInput);
     // Joystick input
-    JoystickInput* joystickInput = new JoystickInput();
+    JoystickInput *joystickInput = new JoystickInput();
     inputSystem->add(joystickInput);
     m_systems.push_back(inputSystem);
 
@@ -63,11 +67,12 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1",{0, 0, -1}, {0, 0, 0}, 90.0f);
+        m_camera = new Camera("Camera1", {0, 0, -1}, {0, 0, 0}, 90.0f);
         //m_scene = new Scene();
         m_shader = new Shader("shaders/pass_through.glsl");
         m_texture = new Texture("checker.jpg");
         m_texture2 = new Texture("test.jpg");
+        m_text = new TextRenderer();
 
 
         glGenVertexArrays(1, &m_vao);
@@ -86,8 +91,8 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
             GLfloat vertices[4][3] = {
                     {-1, -.8, -s},
                     {1,  -.8, -s},
-                    {1,  -.8,  s},
-                    {-1, -.8,  s}};
+                    {1,  -.8, s},
+                    {-1, -.8, s}};
 
             int i = sizeof(vertices);
             // Create vbo
@@ -137,14 +142,15 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
 }
 
 void Engine::update() {
-    m_timeDelta = glfwGetTime()-m_time;
+    m_timeDelta = glfwGetTime() - m_time;
     m_time = glfwGetTime();
-    signal_engine_update.notify(m_time,m_timeDelta);
+    signal_engine_update.notify(m_time, m_timeDelta);
 }
 
 double Engine::time() {
     return glfwGetTime();
 }
+
 
 void Engine::render() {
 
@@ -154,7 +160,7 @@ void Engine::render() {
     m_shader->use();
     glm::mat4x4 mvp = m_camera->mvp();
     m_shader->setUniformMatrix4fv("ModelViewProjection", 1, &mvp[0][0], false);
-    m_shader->setUniform1f("Time", (float)time());
+    m_shader->setUniform1f("Time", (float) time());
 
     // Set the texture map
     GLuint iTexture = 0;
@@ -182,6 +188,32 @@ void Engine::render() {
     //glDrawArrays(GL_QUADS, 0, 4);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) nullptr);
+
+
+    //
+    // Render FPS counter as text
+    //
+    Window::_size s = m_window->size();
+    float sx = (float) (2.0 / s.width);
+    float sy = (float) (2.0 / s.height);
+    static std::vector<double> q_fps;
+    if (q_fps.size() < 500)
+        q_fps.push_back(1.0 / m_timeDelta);
+    else {
+        q_fps.erase(q_fps.begin());
+        q_fps.push_back(1.0 / m_timeDelta);
+    }
+
+    double avg_fps = 0.0;
+    for (auto fps : q_fps)
+        avg_fps += fps;
+    avg_fps /= q_fps.size();
+
+    std::ostringstream os;
+    os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << q_fps.size() << ")\nMEM:12MB";
+    std::string text(os.str());
+    m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
+
     m_window->end_rendering();
 }
 

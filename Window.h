@@ -34,6 +34,13 @@ namespace Omen {
         void start_rendering();
         void end_rendering();
 
+        unsigned int width() const { int width, height; glfwGetWindowSize(m_window, &width, &height); return width; }
+        unsigned int height() const { int width, height; glfwGetWindowSize(m_window, &width, &height); return height; }
+        struct _size{
+            int width, height;
+        };
+        _size size() const { int width, height; glfwGetWindowSize(m_window, &width, &height); return _size{width,height}; }
+
     private:
         void init();
 

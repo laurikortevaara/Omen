@@ -6,6 +6,8 @@
 #define OMEN_SHADER_H
 
 #include <string>
+#include <GLFW/glfw3.h>
+#include <OpenGL/gl3.h>
 
 namespace Omen {
     class Shader {

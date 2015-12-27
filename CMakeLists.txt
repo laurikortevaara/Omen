@@ -60,6 +60,16 @@ endif ()
 ######################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/googletest)
 
+######################################################################
+# FREETYPE
+######################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/freetype)
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
+find_library(FREETYPE FreeType)
+if (NOT FREETYPE)
+    message(FATAL_ERROR "FreeType not found")
+endif ()
+
 
 ######################################################################
 # Os x specific libraries/frameworks
@@ -90,21 +100,22 @@ if (APPLE)
         message(FATAL_ERROR "CoreVideo not found")
     endif ()
 
-    SET(LIBRARIES Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION})
+    SET(LIBRARIES Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE})
 endif (APPLE)
+
 
 ######################################################################
 # Windows platform specific libs
 ######################################################################
 if (WINDOWS)
-    SET(LIBRARIES Boxer glfw ${GLEW} ${OPENGL})
+    SET(LIBRARIES Boxer glfw ${GLEW} ${OPENGL} ${FREETYPE})
 endif (WINDOWS)
 
 
 ######################################################################
 # Define the source files and the executable
 ######################################################################
-set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h)
+set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h TextRenderer.cpp TextRenderer.h)
 add_executable(Omen ${SOURCE_FILES})
 
 ######################################################################
