@@ -26,86 +26,20 @@ GLint attrib_vPosition;
 GLint attrib_barycentric;
 GLint attrib_texcoord;
 
-GLuint shader_program = 0;
-Omen::Texture* t = nullptr;
 GLboolean draw_mesh = 1;
 GLboolean draw_triangle_patches = 1;
 
-GLfloat vertices_quad[][3] = {
-        {-1, -1, 0},
-        {-1, 1,  0},
-        {1,  1,  0},
-        {1,  -1, 0}// vPosition
-};
 
-GLfloat vertices_tri[][3] = {
-        {-50, 0, -50},
-        {-50, 0,  50},
-        { 50, 0, -50}, // vPosition
-        {-50, 0,  50},
-        { 50, 0,  50},
-        { 50, 0, -50},
-};
-
-GLfloat uvCoords_quad[][2] = {
-        {0, 0},
-        {0, 1},
-        {1, 1},
-        {1, 0}};
-
-GLfloat uvCoords_tri[][2] = {
-        {0, 0},
-        {0, 1},
-        {1, 0},
-        {0, 1},
-        {1, 1},
-        {1, 0},};
-
-GLfloat baryCoords_quad[][3] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1},
-        {1, 0, 0}
-};
-
-GLfloat baryCoord_tri[][3] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1},
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1}
-};
-
-
-void loadShader(const std::string &filename, std::string &out) {
-    std::string line;
-    std::ifstream in(filename.c_str());
-    while (std::getline(in, line)) {
-        out += line + "\n";
-    }
-}
-
-
-
-Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_LINE) {
-    loadShaders();
-    check_gl_error();
-    loadTextures();
-    check_gl_error();
-    createPatches();
+Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_LINE), m_shader(nullptr), m_material(nullptr) {
+    m_material = new Material;
+    m_shader = new Shader("shaders/pass_through.glsl");
 }
 
 Mesh::~Mesh() {
 
 }
 
-
-void Mesh::loadTextures() {
-
-    t = new Texture("heightmap.jpg");
-}
-
+/*
 void Mesh::loadShaders() {
     shader_program = glCreateProgram();
 
@@ -252,58 +186,40 @@ void Mesh::createPatches() {
     }
 
 }
+*/
 
-
-void Mesh::render() {
+void Mesh::render(const glm::mat4 &viewProjection) {
     glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
-    glUseProgram(shader_program);
+    if(m_shader== nullptr)
+        return;
+    m_shader->use();
 
     check_gl_error();
     {
         ////
         //// Tessellation parameters
         ////
-        GLint tessLevelInner = glGetUniformLocation(shader_program, "innerTess");
-        check_gl_error();
-
-        GLint tessLevelOuter = glGetUniformLocation(shader_program, "outerTess");
-        check_gl_error();
-
-        glUniform1f(tessLevelInner, fInnerTess);
-        glUniform1f(tessLevelOuter, fOuterTess);
+        m_shader->setUniform1f("innerTess", fInnerTess);
+        m_shader->setUniform1f("outerTess", fOuterTess);
         check_gl_error();
 
         ////
         //// Projection Matrix
         ////
-        /*GLint mvp_handle = glGetUniformLocation(shader_program, "ModelViewProjectionMatrix");
-        if (mvp_handle >= 0) {
-
-            glUniformMatrix4fv(mvp_handle, 1, GL_FALSE, &mvp[0][0]);
-            check_gl_error();
-        }*/
+        glm::mat4 ModelViewProjection = viewProjection * m_transform.tr();
+        m_shader->setUniformMatrix4fv("ModelViewProjection", 1, &ModelViewProjection[0][0], false);
 
         ////
         //// Drawing the mesh
         ////
         {
-
-            GLint useTextureUniform = glGetUniformLocation(shader_program, "useTexture");
-            glUniform1i(useTextureUniform, m_use_texture ? 1 : 0 );
+            m_shader->setUniform1f("useTexture", m_use_texture);
 
             ////
-            //// Texture
+            //// Material
             ////
-            GLint texUniform = glGetUniformLocation(shader_program, "tex");
-            check_gl_error();
-
-            glActiveTexture(GL_TEXTURE0);
-            check_gl_error();
-            t->bind();
-            check_gl_error();
-            glUniform1i(texUniform, /*GL_TEXTURE*/0);
-            check_gl_error();
-
+            if (m_material != nullptr)
+                m_shader->setMaterial(m_material);
 
             glBindVertexArray(vao);
             check_gl_error();
@@ -337,14 +253,14 @@ void Mesh::render() {
 
 
             if (draw_mesh) {
-                glDrawArrays(GL_TRIANGLES, 0, 6); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                glDrawElements(GL_TRIANGLES, 0, m_vertex_indices.size(), 0 );
                 check_gl_error();
             }
             else {
                 int num_patch_vertices = draw_triangle_patches ? 3 : 4;
                 glPatchParameteri(GL_PATCH_VERTICES, num_patch_vertices);
                 check_gl_error();
-                glDrawArrays(GL_PATCHES, 0, 2*num_patch_vertices);
+                glDrawArrays(GL_PATCHES, 0, 2 * num_patch_vertices);
                 check_gl_error();
             }
         }

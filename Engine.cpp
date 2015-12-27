@@ -10,13 +10,10 @@
 #include <queue>
 
 #include "Engine.h"
-#include "Shader.h"
-#include "Texture.h"
 #include "GL_error.h"
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
-#include "component/JoystickInput.h"
-#include "TextRenderer.h"
+#include "component/MouseInput.h"
 
 
 using namespace Omen;
@@ -32,11 +29,17 @@ Engine *Engine::instance() {
 
 
 void Engine::initializeSystems() {
-    // Initialize systems
+    // Initialize input systems
     InputSystem *inputSystem = new InputSystem();
+
     // Keyboard input
     KeyboardInput *keyboardInput = new KeyboardInput();
     inputSystem->add(keyboardInput);
+
+    // Mouse input
+    MouseInput* mouseInput = new MouseInput();
+    inputSystem->add(mouseInput);
+
     // Joystick input
     JoystickInput *joystickInput = new JoystickInput();
     inputSystem->add(joystickInput);
@@ -48,11 +51,9 @@ void Engine::initializeSystems() {
     });
 
     keyboardInput->signal_key_press.connect([](int k, int s, int a, int m) {
-        glClearColor(1.0f, 0.5f, 0.5f, 1.0f);
     });
 
     keyboardInput->signal_key_release.connect([](int k, int s, int a, int m) {
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     });
 
     // Connect key-hit, -press and -release signals to observers
@@ -61,14 +62,20 @@ void Engine::initializeSystems() {
     });
 }
 
-Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_time(0), m_timeDelta(0) {
+Engine::Engine() :
+        m_scene(nullptr),
+        m_camera(nullptr),
+        m_window(nullptr),
+        m_time(0),
+        m_timeDelta(0),
+        m_framecounter(0){
     Window::signal_window_created.connect([this](Window *window) {
         m_window = window;
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 0, -1}, {0, 0, 0}, 90.0f);
-        //m_scene = new Scene();
+        m_camera = new Camera("Camera1", {0, 0, -1}, {0, 0, 0}, 60.0f);
+        m_scene = new Scene();
         m_shader = new Shader("shaders/pass_through.glsl");
         m_texture = new Texture("checker.jpg");
         m_texture2 = new Texture("test.jpg");
@@ -89,10 +96,10 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
             glEnableVertexAttribArray(m_vcoord_attrib);
 
             GLfloat vertices[4][3] = {
-                    {-1, -.8, -s},
-                    {1,  -.8, -s},
-                    {1,  -.8, s},
-                    {-1, -.8, s}};
+                    {-s, -.8, -s},
+                    {s,  -.8, -s},
+                    {s,  -.8, s},
+                    {-s, -.8, s}};
 
             int i = sizeof(vertices);
             // Create vbo
@@ -125,8 +132,8 @@ Engine::Engine() : m_scene(nullptr), m_camera(nullptr), m_window(nullptr), m_tim
             check_gl_error();
             GLfloat texcoords[4][2] = {
                     {0, 0},
-                    {1, 0},
-                    {1, s},
+                    {s, 0},
+                    {s, s},
                     {0, s}
             };
             glGenBuffers(1, &m_vbo_texcoord);
@@ -153,42 +160,10 @@ double Engine::time() {
 
 
 void Engine::render() {
-
+    m_framecounter++;
     m_window->start_rendering();
-    //m_scene->render();
-
-    m_shader->use();
-    glm::mat4x4 mvp = m_camera->mvp();
-    m_shader->setUniformMatrix4fv("ModelViewProjection", 1, &mvp[0][0], false);
-    m_shader->setUniform1f("Time", (float) time());
-
-    // Set the texture map
-    GLuint iTexture = 0;
-    glActiveTexture(GL_TEXTURE0 + iTexture);
-    m_texture->bind();
-    m_shader->setUniform1i("Texture", iTexture);
-
-    iTexture = 1;
-    glActiveTexture(GL_TEXTURE0 + iTexture);
-    m_texture2->bind();
-    m_shader->setUniform1i("Texture2", iTexture);
-
-    glBindVertexArray(m_vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glEnableVertexAttribArray(m_vcoord_attrib);
-    glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
-                          0/*offset*/);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
-    glEnableVertexAttribArray(m_tcoord_attrib);
-    glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
-                          0/*offset*/);
-
-    //glDrawArrays(GL_QUADS, 0, 4);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) nullptr);
-
+    if(m_scene!= nullptr)
+        m_scene->render(m_camera->mvp());
 
     //
     // Render FPS counter as text
@@ -210,7 +185,7 @@ void Engine::render() {
     avg_fps /= q_fps.size();
 
     std::ostringstream os;
-    os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << q_fps.size() << ")\nMEM:12MB";
+    os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << m_framecounter << ")\nMEM:12MB";
     std::string text(os.str());
     m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
 

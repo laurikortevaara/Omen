@@ -8,9 +8,12 @@
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <sstream>
+#include <assert.h>
 
 #include "GL_error.h"
 #include "Shader.h"
+#include "Texture.h"
+#include "Material.h"
 
 
 using namespace Omen;
@@ -334,4 +337,26 @@ GLint Shader::getAttribLocation(const std::string &attribName) {
 
 GLint Shader::getUniformLocation(const std::string &uniformName) {
     return glGetUniformLocation(m_shader_program, uniformName.c_str());
+}
+
+
+void Shader::setTexture(int textureIndex, Texture *texture){
+    assert(texture!= nullptr);
+    glActiveTexture((GLenum) (GL_TEXTURE0 + textureIndex));
+    check_gl_error();
+    texture->bind();
+    check_gl_error();
+    std::ostringstream os;
+    os << "Texture" << textureIndex+1;
+    std::string strTexName(os.str());
+    setUniform1i(strTexName.c_str(), GL_TEXTURE0+textureIndex);
+    check_gl_error();
+}
+
+void Shader::setMaterial(Material *material) {
+    if(material->texture()!= nullptr)
+        setTexture(0, material->texture());
+
+    material->setColor(glm::vec4(1,0,1,1));
+    setUniform4fv("DiffuseColor", 1, &material->color()[0]);
 }

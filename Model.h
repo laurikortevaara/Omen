@@ -13,7 +13,7 @@ namespace Omen {
     public:
         Model();
 
-        void render();
+        void render(const glm::mat4 &viewProjection);
 
         std::shared_ptr<Omen::Mesh> m_mesh;
     };

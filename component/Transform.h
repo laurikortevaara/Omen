@@ -7,6 +7,7 @@
 
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "Component.h"
 
 namespace Omen {
@@ -24,6 +25,10 @@ namespace Omen {
         glm::mat4 tr() const { return m_tr; }
 
         virtual void update(double time, double deltaTime);
+
+        glm::mat4& translate(const glm::vec3 &translation) { m_tr = glm::translate(m_tr, translation); return m_tr;}
+        glm::mat4& rotate(const glm::vec3 &axis, float angle) { m_tr = glm::rotate(m_tr, angle, axis); return m_tr;}
+        glm::mat4& scale(const glm::vec3 &scale) { m_tr = glm::scale(m_tr, scale); return m_tr; }
     };
 } // namespace Omen
 

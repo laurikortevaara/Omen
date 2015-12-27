@@ -78,6 +78,7 @@ namespace Omen {
         void initializeSystems();
 
         TextRenderer *m_text;
+        int m_framecounter;
     };
 } // namespace Omen
 

@@ -11,13 +11,24 @@ mat4 rotationMatrix(vec3 axis, float angle)
                 0.0,                                0.0,                                0.0,                                1.0);
 }
 
+vec3 ExtractCameraPos_NoScale(mat4 ModelView)
+{
+   return ModelView[3].xyz;
+}
+
 /**
  * Uniforms
  */
  uniform mat4      ModelViewProjection;
  uniform sampler2D Texture;
  uniform sampler2D Texture2;
+ uniform sampler2D Texture3;
+ uniform sampler2D Texture4;
  uniform float     Time;
+
+ uniform vec4      AmbientColor;
+ uniform vec4      DiffuseColor;
+ uniform vec4      SpecularColor;
 
 /**
  * Vertex Shader
@@ -69,8 +80,11 @@ void main() {
     mat2x2 rot = mat2(cos(Time), sin(Time), -sin(Time), cos(Time));
     mat2x2 rot2 = mat2(cos(-Time), sin(-Time), -sin(-Time), cos(-Time));
     //out_color = mix(texture(Texture, (tcoord-0.5)*rot),texture(Texture2, tcoord*rot2),max(0,vpos.x));
-    out_color = texture(Texture,tcoord)+vec4(0,0,mod(vpos.z/10, 2)/2,1);
 
+    out_color = texture(Texture,tcoord);
+    vec3 camPos = ExtractCameraPos_NoScale(ModelViewProjection);
+    float len = length(vpos.xyz-camPos);
+    out_color.xyz *= 1.0/len;
 
 }
 

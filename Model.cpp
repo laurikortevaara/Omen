@@ -13,7 +13,7 @@ Model::Model() {
     m_mesh = std::make_shared<Mesh>(Mesh());
 }
 
-void Model::render() {
-    m_mesh->render();
+void Model::render(const glm::mat4 &viewProjection) {
+    m_mesh->render(viewProjection);
 }
 

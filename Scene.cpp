@@ -15,8 +15,8 @@ Scene::~Scene() {
     m_models.clear();
 }
 
-void Scene::render() {
+void Scene::render(const glm::mat4 &viewProjection) {
     for(const auto & model : m_models)
-        model->render();
+        model->render(viewProjection);
 }
 

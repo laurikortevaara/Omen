@@ -8,6 +8,8 @@
 #include <string>
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl3.h>
+#include "Texture.h"
+#include "Material.h"
 
 namespace Omen {
     class Shader {
@@ -103,6 +105,11 @@ namespace Omen {
         void setUniformMatrix4fv(const std::string &uniform, int count, float *values, bool bTranspose);
 
         void setUniformMatrix4dv(const std::string &uniform, int count, double *values, bool bTranspose);
+
+
+        void setMaterial(Material *material);
+
+        void setTexture(int textureIndex, Texture *texture);
     };
 } // namespace Omen
 

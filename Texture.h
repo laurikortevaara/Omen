@@ -16,6 +16,8 @@ namespace Omen {
 
         GLuint m_textureID;
         GLenum m_textureTarget;
+    private:
+        Texture() {};
 
     public:
         Texture(const std::string &bitmap_path);

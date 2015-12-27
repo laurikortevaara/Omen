@@ -30,6 +30,8 @@ namespace Omen {
         glm::mat4 m_view;
         float m_acceleration;
         Joystick *m_joystick;
+
+        void updateMVP();
     };
 }
 

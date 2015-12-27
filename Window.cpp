@@ -55,8 +55,10 @@ void Window::init() {
     });
 
     glfwMakeContextCurrent(m_window);
-    glfwSwapInterval(0);
+    //glfwSwapInterval(0);
+
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0,0,0, 1.0f);
 
     // Notify about window being created
     signal_window_created.notify(this);
