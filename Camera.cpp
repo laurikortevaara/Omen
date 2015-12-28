@@ -61,11 +61,6 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 
             m_yaw += dx;
             m_pitch -= dy;
-
-            m_pitch = fmax(m_pitch, -89.9);
-            m_pitch = fmin(m_pitch, 89.9);
-
-            updateMVP();
         });
     }
 
@@ -74,16 +69,41 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         // velo = m/s
         // acceleration = m/s^2
 
+        if (w->keyPressed(GLFW_KEY_W)) {
+            m_velocity.z += 1.0 * deltaTime;
+        }
+        if (w->keyPressed(GLFW_KEY_S)) {
+            m_velocity.z -= 1.0 * deltaTime;
+        }
 
+        if (w->keyPressed(GLFW_KEY_A)) {
+            m_velocity.x -= 1.0 * deltaTime;
+        }
+        if (w->keyPressed(GLFW_KEY_D)) {
+            m_velocity.x += 1.0 * deltaTime;
+        }
+
+        if (w->keyPressed(GLFW_KEY_E)) {
+            m_velocity.y += 1.0 * deltaTime;
+        }
+        if (w->keyPressed(GLFW_KEY_C)) {
+            m_velocity.y -= 1.0 * deltaTime;
+        }
 
         if (m_joystick != nullptr) {
             std::vector<float> &axes = m_joystick->getJoystickAxes();
             std::vector<int> &buttons = m_joystick->getJoystickButtons();
 
-            if (axes.size() >= 4) {
-
-                m_yaw += axes[2] * deltaTime * 0.1f;
-                m_pitch += axes[3] * deltaTime * 0.1f;
+            bool valid = true;
+            if(axes.size() >=4 && axes[0]==-1 && axes[1]  == -1 && axes[2]==-1 && axes[3] == -1)
+                valid = false;
+            if(valid){
+                float dx = axes[2];
+                float dy = axes[3];
+                m_yaw += 200.0f * dx * deltaTime;
+                m_pitch -= 200.0f * dy * deltaTime;
+                m_velocity.x += axes[0] * deltaTime;
+                m_velocity.z -= axes[1] * deltaTime;
             }
 
         }
@@ -93,35 +113,20 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         glm::vec3 cameraUp = glm::cross(m_direction, cameraRight);
         glm::vec3 cameraFront = glm::cross(cameraRight, cameraUp);
 
+        m_pitch = fmax(m_pitch, -89.9);
+        m_pitch = fmin(m_pitch, 89.9);
+
         m_direction = glm::normalize(glm::vec3(cos(glm::radians(m_pitch)) * cos(glm::radians(m_yaw)),
                                 sin(glm::radians(m_pitch)),
                                 cos(glm::radians(m_pitch)) * sin(glm::radians(m_yaw))));
 
         m_view = glm::lookAt(m_pos, m_pos+m_direction, glm::vec3(0, 1, 0));
 
-        if (w->keyPressed(GLFW_KEY_W)) {
-            //m_velocity.z += 100.0 * deltaTime;
-            m_pos += (float) deltaTime * cameraFront;
-        }
-        if (w->keyPressed(GLFW_KEY_S)) {
-            //m_velocity.z -= 100.0 * deltaTime;
-            m_pos -= (float) deltaTime * cameraFront;
-        }
+        m_pos += cameraFront * m_velocity.z;
+        m_pos += glm::normalize(glm::cross(cameraFront, cameraUp))*m_velocity.x;
+        m_pos += glm::normalize(glm::cross(cameraFront, cameraRight))*m_velocity.y;
 
-        if (w->keyPressed(GLFW_KEY_A)) {
-            m_pos -= (float) deltaTime * glm::normalize(glm::cross(cameraFront, cameraUp));
-        }
-        if (w->keyPressed(GLFW_KEY_D)) {
-            //m_velocity.x -= 100.0 * deltaTime;
-            m_pos += (float) deltaTime * glm::normalize(glm::cross(cameraFront, cameraUp));
-        }
-
-        if (w->keyPressed(GLFW_KEY_E)) {
-            m_velocity.y += 100.0 * deltaTime;
-        }
-        if (w->keyPressed(GLFW_KEY_C)) {
-            m_velocity.y -= 100.0 * deltaTime;
-        }
+        m_velocity *= 0.9;
 
         updateMVP();
     });

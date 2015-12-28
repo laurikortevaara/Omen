@@ -230,7 +230,7 @@ void Engine::render() {
     avg_fps /= q_fps.size();
 
     std::ostringstream os;
-    std::vector<float> axes = m_joystick->getJoystickAxes();
+    std::vector<float> axes = m_joystick!= nullptr?m_joystick->getJoystickAxes() : std::vector<float>({0,0,0,0});
     os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << m_framecounter << ")\nMEM:12MB"\
     << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]";
     std::string text(os.str());
