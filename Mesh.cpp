@@ -32,7 +32,75 @@ GLboolean draw_triangle_patches = 1;
 
 Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_LINE), m_shader(nullptr), m_material(nullptr) {
     m_material = new Material;
+    m_material->setTexture(new Texture("cat.jpg"));
     m_shader = new Shader("shaders/pass_through.glsl");
+
+
+    /**/
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+    check_gl_error();
+
+    /**
+     * Setup the vertex coordinate buffer object (vbo)
+     */
+    GLfloat s = 2;
+    // Enable vertex attributes
+    m_vcoord_attrib = m_shader->getAttribLocation("position");
+    if (m_vcoord_attrib >= 0) {
+        glEnableVertexAttribArray(m_vcoord_attrib);
+
+        GLfloat vertices[4][3] = {
+                {-s, 2, -s},
+                {s,  2, -s},
+                {s,  2, s},
+                {-s, 2, s}};
+
+        int i = sizeof(vertices);
+        // Create vbo
+        glGenBuffers(1, &m_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                              0/*stride*/, 0/*offset*/);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        check_gl_error();
+
+        /**
+         * Setup the vertex index element buffer (ibo)
+         */
+        GLuint indices[6] = {0, 1, 3, 1, 2, 3};
+        glGenBuffers(1, &m_ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        check_gl_error();
+    }
+
+    /**
+     * Setup the vertex texture coordinates
+     */
+    m_tcoord_attrib = m_shader->getAttribLocation("texcoord");
+    check_gl_error();
+    if (m_tcoord_attrib >= 0) {
+        check_gl_error();
+        GLfloat texcoords[4][2] = {
+                {0, 0},
+                {1, 0},
+                {1, 1},
+                {0, 1}
+        };
+        glGenBuffers(1, &m_vbo_texcoord);
+        check_gl_error();
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+        check_gl_error();
+        glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+        check_gl_error();
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        check_gl_error();
+    }
+    /**/
 }
 
 Mesh::~Mesh() {
@@ -189,7 +257,8 @@ void Mesh::createPatches() {
 */
 
 void Mesh::render(const glm::mat4 &viewProjection) {
-    glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
+    //glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
+    glBindVertexArray(m_vao);
     if(m_shader== nullptr)
         return;
     m_shader->use();
@@ -221,9 +290,6 @@ void Mesh::render(const glm::mat4 &viewProjection) {
             if (m_material != nullptr)
                 m_shader->setMaterial(m_material);
 
-            glBindVertexArray(vao);
-            check_gl_error();
-
             // Render
             if (attrib_barycentric >= 0) {
                 glBindBuffer(GL_ARRAY_BUFFER, vbo_barycentric);
@@ -233,6 +299,7 @@ void Mesh::render(const glm::mat4 &viewProjection) {
                 glVertexAttribPointer(attrib_barycentric, 3, GL_FLOAT, GL_FALSE, 0, NULL);
                 check_gl_error();
             }
+            /*
             if (attrib_vPosition >= 0) {
                 glBindBuffer(GL_ARRAY_BUFFER, vbo);
                 check_gl_error();
@@ -263,7 +330,33 @@ void Mesh::render(const glm::mat4 &viewProjection) {
                 glDrawArrays(GL_PATCHES, 0, 2 * num_patch_vertices);
                 check_gl_error();
             }
+             */
+
+            float * p = (float*)&viewProjection[0][0];
+            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, p, false);
+            m_shader->setUniform1f("Time", (float) 0.0f);
+
+            // Set the texture map
+            GLuint iTexture = 0;
+            glActiveTexture(GL_TEXTURE0 + iTexture);
+            m_material->texture()->bind();
+            m_shader->setUniform1i("Texture", iTexture);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+            glEnableVertexAttribArray(m_vcoord_attrib);
+            glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
+                                  0/*offset*/);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+            glEnableVertexAttribArray(m_tcoord_attrib);
+            glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
+                                  0/*offset*/);
+
+            //glDrawArrays(GL_QUADS, 0, 4);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) nullptr);
         }
     }
+    glBindVertexArray(0);
 }
 

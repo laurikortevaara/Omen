@@ -82,9 +82,8 @@ void main() {
     //out_color = mix(texture(Texture, (tcoord-0.5)*rot),texture(Texture2, tcoord*rot2),max(0,vpos.x));
 
     out_color = texture(Texture,tcoord);
-    vec3 camPos = ExtractCameraPos_NoScale(ModelViewProjection);
-    float len = length(vpos.xyz-camPos);
-    out_color.xyz *= 1.0/len;
+    float len = length(vpos.xyz);
+    out_color.xyz *= 3.0/len;
 
 }
 

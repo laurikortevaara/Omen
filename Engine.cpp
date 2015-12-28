@@ -45,6 +45,14 @@ void Engine::initializeSystems() {
     inputSystem->add(joystickInput);
     m_systems.push_back(inputSystem);
 
+    joystickInput->joystick_connected.connect([&](Joystick *joystick) {
+        m_joystick = joystick;
+    });
+    joystickInput->joystick_disconnected.connect([&](Joystick *joystick) {
+        m_joystick = nullptr;
+    });
+
+
     // Connect key-hit, -press and -release signals to observers
     keyboardInput->signal_key_hit.connect([this](int k, int s, int a, int m) {
         keyHit(k, s, a, m);
@@ -74,7 +82,7 @@ Engine::Engine() :
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 0, -1}, {0, 0, 0}, 60.0f);
+        m_camera = new Camera("Camera1", {0, 0, 0}, {0, 0, 0.01f}, 60.0f);
         m_scene = new Scene();
         m_shader = new Shader("shaders/pass_through.glsl");
         m_texture = new Texture("checker.jpg");
@@ -158,13 +166,50 @@ double Engine::time() {
     return glfwGetTime();
 }
 
+void Engine::renderScene() {
+    m_shader->use();
+    glm::mat4x4 mvp = m_camera->mvp();
+    m_shader->setUniformMatrix4fv("ModelViewProjection", 1, &mvp[0][0], false);
+    m_shader->setUniform1f("Time", (float) time());
+
+    // Set the texture map
+    GLuint iTexture = 0;
+    glActiveTexture(GL_TEXTURE0 + iTexture);
+    m_texture->bind();
+    m_shader->setUniform1i("Texture", iTexture);
+
+    iTexture = 1;
+    glActiveTexture(GL_TEXTURE0 + iTexture);
+    m_texture2->bind();
+    m_shader->setUniform1i("Texture2", iTexture);
+
+    glBindVertexArray(m_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glEnableVertexAttribArray(m_vcoord_attrib);
+    glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
+                          0/*offset*/);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+    glEnableVertexAttribArray(m_tcoord_attrib);
+    glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
+                          0/*offset*/);
+
+    //glDrawArrays(GL_QUADS, 0, 4);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) nullptr);
+
+    if(m_scene!= nullptr)
+        m_scene->render(m_camera->mvp());
+}
 
 void Engine::render() {
     m_framecounter++;
     m_window->start_rendering();
-    if(m_scene!= nullptr)
-        m_scene->render(m_camera->mvp());
 
+    renderScene();
+
+    glBindVertexArray(m_vao);
     //
     // Render FPS counter as text
     //
@@ -185,11 +230,14 @@ void Engine::render() {
     avg_fps /= q_fps.size();
 
     std::ostringstream os;
-    os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << m_framecounter << ")\nMEM:12MB";
+    std::vector<float> axes = m_joystick->getJoystickAxes();
+    os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << m_framecounter << ")\nMEM:12MB"\
+    << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]";
     std::string text(os.str());
     m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
 
     m_window->end_rendering();
+    glBindVertexArray(0);
 }
 
 Window *Engine::createWindow(unsigned int width, unsigned int height) {

@@ -24,8 +24,6 @@ namespace Omen {
         Transform m_transform;
 
         std::vector<std::shared_ptr<Triangle> > m_triangles;
-        std::shared_ptr<VertexArrayObject> m_vao;
-        std::shared_ptr<VertexBufferObject> m_vbo;
 
         std::vector<glm::vec3> m_vertices;
         std::vector<glm::vec3> m_normals;
@@ -60,6 +58,16 @@ namespace Omen {
 
         Shader *m_shader;
         Material *m_material;
+        GLuint m_vao;
+        GLuint m_vbo;
+        GLuint m_vbo_texcoord;
+        GLuint m_ibo;
+
+        Texture *m_texture;
+        Texture *m_texture2;
+
+        GLint m_vcoord_attrib;
+        GLint m_tcoord_attrib;
 
         Shader *shader() { return m_shader; }
 

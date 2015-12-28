@@ -54,7 +54,7 @@ std::vector<float> &Joystick::getJoystickAxes() {
 
     for(int i=0; i < num_axes; ++i){
         float x = axs[i]; x = threshold_abs(axs[i],0.075);
-        m_axes.push_back(-x);
+        m_axes.push_back(x);
     }
 
     return m_axes;

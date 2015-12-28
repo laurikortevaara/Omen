@@ -26,12 +26,18 @@ namespace Omen {
 
         void onWindowSizeChanged(int width, int height);
 
+        float m_yaw, m_pitch, m_roll;
         glm::vec3 m_velocity;
         glm::mat4 m_view;
         float m_acceleration;
         Joystick *m_joystick;
 
         void updateMVP();
+
+        glm::vec3   m_right;
+        glm::vec3   m_up;
+        glm::vec3   m_forward;
+        glm::vec3 m_direction;
     };
 }
 

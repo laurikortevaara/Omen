@@ -79,6 +79,10 @@ namespace Omen {
 
         TextRenderer *m_text;
         int m_framecounter;
+
+        void renderScene();
+
+        Joystick *m_joystick;
     };
 } // namespace Omen
 
