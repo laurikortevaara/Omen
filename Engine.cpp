@@ -14,6 +14,7 @@
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
 #include "component/MouseInput.h"
+#include "utils.h"
 
 
 using namespace Omen;
@@ -79,6 +80,11 @@ Engine::Engine() :
         m_timeDelta(0),
         m_framecounter(0)
 {
+
+    std::string currentDir = Omen::getWorkingDir();
+    if(currentDir.find("bin")==std::string::npos)
+        chdir("bin");
+
     Window::signal_window_created.connect([this](Window *window) {
         m_window = window;
 

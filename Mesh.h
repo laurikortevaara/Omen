@@ -7,6 +7,7 @@
 
 
 #include <vector>
+#include <map>
 #include "Triangle.h"
 #include "VertexArrayObject.h"
 #include "VertexBufferObject.h"
@@ -18,6 +19,10 @@ namespace Omen {
     class Mesh {
     public:
         Mesh();
+        Mesh(std::vector<glm::vec3>& vertices,
+             std::vector<glm::vec3>& normals,
+             std::vector<glm::vec2>& texcoords,
+             std::vector<GLsizei> indices);
 
         virtual ~Mesh();
 
@@ -28,7 +33,7 @@ namespace Omen {
         std::vector<glm::vec3> m_vertices;
         std::vector<glm::vec3> m_normals;
         std::vector<glm::vec2> m_texture_coords;
-        std::vector<unsigned long> m_vertex_indices;
+        std::vector<GLsizei> m_vertex_indices;
 
         std::vector<glm::vec3> &vertices() { return m_vertices; }
 
@@ -36,14 +41,14 @@ namespace Omen {
 
         std::vector<glm::vec2> &textureCoords() { return m_texture_coords; }
 
-        std::vector<unsigned long> &vertexIndices() {return m_vertex_indices;}
+        std::vector<GLsizei> &vertexIndices() {return m_vertex_indices;}
 
         void setVertices(const std::vector<glm::vec3> &vertices) { m_vertices = vertices; }
 
         void setNormals(const std::vector<glm::vec3> &normals) { m_normals = normals; }
 
         void setTextureCoords(const std::vector<glm::vec2> &texCoords) { m_texture_coords = texCoords; }
-        void setVertexIndices(const std::vector<unsigned long>& vertexIndices) {m_vertex_indices = vertexIndices;}
+        void setVertexIndices(const std::vector<GLsizei>& vertexIndices) {m_vertex_indices = vertexIndices;}
 
         void createMesh();
 
@@ -56,11 +61,13 @@ namespace Omen {
         GLenum mPolygonMode;
         GLint m_use_texture;
 
+        static std::map<std::string, Shader*> shaders;
         Shader *m_shader;
         Material *m_material;
         GLuint m_vao;
         GLuint m_vbo;
-        GLuint m_vbo_texcoord;
+        GLuint m_vbo_normals;
+        GLuint m_vbo_texcoords;
         GLuint m_ibo;
 
         Texture *m_texture;
@@ -68,6 +75,7 @@ namespace Omen {
 
         GLint m_vcoord_attrib;
         GLint m_tcoord_attrib;
+        GLint m_vertex_normals_attrib;
 
         double m_amplitude;
         double m_phase;
@@ -83,6 +91,21 @@ namespace Omen {
         void render(const glm::mat4 &viewProjection);
 
         glm::vec3 m_position;
+
+        void createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2> &texcoords);
+
+        void createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3> &vertices);
+
+        void createIndexBuffer(std::vector<GLsizei> &indices);
+
+        std::string getDefaultTexture();
+
+        void createShader(const std::string &shaderName);
+
+        void initialize();
+
+        void createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3> &normals);
+
     };
 } // namespace Omen
 

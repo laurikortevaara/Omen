@@ -14,4 +14,6 @@ namespace Omen {
         if (low > high) return high;
         return low + (std::rand() % (high - low + 1));
     }
+
+    std::string getWorkingDir();
 }

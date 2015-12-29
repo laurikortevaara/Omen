@@ -11,7 +11,7 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include "Texture.h"
-#include "utils.h.h"
+#include "utils.h"
 #include "Engine.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
@@ -34,23 +34,140 @@ GLint attrib_texcoord;
 GLboolean draw_mesh = 1;
 GLboolean draw_triangle_patches = 1;
 
-Mesh::Mesh() : fInnerTess(1.0),
-               fOuterTess(1.0),
-               mPolygonMode(GL_LINE),
-               m_shader(nullptr),
-               m_material(nullptr),
-               m_position(0),
-               m_amplitude(Omen::random(-10,10)*0.05),
-               m_phase(3.14*Omen::random(0,100)/100.0),
-               m_frequency(0.5+Omen::random(0,100)/100.0){
-    m_material = new Material;
-    std::string texture_file = "cat.jpg";
+std::map<std::string, Shader*> Mesh::shaders;
+const std::string DEFAULT_TEXTURE = "textures/skull.png";
+
+/**
+ * Mesh CTOR
+ */
+Mesh::Mesh(std::vector<glm::vec3> &vertices,
+           std::vector<glm::vec3> &normals,
+           std::vector<glm::vec2> &texcoords,
+           std::vector<GLsizei> indices) {
+
+    initialize();
+
+    m_vertices = vertices;
+    m_normals = normals;
+    m_texture_coords = texcoords;
+    m_vertex_indices = indices;
+}
+
+/**
+ * Default CTOR with test content
+ */
+Mesh::Mesh() {
+    initialize();
+
+    setMaterial(new Material);
+    m_material->setTexture(new Texture(getDefaultTexture()));
+
+    std::string shader_name = "shaders/pass_through.glsl";
+    createShader(shader_name);
+
+    if (m_material != nullptr)
+        m_shader->setMaterial(m_material);
+
+    /**/
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+    check_gl_error();
+
+    /**
+     * Setup the vertex coordinate buffer object (vbo)
+     */
+    GLfloat s = 2;
+    // Enable vertex attributes
+    m_vcoord_attrib = m_shader->getAttribLocation("position");
+    if (m_vcoord_attrib >= 0) {
+        float aspect = (float)m_material->texture()->width()/(float)material()->texture()->height();
+        m_vertices =  {
+                {-s*aspect, 2, -s},
+                {s*aspect,  2, -s},
+                {s*aspect,  2, s},
+                {-s*aspect, 2, s}};
+        createVertexCoordBuffer(m_vcoord_attrib, m_vertices);
+        check_gl_error();
+
+        /**
+         * Setup the vertex index element buffer (ibo)
+         */
+        m_vertex_indices = {0, 1, 3, 1, 2, 3};
+        createIndexBuffer(m_vertex_indices);
+        check_gl_error();
+    }
+
+    /**
+     * Setup the vertex normals
+     */
+    m_vertex_normals_attrib = m_shader->getAttribLocation("normal");
+    if(m_vertex_normals_attrib>=0){
+        m_normals =  {
+                {0,1,0},
+                {0,1,0},
+                {0,1,0},
+                {0,1,0}};
+        createVertexNormalBuffer(m_vertex_normals_attrib, m_normals);
+        check_gl_error();
+    }
+
+    /**
+     * Setup the vertex texture coordinates
+     */
+    m_tcoord_attrib = m_shader->getAttribLocation("texcoord");
+    std::vector<glm::vec2> texcoords = {
+            {0, 0},
+            {1, 0},
+            {1, 1},
+            {0, 1}
+    };
+    createTextureCoordBuffer(m_tcoord_attrib, texcoords);
+    check_gl_error();
+
+    /**/
+}
+
+/**
+ * Initialize the shader
+ */
+void Mesh::initialize()
+{
+    fInnerTess = 1.0;
+    fOuterTess = 1.0;
+    mPolygonMode = GL_LINE;
+    m_shader = nullptr;
+    m_material = nullptr;
+    m_position = glm::vec3(0);
+    m_amplitude = Omen::random(-10,10)*0.05;
+    m_phase = 3.14*Omen::random(0,100)/100.0;
+    m_frequency = 0.5+Omen::random(0,100)/100.0;
+}
+
+/**
+ * Create a shader for the mesh
+ */
+void Mesh::createShader(const std::string& shader_name)
+{
+    if(shaders.find(shader_name) == shaders.end()){
+        m_shader = new Shader(shader_name);
+        shaders[shader_name] = m_shader;
+    }
+    else
+        m_shader = shaders[shader_name];
+}
+
+/**
+ * Returns a default texture file-path
+ */
+std::string Mesh::getDefaultTexture() {
+    std::string texture_file = DEFAULT_TEXTURE;
 
     static std::vector<std::string> files;
     tinydir_dir dir;
     std::string filename;
     std::vector<std::string> accepted_exts = {".jpg", ".png"};
-    if(files.empty())
+
+    /*if(files.empty())
     if (tinydir_open(&dir, "./textures") != -1)
         while (dir.has_next) {
             tinydir_file file;
@@ -67,79 +184,74 @@ Mesh::Mesh() : fInnerTess(1.0),
             }
             tinydir_next(&dir);
         }
-
-    texture_file = files.empty() ? "cat.jpg" : files[Omen::random(0,files.size()-1)];
-    m_material->setTexture(new Texture(texture_file));
-    m_shader = new Shader("shaders/pass_through.glsl");
-
-
-    /**/
-    glGenVertexArrays(1, &m_vao);
-    glBindVertexArray(m_vao);
-    check_gl_error();
-
-    /**
-     * Setup the vertex coordinate buffer object (vbo)
-     */
-    GLfloat s = 2;
-    // Enable vertex attributes
-    m_vcoord_attrib = m_shader->getAttribLocation("position");
-    if (m_vcoord_attrib >= 0) {
-        glEnableVertexAttribArray(m_vcoord_attrib);
-
-        float aspect = (float)m_material->texture()->width()/(float)material()->texture()->height();
-        GLfloat vertices[4][3] = {
-                {-s*aspect, 2, -s},
-                {s*aspect,  2, -s},
-                {s*aspect,  2, s},
-                {-s*aspect, 2, s}};
-
-        int i = sizeof(vertices);
-        // Create vbo
-        glGenBuffers(1, &m_vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
-                              0/*stride*/, 0/*offset*/);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        check_gl_error();
-
-        /**
-         * Setup the vertex index element buffer (ibo)
-         */
-        GLuint indices[6] = {0, 1, 3, 1, 2, 3};
-        glGenBuffers(1, &m_ibo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        check_gl_error();
-    }
-
-    /**
-     * Setup the vertex texture coordinates
-     */
-    m_tcoord_attrib = m_shader->getAttribLocation("texcoord");
-    check_gl_error();
-    if (m_tcoord_attrib >= 0) {
-        check_gl_error();
-        GLfloat texcoords[4][2] = {
-                {0, 0},
-                {1, 0},
-                {1, 1},
-                {0, 1}
-        };
-        glGenBuffers(1, &m_vbo_texcoord);
-        check_gl_error();
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
-        check_gl_error();
-        glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
-        check_gl_error();
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        check_gl_error();
-    }
-    /**/
+*/
+    texture_file = files.empty() ? DEFAULT_TEXTURE : files[Omen::random(0,files.size()-1)];
+    return texture_file;
 }
+
+/**
+ * Create vertex index buffer
+ */
+void Mesh::createIndexBuffer(std::vector<GLsizei> &indices)
+{
+    glGenBuffers(1, &m_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+/**
+ * Create a vertex coordinate buffer
+ */
+void Mesh::createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3>& vertices)
+{
+    // Create vbo
+    glGenBuffers(1, &m_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                          0/*stride*/, 0/*offset*/);
+}
+
+/**
+ * Create a vertex texture coorinate buffer
+ */
+void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2> &texcoords)
+{
+    if (texcoord_attrib >= 0) {
+        check_gl_error();
+
+        glGenBuffers(1, &m_vbo_texcoords);
+        check_gl_error();
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoords);
+        check_gl_error();
+        glBufferData(GL_ARRAY_BUFFER, texcoords.size()*sizeof(glm::vec2), &texcoords[0], GL_STATIC_DRAW);
+        glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                              0/*stride*/,
+                              0/*offset*/);
+        check_gl_error();
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        check_gl_error();
+    }
+}
+
+
+
+/**
+ * Create a vertex normal buffer
+ */
+void Mesh::createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3>& normals)
+{
+    // Create vbo
+    glGenBuffers(1, &m_vbo_normals);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
+    glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_vertex_normals_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                          0/*stride*/, 0/*offset*/);
+}
+
+
+
 
 Mesh::~Mesh() {
 
@@ -327,41 +439,7 @@ void Mesh::render(const glm::mat4 &viewProjection) {
         {
             m_shader->setUniform1f("useTexture", m_use_texture);
 
-            ////
-            //// Material
-            ////
-            if (m_material != nullptr)
-                m_shader->setMaterial(m_material);
-
-            // Render
-            if (attrib_barycentric >= 0) {
-                glBindBuffer(GL_ARRAY_BUFFER, vbo_barycentric);
-                check_gl_error();
-                glEnableVertexAttribArray(attrib_barycentric);
-                check_gl_error();
-                glVertexAttribPointer(attrib_barycentric, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-                check_gl_error();
-            }
-            /*
-            if (attrib_vPosition >= 0) {
-                glBindBuffer(GL_ARRAY_BUFFER, vbo);
-                check_gl_error();
-                glEnableVertexAttribArray(attrib_vPosition);
-                check_gl_error();
-                glVertexAttribPointer(attrib_vPosition, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-                check_gl_error();
-            }
-
-            if (attrib_texcoord >= 0) {
-                glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoord);
-                check_gl_error();
-                glEnableVertexAttribArray(attrib_texcoord);
-                check_gl_error();
-                glVertexAttribPointer(attrib_texcoord, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-                check_gl_error();
-            }
-
-
+    /*
             if (draw_mesh) {
                 glDrawElements(GL_TRIANGLES, 0, m_vertex_indices.size(), 0 );
                 check_gl_error();
@@ -373,7 +451,7 @@ void Mesh::render(const glm::mat4 &viewProjection) {
                 glDrawArrays(GL_PATCHES, 0, 2 * num_patch_vertices);
                 check_gl_error();
             }
-             */
+  */
 
             glm::mat4 model;
             model = glm::translate( model, m_position);
@@ -388,23 +466,16 @@ void Mesh::render(const glm::mat4 &viewProjection) {
             m_material->texture()->bind();
             m_shader->setUniform1i("Texture", iTexture);
 
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
             glEnableVertexAttribArray(m_vcoord_attrib);
-            glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
-                                  0/*stride*/,
-                                  0/*offset*/);
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+            glEnableVertexAttribArray(m_vertex_normals_attrib);
             glEnableVertexAttribArray(m_tcoord_attrib);
-            glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
-                                  0/*stride*/,
-                                  0/*offset*/);
 
             //glDrawArrays(GL_QUADS, 0, 4);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) nullptr);
+            glDrawElements(GL_TRIANGLES, m_vertex_indices.size(), GL_UNSIGNED_INT, (void *) nullptr);
         }
     }
     glBindVertexArray(0);
 }
+
 

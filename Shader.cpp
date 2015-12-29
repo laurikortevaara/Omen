@@ -348,6 +348,7 @@ void Shader::setTexture(int textureIndex, Texture *texture){
     std::ostringstream os;
     os << "Texture" << textureIndex+1;
     std::string strTexName(os.str());
+    use();
     setUniform1i(strTexName.c_str(), GL_TEXTURE0+textureIndex);
     check_gl_error();
 }

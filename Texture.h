@@ -8,12 +8,25 @@
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl3.h>
 #include <iosfwd>
+#include <map>
+#include <string>
 
 namespace Omen {
     class Texture {
 
+        struct _texture_cache_item{
+            std::string bitmap_path;
+            GLuint      texture_id;
+            GLuint      width;
+            GLuint      height;
+            GLenum      textureTarget;
+            bool operator==(const _texture_cache_item& i ){
+                return (i.bitmap_path==bitmap_path);
+            }
+        };
         void loadTexture(const std::string &bitmap_path);
 
+        static std::map<std::string, _texture_cache_item> texture_cache;
         GLuint m_textureID;
         GLenum m_textureTarget;
         GLuint m_width;
@@ -31,6 +44,8 @@ namespace Omen {
         GLuint height() { return m_height; }
 
         GLuint id();
+
+        void initialize();
     };
 } // namespace Omen
 

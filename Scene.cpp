@@ -5,15 +5,15 @@
 #include <iostream>
 #include "Scene.h"
 #include "Model.h"
-#include "utils.h.h"
+#include "utils.h"
 
 using namespace Omen;
 
 Scene::Scene() {
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         std::cout << "Creating model: " << i << std::endl;
         std::shared_ptr<Model> m = std::make_shared<Model>(Model());
-        m->m_mesh->m_position = glm::vec3(Omen::random(-20,20), Omen::random(0,0), Omen::random(-20,20) );
+        m->m_mesh->m_position = glm::vec3(Omen::random(-40,40), Omen::random(0,0), Omen::random(-40,40) );
         m_models.push_back(m);
     }
 
