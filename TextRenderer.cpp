@@ -12,11 +12,18 @@
 
 using namespace Omen;
 
+
+/**
+ * CTOR
+ */
 TextRenderer::TextRenderer() {
     initializeFreeType();
     m_font_shader = new Shader("shaders/font_shader.glsl");
 }
 
+/**
+ * Render given text with given fontsize, position, scale, and color
+ */
 void TextRenderer::render_text(const char *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
     m_font_shader->use();
 
@@ -49,6 +56,7 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
         if(*p=='\n'){
             y-=sx*fontSize+10.0*sx;
             x = x_orig;
+            continue;
         }
 
         FT_Set_Pixel_Sizes(m_fontFace, 0, fontSize);
@@ -90,13 +98,17 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
     }
 }
 
+/**
+ * initialize FreeType
+ * - load font file
+ */
 bool TextRenderer::initializeFreeType() {
     if (FT_Init_FreeType(&m_freetype)) {
         std::cerr << "Could not init freetype library" << std::endl;
         return false;
     }
 
-    if (FT_New_Face(m_freetype, "fonts/Lovelo Black.otf", 0, &m_fontFace)) {
+    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Regular.otf", 0, &m_fontFace)) {
         std::cerr << "Could not open font" << std::endl;
         return false;
     }
