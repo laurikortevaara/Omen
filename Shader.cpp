@@ -41,7 +41,6 @@ bool Shader::readShaderFile(const std::string &shader_file) {
         fsdefines += sout.str();
         fsdefines += "\0";
 
-        std::cout << "shader: " << std::endl << "\"" << vsdefines.c_str() << "\"" << std::endl;
         GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
         check_gl_error();
         GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);

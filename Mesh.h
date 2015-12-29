@@ -69,6 +69,9 @@ namespace Omen {
         GLint m_vcoord_attrib;
         GLint m_tcoord_attrib;
 
+        double m_amplitude;
+        double m_phase;
+        double m_frequency;
         Shader *shader() { return m_shader; }
 
         void setShader(Shader *shader) { m_shader = shader; }
@@ -78,6 +81,8 @@ namespace Omen {
         void setMaterial(Material *material) { m_material = material; }
 
         void render(const glm::mat4 &viewProjection);
+
+        glm::vec3 m_position;
     };
 } // namespace Omen
 

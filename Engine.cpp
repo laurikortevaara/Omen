@@ -74,9 +74,11 @@ Engine::Engine() :
         m_scene(nullptr),
         m_camera(nullptr),
         m_window(nullptr),
+        m_joystick(nullptr),
         m_time(0),
         m_timeDelta(0),
-        m_framecounter(0){
+        m_framecounter(0)
+{
     Window::signal_window_created.connect([this](Window *window) {
         m_window = window;
 

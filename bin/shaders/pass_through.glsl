@@ -84,7 +84,6 @@ void main() {
     out_color = texture(Texture,tcoord);
     float len = length(vpos.xyz);
     out_color.xyz *= 3.0/len;
-
 }
 
 

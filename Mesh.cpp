@@ -11,8 +11,13 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include "Texture.h"
+#include "utils.h.h"
+#include "Engine.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
+#include <tinydir.h>
+#include <algorithm>
+#include <time.h>
 
 using namespace Omen;
 
@@ -29,10 +34,42 @@ GLint attrib_texcoord;
 GLboolean draw_mesh = 1;
 GLboolean draw_triangle_patches = 1;
 
-
-Mesh::Mesh() : fInnerTess(1.0), fOuterTess(1.0), mPolygonMode(GL_LINE), m_shader(nullptr), m_material(nullptr) {
+Mesh::Mesh() : fInnerTess(1.0),
+               fOuterTess(1.0),
+               mPolygonMode(GL_LINE),
+               m_shader(nullptr),
+               m_material(nullptr),
+               m_position(0),
+               m_amplitude(Omen::random(-10,10)*0.05),
+               m_phase(3.14*Omen::random(0,100)/100.0),
+               m_frequency(0.5+Omen::random(0,100)/100.0){
     m_material = new Material;
-    m_material->setTexture(new Texture("cat.jpg"));
+    std::string texture_file = "cat.jpg";
+
+    static std::vector<std::string> files;
+    tinydir_dir dir;
+    std::string filename;
+    std::vector<std::string> accepted_exts = {".jpg", ".png"};
+    if(files.empty())
+    if (tinydir_open(&dir, "./textures") != -1)
+        while (dir.has_next) {
+            tinydir_file file;
+            if (tinydir_readfile(&dir, &file) != -1) {
+                if (!file.is_dir) {
+                    filename.assign((const char*)file.name);
+                    std::string fname_lower = filename;
+                    std::transform(fname_lower.begin(), fname_lower.end(), fname_lower.end(), ::tolower);
+                    for (std::string ext : accepted_exts) {
+                        if (fname_lower.find(ext) != std::string::npos)
+                            files.push_back(std::string((const char*)file.path));
+                    }
+                }
+            }
+            tinydir_next(&dir);
+        }
+
+    texture_file = files.empty() ? "cat.jpg" : files[Omen::random(0,files.size()-1)];
+    m_material->setTexture(new Texture(texture_file));
     m_shader = new Shader("shaders/pass_through.glsl");
 
 
@@ -258,8 +295,13 @@ void Mesh::createPatches() {
 
 void Mesh::render(const glm::mat4 &viewProjection) {
     //glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
+
+    Engine* e = Engine::instance();
+
+    m_position.y = (float) (m_amplitude * sin(e->time()*m_frequency + m_phase));
+
     glBindVertexArray(m_vao);
-    if(m_shader== nullptr)
+    if (m_shader == nullptr)
         return;
     m_shader->use();
 
@@ -332,7 +374,10 @@ void Mesh::render(const glm::mat4 &viewProjection) {
             }
              */
 
-            float * p = (float*)&viewProjection[0][0];
+            glm::mat4 model;
+            model = glm::translate( model, m_position);
+            glm::mat4 mvp = viewProjection * model;
+            float *p = (float *) &mvp[0][0];
             m_shader->setUniformMatrix4fv("ModelViewProjection", 1, p, false);
             m_shader->setUniform1f("Time", (float) 0.0f);
 
@@ -344,12 +389,14 @@ void Mesh::render(const glm::mat4 &viewProjection) {
 
             glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
             glEnableVertexAttribArray(m_vcoord_attrib);
-            glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
+            glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                                  0/*stride*/,
                                   0/*offset*/);
 
             glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
             glEnableVertexAttribArray(m_tcoord_attrib);
-            glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
+            glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                                  0/*stride*/,
                                   0/*offset*/);
 
             //glDrawArrays(GL_QUADS, 0, 4);

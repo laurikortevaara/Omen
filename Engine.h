@@ -36,6 +36,7 @@ namespace Omen {
 
         Window *createWindow(unsigned int width, unsigned int height);
 
+        double time();
         void update();
         void render();
         Window* window() {return m_window;};
@@ -66,8 +67,6 @@ namespace Omen {
 
         GLint m_vcoord_attrib;
         GLint m_tcoord_attrib;
-
-        double time();
 
         double m_time;
         double m_timeDelta;

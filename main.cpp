@@ -16,6 +16,8 @@ std::shared_ptr<Omen::Scene> gScene = nullptr;
 * the main
 **/
 int main(int argc, char *argv[]) {
+    /* initialize random seed: */
+    srand (time(NULL));
 
     Omen::Engine *engine = Omen::Engine::instance();
     Omen::Window *window = engine->createWindow(1280, 720);
@@ -26,11 +28,11 @@ int main(int argc, char *argv[]) {
 
 
         keyboardInput->signal_key_press.connect([&](int k, int s, int a, int m) {
-            std::cout << "Foo" << std::endl;
+            // TODO
         });
 
         keyboardInput->signal_key_release.connect([&](int k, int s, int a, int m) {
-            std::cout << "Bar" << std::endl;
+            // TODO
         });
     }
 

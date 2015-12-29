@@ -19,3 +19,6 @@
 [submodule "thirdparty/freetype"]
 	path = thirdparty/freetype
 	url = git://git.sv.nongnu.org/freetype/freetype2.git
+[submodule "thirdparty/tinydir"]
+	path = thirdparty/tinydir
+	url = https://github.com/cxong/tinydir.git
