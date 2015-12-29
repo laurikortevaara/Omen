@@ -87,11 +87,12 @@ Mesh::Mesh() : fInnerTess(1.0),
     if (m_vcoord_attrib >= 0) {
         glEnableVertexAttribArray(m_vcoord_attrib);
 
+        float aspect = (float)m_material->texture()->width()/(float)material()->texture()->height();
         GLfloat vertices[4][3] = {
-                {-s, 2, -s},
-                {s,  2, -s},
-                {s,  2, s},
-                {-s, 2, s}};
+                {-s*aspect, 2, -s},
+                {s*aspect,  2, -s},
+                {s*aspect,  2, s},
+                {-s*aspect, 2, s}};
 
         int i = sizeof(vertices);
         // Create vbo

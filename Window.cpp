@@ -53,6 +53,9 @@ void Window::init() {
         if (window_size_changed_callbacks.find(win) != window_size_changed_callbacks.end())
             window_size_changed_callbacks.find(win)->second.windowSizeChanged(win, w, h);
     });
+    // Enable multisampling
+    glfwWindowHint(GLFW_SAMPLES, 16);
+    glEnable(GL_MULTISAMPLE);
 
     glfwMakeContextCurrent(m_window);
     glfwSwapInterval(0);

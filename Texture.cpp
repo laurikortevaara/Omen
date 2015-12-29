@@ -29,6 +29,8 @@ void Texture::loadTexture(const std::string &bitmap_path) {
     FILE *f = fopen(bitmap_path.c_str(), "r");
     stbi_uc *image = stbi_load_from_file(f, &x, &y, &btm, 0);
 
+    m_width = x;
+    m_height = y;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glTexImage2D(m_textureTarget, 0, btm == 3 ? GL_RGB : GL_RGBA, x, y, 0, btm == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE,

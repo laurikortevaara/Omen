@@ -16,13 +16,19 @@ namespace Omen {
 
         GLuint m_textureID;
         GLenum m_textureTarget;
+        GLuint m_width;
+        GLuint m_height;
     private:
-        Texture() {};
+        Texture() { };
 
     public:
         Texture(const std::string &bitmap_path);
 
         void bind();
+
+        GLuint width() { return m_width; }
+
+        GLuint height() { return m_height; }
 
         GLuint id();
     };
