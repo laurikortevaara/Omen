@@ -19,12 +19,11 @@ vec3 ExtractCameraPos_NoScale(mat4 ModelView)
 /**
  * Uniforms
  */
+ uniform bool      TextureEnabled;
  uniform mat4      ModelViewProjection;
  uniform sampler2D Texture;
- uniform sampler2D Texture2;
- uniform sampler2D Texture3;
- uniform sampler2D Texture4;
  uniform float     Time;
+
 
  uniform vec4      AmbientColor;
  uniform vec4      DiffuseColor;
@@ -81,9 +80,16 @@ void main() {
     mat2x2 rot2 = mat2(cos(-Time), sin(-Time), -sin(-Time), cos(-Time));
     //out_color = mix(texture(Texture, (tcoord-0.5)*rot),texture(Texture2, tcoord*rot2),max(0,vpos.x));
 
-    out_color = texture(Texture,tcoord);
+    if(TextureEnabled)
+        out_color = texture(Texture,tcoord);
+//                out_color = vec4(tcoord.x, tcoord.y, 0, 1); //texture(Texture,tcoord);
+
+    else
+        out_color = DiffuseColor;
+
+
     float len = length(vpos.xyz);
-    out_color.xyz *= 3.0/len;
+    //out_color.xyz *= 3.0/len;
 }
 
 

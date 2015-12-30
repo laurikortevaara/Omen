@@ -4,4 +4,4 @@
 
 #include "Entity.h"
 
-std::uint64_t Omen::ecs::Entity::id_counter = 0;
+uint64_t Omen::ecs::Entity::id_counter = 0;

@@ -7,6 +7,7 @@
 #include "Engine.h"
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
+#include "GL_error.h"
 
 using namespace Omen;
 
@@ -18,11 +19,12 @@ std::shared_ptr<Omen::Scene> gScene = nullptr;
 int main(int argc, char *argv[]) {
     /* initialize random seed: */
     srand (time(NULL));
-
     Omen::Engine *engine = Omen::Engine::instance();
     Omen::Window *window = engine->createWindow(1280, 720);
+    check_gl_error();
 
     Omen::ecs::System *inputSystem = engine->findSystem<Omen::InputSystem>();
+    check_gl_error();
     if (inputSystem != nullptr) {
         Omen::KeyboardInput *keyboardInput = dynamic_cast<Omen::KeyboardInput *>(inputSystem->findComponent<Omen::KeyboardInput>());
 
@@ -41,7 +43,9 @@ int main(int argc, char *argv[]) {
 
     /* Loop until the user closes the window */
     while (!window->shouldClose()) {
+        check_gl_error();
         engine->update();
+        check_gl_error();
         engine->render();
     }
 

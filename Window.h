@@ -28,7 +28,7 @@ namespace Omen {
         Window(unsigned int width, unsigned int height);
         ~Window();
 
-        bool keyPressed(unsigned int key) const;
+        bool keyPressed(unsigned int key);
 
         bool shouldClose() const;
         void start_rendering();
@@ -47,6 +47,7 @@ namespace Omen {
         void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods);
         void windowSizeChanged(GLFWwindow *window, int width, int height);
         GLFWwindow* m_window;
+        int m_swapInterval;
     };
 
 } // namespace Omen

@@ -38,7 +38,7 @@ void Engine::initializeSystems() {
     inputSystem->add(keyboardInput);
 
     // Mouse input
-    MouseInput* mouseInput = new MouseInput();
+    MouseInput *mouseInput = new MouseInput();
     inputSystem->add(mouseInput);
 
     // Joystick input
@@ -78,11 +78,10 @@ Engine::Engine() :
         m_joystick(nullptr),
         m_time(0),
         m_timeDelta(0),
-        m_framecounter(0)
-{
+        m_framecounter(0) {
 
     std::string currentDir = Omen::getWorkingDir();
-    if(currentDir.find("bin")==std::string::npos)
+    if (currentDir.find("bin") == std::string::npos)
         chdir("bin");
 
     Window::signal_window_created.connect([this](Window *window) {
@@ -93,74 +92,7 @@ Engine::Engine() :
         m_camera = new Camera("Camera1", {0, 0, 0}, {0, 0, 0.01f}, 60.0f);
         m_scene = new Scene();
         m_shader = new Shader("shaders/pass_through.glsl");
-        m_texture = new Texture("checker.jpg");
-        m_texture2 = new Texture("test.jpg");
         m_text = new TextRenderer();
-
-
-        glGenVertexArrays(1, &m_vao);
-        glBindVertexArray(m_vao);
-        check_gl_error();
-
-        /**
-         * Setup the vertex coordinate buffer object (vbo)
-         */
-        GLfloat s = 1000;
-        // Enable vertex attributes
-        m_vcoord_attrib = m_shader->getAttribLocation("position");
-        if (m_vcoord_attrib >= 0) {
-            glEnableVertexAttribArray(m_vcoord_attrib);
-
-            GLfloat vertices[4][3] = {
-                    {-s, -.8, -s},
-                    {s,  -.8, -s},
-                    {s,  -.8, s},
-                    {-s, -.8, s}};
-
-            int i = sizeof(vertices);
-            // Create vbo
-            glGenBuffers(1, &m_vbo);
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-            glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
-                                  0/*stride*/, 0/*offset*/);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            check_gl_error();
-
-            /**
-             * Setup the vertex index element buffer (ibo)
-             */
-            GLuint indices[6] = {0, 1, 3, 1, 2, 3};
-            glGenBuffers(1, &m_ibo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            check_gl_error();
-        }
-
-        /**
-         * Setup the vertex texture coordinates
-         */
-        m_tcoord_attrib = m_shader->getAttribLocation("texcoord");
-        check_gl_error();
-        if (m_tcoord_attrib >= 0) {
-            check_gl_error();
-            GLfloat texcoords[4][2] = {
-                    {0, 0},
-                    {s, 0},
-                    {s, s},
-                    {0, s}
-            };
-            glGenBuffers(1, &m_vbo_texcoord);
-            check_gl_error();
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
-            check_gl_error();
-            glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
-            check_gl_error();
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            check_gl_error();
-        }
     });
 }
 
@@ -175,49 +107,17 @@ double Engine::time() {
 }
 
 void Engine::renderScene() {
-    m_shader->use();
-    glm::mat4x4 mvp = m_camera->mvp();
-    m_shader->setUniformMatrix4fv("ModelViewProjection", 1, &mvp[0][0], false);
-    m_shader->setUniform1f("Time", (float) time());
-
-    // Set the texture map
-    GLuint iTexture = 0;
-    glActiveTexture(GL_TEXTURE0 + iTexture);
-    m_texture->bind();
-    m_shader->setUniform1i("Texture", iTexture);
-
-    iTexture = 1;
-    glActiveTexture(GL_TEXTURE0 + iTexture);
-    m_texture2->bind();
-    m_shader->setUniform1i("Texture2", iTexture);
-
-    glBindVertexArray(m_vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glEnableVertexAttribArray(m_vcoord_attrib);
-    glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
-                          0/*offset*/);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
-    glEnableVertexAttribArray(m_tcoord_attrib);
-    glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/,
-                          0/*offset*/);
-
-    //glDrawArrays(GL_QUADS, 0, 4);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) nullptr);
-
-    if(m_scene!= nullptr)
+    if (m_scene != nullptr)
         m_scene->render(m_camera->mvp());
 }
 
 void Engine::render() {
     m_framecounter++;
     m_window->start_rendering();
-
+    check_gl_error();
     renderScene();
+    check_gl_error();
 
-    glBindVertexArray(m_vao);
     //
     // Render FPS counter as text
     //
@@ -238,21 +138,24 @@ void Engine::render() {
     avg_fps /= q_fps.size();
 
     std::ostringstream os;
-    std::vector<float> axes = m_joystick!= nullptr?m_joystick->getJoystickAxes() : std::vector<float>({0,0,0,0});
-    os << "FPS: " << std::setprecision(3) << avg_fps << "\nFRAME:(" << m_framecounter << ")\nMEM:12MB"\
-    << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]";
+    std::vector<float> axes = m_joystick != nullptr ? m_joystick->getJoystickAxes() : std::vector<float>({0, 0, 0, 0});
+    os << "FPS: " << std::setprecision(3) << avg_fps << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 <<
+    " ms./frame]" << "\nFRAME:(" << m_framecounter << ")\nMEM:xxx MB"\
+ << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]";
     std::string text(os.str());
     m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
 
     m_window->end_rendering();
-    glBindVertexArray(0);
 }
 
 Window *Engine::createWindow(unsigned int width, unsigned int height) {
     m_window = new Window(width, height);
-
+    check_gl_error();
     glFrontFace(GL_CCW);
+    check_gl_error();
+    glEnable(GL_CULL_FACE);
     glDisable(GL_CULL_FACE);
+    check_gl_error();
 
     return m_window;
 }
@@ -262,7 +165,7 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
         if (key == GLFW_KEY_Q || key == GLFW_KEY_ESCAPE)
             exit(0);
 
-        if (m_scene != nullptr) {
+        /*if (m_scene != nullptr) {
             if (key == GLFW_KEY_W) {
                 for (auto model : m_scene->m_models)
                     if (model->m_mesh->fInnerTess > 1)
@@ -292,7 +195,7 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
             if (key == GLFW_KEY_1)
                 for (auto model : m_scene->m_models)
                     model->m_mesh->m_use_texture = (++model->m_mesh->m_use_texture) % 3;
-        }
+        }*/
     }
 
 }

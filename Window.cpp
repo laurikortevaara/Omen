@@ -8,6 +8,10 @@
 #include <OpenGL/gl3.h>
 #include <GLFW/glfw3.h>
 #include "Window.h"
+#include "GL_error.h"
+#include "Engine.h"
+#include "system/InputSystem.h"
+#include "component/KeyboardInput.h"
 
 using namespace Omen;
 
@@ -45,6 +49,11 @@ void Window::init() {
         glfwTerminate();
         throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to create window"));
     }
+    int w, h;
+    glfwGetWindowSize(m_window, &w, &h);
+    glfwSetCursorPos(m_window, w/2, h/2);
+    glfwMakeContextCurrent(m_window);
+    check_gl_error();
 
     // WindowSizeChange signal handler
     // Add a static C-function callback wrapper with pointer to this
@@ -53,19 +62,38 @@ void Window::init() {
         if (window_size_changed_callbacks.find(win) != window_size_changed_callbacks.end())
             window_size_changed_callbacks.find(win)->second.windowSizeChanged(win, w, h);
     });
+    check_gl_error();
     // Enable multisampling
-    glfwWindowHint(GLFW_SAMPLES, 16);
+    glfwWindowHint(GLFW_SAMPLES, 4);
+    check_gl_error();
     glEnable(GL_MULTISAMPLE);
+    check_gl_error();
 
-    glfwMakeContextCurrent(m_window);
-    glfwSwapInterval(0);
+    m_swapInterval = 60; // by default 60 FPS
+    glfwSwapInterval(m_swapInterval);
+    check_gl_error();
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    check_gl_error();
     glClearColor(0,0,0, 1.0f);
+    check_gl_error();
 
     glfwSetCursor(m_window, nullptr);
+    check_gl_error();
     // Notify about window being created
     signal_window_created.notify(this);
+    check_gl_error();
+
+    Engine* e = Engine::instance();
+    InputSystem* is = (InputSystem*)e->findSystem<InputSystem>();
+    KeyboardInput* ki = (KeyboardInput*)is->findComponent<KeyboardInput>();
+    ki->signal_key_press.connect([&](int k, int s, int a, int m) {
+        if(k == GLFW_KEY_0 || k == GLFW_KEY_F){
+            m_swapInterval = m_swapInterval == 60 ? 0 : 60;
+            glfwSwapInterval(m_swapInterval);
+        }
+
+    });
 }
 
 Window::~Window() {
@@ -84,6 +112,6 @@ void Window::end_rendering() {
     glfwPollEvents();
 }
 
-bool Window::keyPressed(unsigned int key) const {
+bool Window::keyPressed(unsigned int key) {
     return glfwGetKey(m_window, key) == GLFW_PRESS;
 }

@@ -68,26 +68,27 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         // velocity = velocity + accelleration
         // velo = m/s
         // acceleration = m/s^2
+        m_acceleration = 0.25;
 
         if (w->keyPressed(GLFW_KEY_W)) {
-            m_velocity.z += 1.0 * deltaTime;
+            m_velocity.z += m_acceleration * deltaTime;
         }
         if (w->keyPressed(GLFW_KEY_S)) {
-            m_velocity.z -= 1.0 * deltaTime;
+            m_velocity.z -= m_acceleration * deltaTime;
         }
 
         if (w->keyPressed(GLFW_KEY_A)) {
-            m_velocity.x -= 1.0 * deltaTime;
+            m_velocity.x -= m_acceleration * deltaTime;
         }
         if (w->keyPressed(GLFW_KEY_D)) {
-            m_velocity.x += 1.0 * deltaTime;
+            m_velocity.x += m_acceleration * deltaTime;
         }
 
         if (w->keyPressed(GLFW_KEY_E)) {
-            m_velocity.y += 1.0 * deltaTime;
+            m_velocity.y += m_acceleration * deltaTime;
         }
         if (w->keyPressed(GLFW_KEY_C)) {
-            m_velocity.y -= 1.0 * deltaTime;
+            m_velocity.y -= m_acceleration * deltaTime;
         }
 
         if (m_joystick != nullptr) {
@@ -126,7 +127,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         m_pos += glm::normalize(glm::cross(cameraFront, cameraUp))*m_velocity.x;
         m_pos += glm::normalize(glm::cross(cameraFront, cameraRight))*m_velocity.y;
 
-        m_velocity *= 0.9;
+        m_velocity *= 0.95;
 
         updateMVP();
     });

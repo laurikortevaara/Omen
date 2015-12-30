@@ -16,7 +16,7 @@ using namespace Omen;
 /**
  * CTOR
  */
-TextRenderer::TextRenderer() {
+TextRenderer::TextRenderer() : m_vao(0) {
     initializeFreeType();
     m_font_shader = new Shader("shaders/font_shader.glsl");
 }
@@ -40,6 +40,10 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    if(!glIsVertexArray(m_vao))
+        glGenVertexArrays(1,&m_vao);
+    glBindVertexArray(m_vao);
 
     GLuint vbo;
     glGenBuffers(1, &vbo);
@@ -94,8 +98,8 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         x += (g->advance.x >> 6) * sx;
         y += (g->advance.y >> 6) * sy;
-
     }
+    glBindVertexArray(0);
 }
 
 /**
@@ -108,7 +112,7 @@ bool TextRenderer::initializeFreeType() {
         return false;
     }
 
-    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Regular.otf", 0, &m_fontFace)) {
+    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Light.otf", 0, &m_fontFace)) {
         std::cerr << "Could not open font" << std::endl;
         return false;
     }
