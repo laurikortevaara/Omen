@@ -23,132 +23,149 @@ using namespace Omen;
 
 #define BUFFER_OFFSET(offset)  (0 + offset)
 
-GLuint vao = 0;
-GLuint vbo = 0;
-GLuint vbo_barycentric = 0;
-GLuint vbo_texcoord = 0;
-GLint attrib_vPosition;
-GLint attrib_barycentric;
-GLint attrib_texcoord;
 
-GLboolean draw_mesh = 1;
-GLboolean draw_triangle_patches = 1;
-
-std::map<std::string, Shader*> Mesh::shaders;
+std::map<std::string, Shader *> Mesh::shaders;
 const std::string DEFAULT_TEXTURE = "textures/skull.png";
 
 /**
  * Mesh CTOR
  */
-Mesh::Mesh(std::vector<glm::vec3> &vertices,
+Mesh::Mesh(const std::string &shader,
+           Material *material,
+           std::vector<glm::vec3> &vertices,
            std::vector<glm::vec3> &normals,
            std::vector<glm::vec2> &texcoords,
            std::vector<GLsizei> indices) {
 
     initialize();
 
-    m_vertices = vertices;
-    m_normals = normals;
-    m_texture_coords = texcoords;
-    m_vertex_indices = indices;
+    create(shader,
+           material,
+           vertices,
+           normals,
+           texcoords,
+           indices);
+}
+
+void Mesh::create(const std::string &shader,
+                  Material *material,
+                  std::vector<glm::vec3> &vertices,
+                  std::vector<glm::vec3> &normals,
+                  std::vector<glm::vec2> &texcoords,
+                  std::vector<GLsizei> indices) {
+    createShader(shader);
+    m_vertex_position_attrib = m_shader->getAttribLocation("position");
+    m_vertex_normals_attrib = m_shader->getAttribLocation("normal");
+    m_vertex_texture_coord_attrib = m_shader->getAttribLocation("texcoord");
+
+
+    setMaterial(material);
+    if (m_material != nullptr) {
+        //if(m_material->texture() == nullptr)
+        //    m_material->setTexture(new Texture(getDefaultTexture()));
+        m_shader->setMaterial(m_material);
+    }
+
+    std::cout << "Size of vertices: " << vertices.size() << std::endl;
+    std::cout << "Size of normals: " << normals.size() << std::endl;
+    std::cout << "Size of texcoord: " << texcoords.size() << std::endl;
+
+    for (auto v : vertices) m_vertices.push_back(v);
+    for (auto n : normals) m_normals.push_back(n);
+    for (auto t : texcoords) m_texture_coords.push_back(t);
+    for (auto i : indices) m_vertex_indices.push_back(i);
+
+    genBuffers();
 }
 
 /**
  * Default CTOR with test content
  */
 Mesh::Mesh() {
-    initialize();
-
-    setMaterial(new Material);
-    m_material->setTexture(new Texture(getDefaultTexture()));
+    Material *m = new Material();
+    m->setTexture(new Texture(getDefaultTexture()));
 
     std::string shader_name = "shaders/pass_through.glsl";
-    createShader(shader_name);
+    create(shader_name, m, m_vertices, m_normals, m_texture_coords, m_vertex_indices);
+}
 
-    if (m_material != nullptr)
-        m_shader->setMaterial(m_material);
-
+void Mesh::genBuffers() {
     /**/
     glGenVertexArrays(1, &m_vao);
+    check_gl_error();
     glBindVertexArray(m_vao);
     check_gl_error();
 
     /**
      * Setup the vertex coordinate buffer object (vbo)
      */
-    GLfloat s = 2;
+
     // Enable vertex attributes
-    m_vcoord_attrib = m_shader->getAttribLocation("position");
-    if (m_vcoord_attrib >= 0) {
-        float aspect = (float)m_material->texture()->width()/(float)material()->texture()->height();
-        m_vertices =  {
-                {-s*aspect, 2, -s},
-                {s*aspect,  2, -s},
-                {s*aspect,  2, s},
-                {-s*aspect, 2, s}};
-        createVertexCoordBuffer(m_vcoord_attrib, m_vertices);
-        check_gl_error();
-
-        /**
-         * Setup the vertex index element buffer (ibo)
-         */
+    if (m_vertices.empty()) {
+        GLfloat s = 1;
+        float aspect = m_material->texture() == nullptr ? 1.0f : (float) m_material->texture()->width() /
+                                                                 (float) material()->texture()->height();
+        m_vertices = {
+                {-s * aspect, 2, -s},
+                {s * aspect,  2, -s},
+                {s * aspect,  2, s},
+                {-s * aspect, 2, s}};
+        m_normals = {
+                {0, 1, 0},
+                {0, 1, 0},
+                {0, 1, 0},
+                {0, 1, 0}};
+        m_texture_coords = {
+                {0, 0},
+                {1, 0},
+                {1, 1},
+                {0, 1}};
         m_vertex_indices = {0, 1, 3, 1, 2, 3};
-        createIndexBuffer(m_vertex_indices);
-        check_gl_error();
+
     }
 
-    /**
-     * Setup the vertex normals
-     */
-    m_vertex_normals_attrib = m_shader->getAttribLocation("normal");
-    if(m_vertex_normals_attrib>=0){
-        m_normals =  {
-                {0,1,0},
-                {0,1,0},
-                {0,1,0},
-                {0,1,0}};
-        createVertexNormalBuffer(m_vertex_normals_attrib, m_normals);
-        check_gl_error();
-    }
 
-    /**
-     * Setup the vertex texture coordinates
-     */
-    m_tcoord_attrib = m_shader->getAttribLocation("texcoord");
-    std::vector<glm::vec2> texcoords = {
-            {0, 0},
-            {1, 0},
-            {1, 1},
-            {0, 1}
-    };
-    createTextureCoordBuffer(m_tcoord_attrib, texcoords);
+    createVertexCoordBuffer(m_vertex_position_attrib, m_vertices);
     check_gl_error();
-
-    /**/
+    createVertexNormalBuffer(m_vertex_normals_attrib, m_normals);
+    check_gl_error();
+    createTextureCoordBuffer(m_vertex_texture_coord_attrib, m_texture_coords);
+    check_gl_error();
+    createIndexBuffer(m_vertex_indices);
+    check_gl_error();
 }
 
 /**
  * Initialize the shader
  */
-void Mesh::initialize()
-{
+void Mesh::initialize() {
+    m_vao = 0;
+    m_vbo = 0;
+    m_vbo_normals = 0;
+    m_vbo_texcoords = 0;
+    m_ibo = 0;
+
+    m_vertex_position_attrib = -1;
+    m_vertex_normals_attrib = -1;
+    m_vertex_texture_coord_attrib = -1;
+
     fInnerTess = 1.0;
     fOuterTess = 1.0;
     mPolygonMode = GL_LINE;
+    mPolygonMode = GL_FILL;
     m_shader = nullptr;
     m_material = nullptr;
     m_position = glm::vec3(0);
-    m_amplitude = Omen::random(-10,10)*0.05;
-    m_phase = 3.14*Omen::random(0,100)/100.0;
-    m_frequency = 0.5+Omen::random(0,100)/100.0;
+    m_amplitude = Omen::random(-10, 10) * 0.05;
+    m_phase = 3.14 * Omen::random(0, 100) / 100.0;
+    m_frequency = 0.5 + Omen::random(0, 100) / 100.0;
 }
 
 /**
  * Create a shader for the mesh
  */
-void Mesh::createShader(const std::string& shader_name)
-{
-    if(shaders.find(shader_name) == shaders.end()){
+void Mesh::createShader(const std::string &shader_name) {
+    if (shaders.find(shader_name) == shaders.end()) {
         m_shader = new Shader(shader_name);
         shaders[shader_name] = m_shader;
     }
@@ -185,39 +202,36 @@ std::string Mesh::getDefaultTexture() {
             tinydir_next(&dir);
         }
 */
-    texture_file = files.empty() ? DEFAULT_TEXTURE : files[Omen::random(0,files.size()-1)];
+    texture_file = files.empty() ? DEFAULT_TEXTURE : files[Omen::random(0, files.size() - 1)];
     return texture_file;
 }
 
 /**
  * Create vertex index buffer
  */
-void Mesh::createIndexBuffer(std::vector<GLsizei> &indices)
-{
+void Mesh::createIndexBuffer(std::vector<GLsizei> &indices) {
     glGenBuffers(1, &m_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 /**
  * Create a vertex coordinate buffer
  */
-void Mesh::createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3>& vertices)
-{
+void Mesh::createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3> &vertices) {
     // Create vbo
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(m_vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
                           0/*stride*/, 0/*offset*/);
 }
 
 /**
  * Create a vertex texture coorinate buffer
  */
-void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2> &texcoords)
-{
+void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2> &texcoords) {
     if (texcoord_attrib >= 0) {
         check_gl_error();
 
@@ -225,8 +239,9 @@ void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2
         check_gl_error();
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoords);
         check_gl_error();
-        glBufferData(GL_ARRAY_BUFFER, texcoords.size()*sizeof(glm::vec2), &texcoords[0], GL_STATIC_DRAW);
-        glVertexAttribPointer(m_tcoord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+        glBufferData(GL_ARRAY_BUFFER, texcoords.size() * sizeof(glm::vec2), &texcoords[0], GL_STATIC_DRAW);
+        glVertexAttribPointer(m_vertex_texture_coord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/,
+                              GL_FALSE/*normalized*/,
                               0/*stride*/,
                               0/*offset*/);
         check_gl_error();
@@ -236,25 +251,21 @@ void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2
 }
 
 
-
 /**
  * Create a vertex normal buffer
  */
-void Mesh::createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3>& normals)
-{
+void Mesh::createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3> &normals) {
     // Create vbo
     glGenBuffers(1, &m_vbo_normals);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
-    glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
     glVertexAttribPointer(m_vertex_normals_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
                           0/*stride*/, 0/*offset*/);
 }
 
 
-
-
 Mesh::~Mesh() {
-
+    std::cout << "Default Mesh destructor" << std::endl;
 }
 
 /*
@@ -406,14 +417,16 @@ void Mesh::createPatches() {
 }
 */
 
-void Mesh::render(const glm::mat4 &viewProjection) {
-    //glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
-
-    Engine* e = Engine::instance();
-
-    m_position.y = (float) (m_amplitude * sin(e->time()*m_frequency + m_phase));
-
+void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
+    glPolygonMode(GL_FRONT, mPolygonMode);
+    glPolygonMode(GL_BACK, GL_LINE);
+    check_gl_error();
+    Engine *e = Engine::instance();
+    check_gl_error();
+    m_position.y += (float) 0.01 * (m_amplitude * sin(e->time() * m_frequency + m_phase));
+    check_gl_error();
     glBindVertexArray(m_vao);
+    check_gl_error();
     if (m_shader == nullptr)
         return;
     m_shader->use();
@@ -437,38 +450,76 @@ void Mesh::render(const glm::mat4 &viewProjection) {
         //// Drawing the mesh
         ////
         {
-            m_shader->setUniform1f("useTexture", m_use_texture);
-
-    /*
-            if (draw_mesh) {
-                glDrawElements(GL_TRIANGLES, 0, m_vertex_indices.size(), 0 );
-                check_gl_error();
-            }
-            else {
-                int num_patch_vertices = draw_triangle_patches ? 3 : 4;
-                glPatchParameteri(GL_PATCH_VERTICES, num_patch_vertices);
-                check_gl_error();
-                glDrawArrays(GL_PATCHES, 0, 2 * num_patch_vertices);
-                check_gl_error();
-            }
-  */
+            /*
+                    if (draw_mesh) {
+                        glDrawElements(GL_TRIANGLES, 0, m_vertex_indices.size(), 0 );
+                        check_gl_error();
+                    }
+                    else {
+                        int num_patch_vertices = draw_triangle_patches ? 3 : 4;
+                        glPatchParameteri(GL_PATCH_VERTICES, num_patch_vertices);
+                        check_gl_error();
+                        glDrawArrays(GL_PATCHES, 0, 2 * num_patch_vertices);
+                        check_gl_error();
+                    }
+          */
 
             glm::mat4 model;
-            model = glm::translate( model, m_position);
+
+            model = glm::translate(model, m_position);
+            model = glm::rotate(model, (float)(e->time()*m_frequency), glm::vec3(0,1,0) );
+
             glm::mat4 mvp = viewProjection * model;
-            float *p = (float *) &mvp[0][0];
-            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, p, false);
+            glm::mat4 mv = view * model;
+            glm::mat4 mvi = glm::transpose(glm::inverse(mv));
+            glm::mat4 mi = glm::transpose(glm::inverse(model));
+
+            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, (GLfloat*)&mvp[0], false);
+            m_shader->setUniformMatrix4fv("ModelView", 1, (GLfloat*)&mv[0], false);
+            m_shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat*)&mvi[0], false);
+            m_shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat*)&mi[0], false);
+            //m_shader->setUniformMatrix4fv("ModelView", 1, )
             m_shader->setUniform1f("Time", (float) 0.0f);
+
+            /*
+            if (m_material->twoSided()) {
+                //glDisable(GL_CULL_FACE);
+                //glDisable(GL_DEPTH_TEST);
+                glEnable (GL_BLEND);
+                glBlendFunc (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+                glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+            }
+            else {
+                glEnable(GL_CULL_FACE);
+                //glEnable(GL_DEPTH_TEST);
+            }
+            */
+            GLfloat value;
+            glProgramUniform1f(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"),
+                               m_material->texture() != nullptr ? 1.0 : 0.0);
+            glGetUniformfv(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"), &value);
 
             // Set the texture map
             GLuint iTexture = 0;
-            glActiveTexture(GL_TEXTURE0 + iTexture);
-            m_material->texture()->bind();
-            m_shader->setUniform1i("Texture", iTexture);
 
-            glEnableVertexAttribArray(m_vcoord_attrib);
-            glEnableVertexAttribArray(m_vertex_normals_attrib);
-            glEnableVertexAttribArray(m_tcoord_attrib);
+            if (m_material->texture() != nullptr) {
+                m_shader->setTexture(0, m_material->texture());
+                m_shader->setUniform4fv("DiffuseColor", 1, &glm::vec4(1, 1, 1, 1)[0]);
+            }
+            else {
+                m_shader->setUniform4fv("DiffuseColor", 1, &m_material->diffuseColor()[0]);
+                m_shader->setUniform4fv("AmbientColor", 1, &m_material->ambientColor()[0]);
+                m_shader->setUniform4fv("SpecularColor", 1, &m_material->specularColor()[0]);
+            }
+
+
+            if (m_vertices.size() > 0)
+                glEnableVertexAttribArray(m_vertex_position_attrib);
+            if (m_normals.size() > 0)
+                glEnableVertexAttribArray(m_vertex_normals_attrib);
+            if (m_texture_coords.size() > 0)
+                glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
 
             //glDrawArrays(GL_QUADS, 0, 4);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);

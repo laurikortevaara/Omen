@@ -13,20 +13,22 @@ namespace Omen {
     // Key type wrapper
     #define OMEN_KEY(key) {GLFW_KEY_#key}
 
-    class Window {
+    class Window : public std::enable_shared_from_this<Window> {
     public:
+        Window();
+
         typedef Signal< std::function<void (int width, int height)> > WindowSizeChanged;
         WindowSizeChanged signal_window_size_changed;
 
-        typedef Signal< std::function<void (Window*) > > WindowCreated;
+        typedef Signal< std::function<void (std::shared_ptr<Window>) > > WindowCreated;
         static WindowCreated signal_window_created;
 
     private:
         static std::map<GLFWwindow*,Omen::Window&> window_size_changed_callbacks;
 
     public:
-        Window(unsigned int width, unsigned int height);
         ~Window();
+        void createWindow(unsigned int width, unsigned int height);
 
         bool keyPressed(unsigned int key) const;
 
@@ -34,12 +36,12 @@ namespace Omen {
         void start_rendering();
         void end_rendering();
 
-        unsigned int width() const { int width, height; glfwGetWindowSize(m_window, &width, &height); return width; }
-        unsigned int height() const { int width, height; glfwGetWindowSize(m_window, &width, &height); return height; }
+        unsigned int width() const;
+        unsigned int height() const;
         struct _size{
             int width, height;
         };
-        _size size() const { int width, height; glfwGetWindowSize(m_window, &width, &height); return _size{width,height}; }
+        _size size() const;
 
     private:
         void init();
@@ -47,6 +49,9 @@ namespace Omen {
         void keyHit(GLFWwindow *window, int key, int scanCode, int action, int mods);
         void windowSizeChanged(GLFWwindow *window, int width, int height);
         GLFWwindow* m_window;
+        unsigned int m_width;
+        unsigned int m_height;
+        int m_swapInterval;
     };
 
 } // namespace Omen

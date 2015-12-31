@@ -23,6 +23,8 @@ namespace Omen {
     public:
         TextRenderer();
         void render_text(const char *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color);
+
+        GLuint m_vao;
     };
 } // namespace Omen
 

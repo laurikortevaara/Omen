@@ -6,6 +6,8 @@
 
 using namespace Omen;
 
-Material::Material() : m_texture(nullptr) {
-    m_texture = nullptr;
+Material::Material() :
+        m_texture(nullptr),
+        m_isTwoSided(false) {
+
 }

@@ -11,11 +11,12 @@
 namespace Omen {
     class Model {
     public:
-        Model();
+        // ctor with pre-created mesh
+        Model(std::unique_ptr<Mesh> mesh= nullptr);
 
-        void render(const glm::mat4 &viewProjection);
+        void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
-        std::shared_ptr<Omen::Mesh> m_mesh;
+        std::unique_ptr<Omen::Mesh> m_mesh;
     };
 } // namespace Omen
 

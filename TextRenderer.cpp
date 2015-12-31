@@ -4,6 +4,7 @@
 
 #include <GLFW/glfw3.h>
 #include "TextRenderer.h"
+#include "GL_error.h"
 #include <glm/glm.hpp>
 #include <freetype/ftstroke.h>
 #include <OpenGL/OpenGL.h>
@@ -16,7 +17,7 @@ using namespace Omen;
 /**
  * CTOR
  */
-TextRenderer::TextRenderer() {
+TextRenderer::TextRenderer() : m_vao(0) {
     initializeFreeType();
     m_font_shader = new Shader("shaders/font_shader.glsl");
 }
@@ -27,6 +28,7 @@ TextRenderer::TextRenderer() {
 void TextRenderer::render_text(const char *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
     m_font_shader->use();
 
+    glEnable(GL_TEXTURE_2D);
     GLuint tex;
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &tex);
@@ -40,6 +42,10 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    if(!glIsVertexArray(m_vao))
+        glGenVertexArrays(1,&m_vao);
+    glBindVertexArray(m_vao);
 
     GLuint vbo;
     glGenBuffers(1, &vbo);
@@ -60,7 +66,6 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
         }
 
         FT_Set_Pixel_Sizes(m_fontFace, 0, fontSize);
-        glm::vec4 c(1, 0, 0, 1);
         m_font_shader->setUniform4fv("FontColor", 1, &color[0]);
 
         if (FT_Load_Char(m_fontFace, *p, FT_LOAD_RENDER))
@@ -94,8 +99,9 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         x += (g->advance.x >> 6) * sx;
         y += (g->advance.y >> 6) * sy;
-
     }
+    check_gl_error();
+    glBindVertexArray(0);
 }
 
 /**
@@ -108,7 +114,7 @@ bool TextRenderer::initializeFreeType() {
         return false;
     }
 
-    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Regular.otf", 0, &m_fontFace)) {
+    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Light.otf", 0, &m_fontFace)) {
         std::cerr << "Could not open font" << std::endl;
         return false;
     }

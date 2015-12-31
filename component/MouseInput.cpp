@@ -5,6 +5,7 @@
 #include "MouseInput.h"
 #include "../Window.h"
 #include "../Engine.h"
+#include <glm/glm.hpp>
 
 using namespace Omen;
 
@@ -21,6 +22,8 @@ MouseInput::MouseInput() : Component() {
             cursorpos_callbacks.find(win)->second.cursorPosChanged(win,x,y);
     });
 
+    // Hide te cursor and disable it's movement, kinda like capturing the mouse
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 MouseInput::~MouseInput() {

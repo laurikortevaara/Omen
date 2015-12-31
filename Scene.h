@@ -17,9 +17,9 @@ namespace Omen {
         virtual ~Scene();
         
     public:
-        std::vector<std::shared_ptr<Model> > m_models;
+        std::vector< std::unique_ptr<Model> > m_models;
 
-        void render(const glm::mat4 &viewProjection);
+        void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
     };
 } // namespace Omen
 

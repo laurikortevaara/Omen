@@ -109,7 +109,9 @@ bool Shader::readShaderFile(const std::string &shader_file) {
 }
 
 void Shader::use() {
+    check_gl_error();
     glUseProgram(m_shader_program);
+    check_gl_error();
 }
 
 
@@ -341,22 +343,25 @@ GLint Shader::getUniformLocation(const std::string &uniformName) {
 
 void Shader::setTexture(int textureIndex, Texture *texture){
     assert(texture!= nullptr);
+
     glActiveTexture((GLenum) (GL_TEXTURE0 + textureIndex));
     check_gl_error();
-    texture->bind();
-    check_gl_error();
+
     std::ostringstream os;
     os << "Texture" << textureIndex+1;
     std::string strTexName(os.str());
     use();
+
     setUniform1i(strTexName.c_str(), GL_TEXTURE0+textureIndex);
     check_gl_error();
+
+    texture->bind();
+    check_gl_error();
+
 }
 
 void Shader::setMaterial(Material *material) {
     if(material->texture()!= nullptr)
         setTexture(0, material->texture());
-
-    material->setColor(glm::vec4(1,0,1,1));
-    setUniform4fv("DiffuseColor", 1, &material->color()[0]);
+    use();
 }

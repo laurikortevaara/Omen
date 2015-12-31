@@ -19,7 +19,37 @@ namespace Omen {
     class Mesh {
     public:
         Mesh();
-        Mesh(std::vector<glm::vec3>& vertices,
+/*
+ * // C++11 Move-ctor
+        Mesh(Mesh&& other) {
+            int i=1;
+        }
+        // Copy-ctor
+        Mesh(const Mesh& other){}
+
+        // Copy assignment operator
+        Mesh& operator=(const Mesh& other) {
+            return *this;
+        }
+
+        // C++11 Move-ctor
+        Mesh(Mesh&& other) {
+        }
+
+        // C++11 Move assignment operator
+        Mesh& operator=(Mesh&& other)  {
+            if(this != &other){
+            }
+            return *this;
+        }
+
+        Mesh& operator=(const Mesh&& other) {
+            return *this;
+        }
+*/
+        Mesh(const std::string& shader,
+             Material* material,
+             std::vector<glm::vec3>& vertices,
              std::vector<glm::vec3>& normals,
              std::vector<glm::vec2>& texcoords,
              std::vector<GLsizei> indices);
@@ -73,8 +103,8 @@ namespace Omen {
         Texture *m_texture;
         Texture *m_texture2;
 
-        GLint m_vcoord_attrib;
-        GLint m_tcoord_attrib;
+        GLint m_vertex_position_attrib;
+        GLint m_vertex_texture_coord_attrib;
         GLint m_vertex_normals_attrib;
 
         double m_amplitude;
@@ -88,7 +118,7 @@ namespace Omen {
 
         void setMaterial(Material *material) { m_material = material; }
 
-        void render(const glm::mat4 &viewProjection);
+        void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
         glm::vec3 m_position;
 
@@ -106,6 +136,10 @@ namespace Omen {
 
         void createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3> &normals);
 
+        void genBuffers();
+
+        void create(const std::string &shader, Material *material, std::vector<glm::vec3> &vertices,
+                std::vector<glm::vec3> &normals, std::vector<glm::vec2> &texcoords, std::vector<GLsizei> indices);
     };
 } // namespace Omen
 
