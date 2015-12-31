@@ -28,9 +28,11 @@ endif (APPLE)
 # - C++14 - Use C++ standard 14
 # - libc++ - Use libc++ as the C++ standard library (http://libcxx.llvm.org/)
 ######################################################################
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+set(MALLOC_CHECK_ 2)
+set(ENV{MALLOC_CHECK_} "2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
 set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG")
 
 ######################################################################

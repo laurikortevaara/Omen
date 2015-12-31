@@ -16,8 +16,7 @@ mat4 rotationMatrix(vec3 axis, float angle)
  */
  uniform mat4      ModelViewProjection;
  uniform sampler2D Texture;
- uniform sampler2D Texture2;
- uniform float     Time;
+
  uniform vec4      FontColor;
 
 /**
@@ -61,7 +60,8 @@ void main() {
     vec4 vpos = dataIn.position;
     vec2 tcoord = dataIn.texcoord;
     vec3 normal = dataIn.normal;
-    out_color = vec4(1, 1, 1, texture(Texture, tcoord).r) * FontColor;
+    float alpha = texture(Texture, tcoord).r;
+    out_color = vec4(alpha, alpha, alpha, 1) * FontColor;
 }
 
 

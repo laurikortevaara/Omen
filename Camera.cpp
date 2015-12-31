@@ -147,6 +147,13 @@ glm::mat4x4 &Camera::mvp() {
     return m_mvp;
 }
 
+/**
+ * Return ModelViewProjection Matrix
+ */
+glm::mat4x4 &Camera::viewMatrix() {
+    return m_view;
+}
+
 void Camera::updateMVP() {
     double ViewPortParams[4];
     glGetDoublev(GL_VIEWPORT, ViewPortParams);
@@ -159,8 +166,8 @@ void Camera::updateMVP() {
     glm::mat4 Projection = glm::perspective(
             45.0f,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
             aspectRatio, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
-            0.0f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
-            10.0f       // Far clipping plane. Keep as little as possible.
+            1.0f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+            100.0f       // Far clipping plane. Keep as little as possible.
     );
 
     // Our ModelViewProjection : multiplication of our 3 matrices

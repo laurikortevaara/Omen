@@ -118,7 +118,7 @@ namespace Omen {
 
         void setMaterial(Material *material) { m_material = material; }
 
-        void render(const glm::mat4 &viewProjection);
+        void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
         glm::vec3 m_position;
 

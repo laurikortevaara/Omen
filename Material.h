@@ -17,6 +17,7 @@ namespace Omen {
         glm::vec4 m_specular_color;
         GLfloat m_spec_coeff;
         Texture *m_texture;
+        bool m_isTwoSided;
     public:
         Material();
 
@@ -39,6 +40,10 @@ namespace Omen {
         Texture *texture() { return m_texture; }
 
         void setTexture(Texture *texture) { m_texture = texture; }
+
+        bool twoSided() const { return m_isTwoSided; }
+
+        void setTwoSided(bool twoSided = true) { m_isTwoSided = twoSided; }
     };
 } // namespace Omen
 

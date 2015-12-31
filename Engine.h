@@ -34,12 +34,13 @@ namespace Omen {
         /** Public class interface **/
     public:
 
-        Window *createWindow(unsigned int width, unsigned int height);
+        std::shared_ptr<Window> createWindow(unsigned int width, unsigned int height);
 
         double time();
         void update();
         void render();
-        Window* window() {return m_window;};
+        Window* window() {return m_window.get();};
+        Camera* camera() {return m_camera;};
 
         template <class type> type* findSystem(const std::string& system_name="") {
             for(Omen::ecs::System* s : m_systems)
@@ -49,34 +50,35 @@ namespace Omen {
                 return nullptr;
         }
 
+        template <class type> type* findComponent(const std::string& component_name="") {
+            for(Omen::ecs::System* s : m_systems){
+                ecs::Component* c = s->findComponent<type>(component_name);
+                if(c != nullptr)
+                    return dynamic_cast<type*>(c);
+            }
+
+            return nullptr;
+        }
+
+
+
     private:
-        Window *m_window;
+        std::shared_ptr<Window> m_window;
         Camera *m_camera;
-        Scene *m_scene;
+        std::unique_ptr<Scene> m_scene;
+        std::vector<ecs::System*> m_systems;
+        std::unique_ptr<TextRenderer> m_text;
+
 
         void keyHit(int key, int scanCode, int action, int mods);
-
-        Shader *m_shader;
-        GLuint m_vao;
-        GLuint m_vbo;
-        GLuint m_vbo_texcoord;
-        GLuint m_ibo;
-
-        Texture *m_texture;
-        Texture *m_texture2;
-
-        GLint m_vcoord_attrib;
-        GLint m_tcoord_attrib;
 
         double m_time;
         double m_timeDelta;
 
-        std::vector<ecs::System*> m_systems;
 
 
         void initializeSystems();
 
-        TextRenderer *m_text;
         int m_framecounter;
 
         void renderScene();

@@ -21,6 +21,9 @@ vec3 ExtractCameraPos_NoScale(mat4 ModelView)
  */
  uniform bool      TextureEnabled;
  uniform mat4      ModelViewProjection;
+ uniform mat4      ModelView;
+ uniform mat4      ModelViewInverse;
+ uniform mat4      NormalMatrix;
  uniform sampler2D Texture;
  uniform float     Time;
 
@@ -69,27 +72,20 @@ out vec4 out_color;
 void main() {
     vec4 vpos = dataIn.position;
     vec2 tcoord = dataIn.texcoord;
-    //tcoord.y += Time*abs(sin(Time)*0.1);
-    vec3 normal = dataIn.normal;
-    out_color = vec4(1,0,0,1);
-    out_color = out_color+vec4(tcoord.x, tcoord.y,0,1);
-    out_color /= 2;
-    out_color = vec4(tcoord.x, tcoord.y,0,1);
-    //mat4x4 rot = rotationMatrix(vec3(0,0,1),Time);
-    mat2x2 rot = mat2(cos(Time), sin(Time), -sin(Time), cos(Time));
-    mat2x2 rot2 = mat2(cos(-Time), sin(-Time), -sin(-Time), cos(-Time));
-    //out_color = mix(texture(Texture, (tcoord-0.5)*rot),texture(Texture2, tcoord*rot2),max(0,vpos.x));
+    vec3 normal = normalize(mat3(NormalMatrix)*dataIn.normal);
 
     if(TextureEnabled)
         out_color = texture(Texture,tcoord);
-//                out_color = vec4(tcoord.x, tcoord.y, 0, 1); //texture(Texture,tcoord);
-
     else
         out_color = DiffuseColor;
 
+    vec3 surfaceToLight = vec3(50,100,30)-vpos.xyz;
+    float brightness = 1.2*dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));
 
     float len = length(vpos.xyz);
-    //out_color.xyz *= 3.0/len;
+    out_color.xyz *= 3.0/len;
+    out_color *= brightness;
+    out_color.a = 1;
 }
 
 

@@ -14,7 +14,7 @@ namespace Omen {
         // ctor with pre-created mesh
         Model(std::unique_ptr<Mesh> mesh= nullptr);
 
-        void render(const glm::mat4 &viewProjection);
+        void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
         std::unique_ptr<Omen::Mesh> m_mesh;
     };

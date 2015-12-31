@@ -19,7 +19,7 @@ Model::Model(std::unique_ptr<Mesh> mesh) :
     check_gl_error();
 }
 
-void Model::render(const glm::mat4 &viewProjection) {
-    m_mesh->render(viewProjection);
+void Model::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
+    m_mesh->render(viewProjection, view);
 }
 

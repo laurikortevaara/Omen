@@ -38,6 +38,8 @@ namespace Omen {
         glm::vec3   m_up;
         glm::vec3   m_forward;
         glm::vec3 m_direction;
+
+        glm::mat4x4 &viewMatrix();
     };
 }
 

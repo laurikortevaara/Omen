@@ -84,15 +84,14 @@ Engine::Engine() :
     if (currentDir.find("bin") == std::string::npos)
         chdir("bin");
 
-    Window::signal_window_created.connect([this](Window *window) {
+    Window::signal_window_created.connect([this](std::shared_ptr<Window> window) {
         m_window = window;
 
         initializeSystems();
 
         m_camera = new Camera("Camera1", {0, 0, 0}, {0, 0, 0.01f}, 60.0f);
-        m_scene = new Scene();
-        m_shader = new Shader("shaders/pass_through.glsl");
-        m_text = new TextRenderer();
+        m_scene = std::make_unique<Scene>();
+        m_text = std::make_unique<TextRenderer>();
     });
 }
 
@@ -108,7 +107,7 @@ double Engine::time() {
 
 void Engine::renderScene() {
     if (m_scene != nullptr)
-        m_scene->render(m_camera->mvp());
+        m_scene->render(m_camera->mvp(), m_camera->viewMatrix());
 }
 
 void Engine::render() {
@@ -148,15 +147,18 @@ void Engine::render() {
     m_window->end_rendering();
 }
 
-Window *Engine::createWindow(unsigned int width, unsigned int height) {
-    m_window = new Window(width, height);
+std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int height) {
+    m_window = std::make_shared<Window>();
+    m_window->createWindow(width, height);
     check_gl_error();
     glFrontFace(GL_CCW);
     check_gl_error();
-    glEnable(GL_CULL_FACE);
     glDisable(GL_CULL_FACE);
     check_gl_error();
-
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     return m_window;
 }
 

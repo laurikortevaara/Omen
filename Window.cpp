@@ -19,8 +19,13 @@ using namespace Omen;
 std::map<GLFWwindow *, Omen::Window &> Window::window_size_changed_callbacks;
 Window::WindowCreated Window::signal_window_created;
 
-Window::Window(unsigned int width, unsigned int height) {
+Window::Window() {
     init();
+}
+
+void Window::init()
+{
+
 }
 
 void Window::windowSizeChanged(GLFWwindow *window, int width, int height) {
@@ -32,7 +37,7 @@ bool Window::shouldClose() const {
     return glfwWindowShouldClose(m_window);
 }
 
-void Window::init() {
+void Window::createWindow(unsigned int width, unsigned int height) {
     /* Initialize the library */
     if (!glfwInit())
         throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to initialize window."));
@@ -44,14 +49,15 @@ void Window::init() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
 
     /* Create a windowed mode window and its OpenGL context */
-    m_window = glfwCreateWindow(1280, 720, "The Omen Game engine", NULL, NULL);
-    if (!m_window) {
+    m_window = glfwCreateWindow(width, height, "The Omen Game engine", NULL, NULL);
+    if (m_window == nullptr) {
         glfwTerminate();
         throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to create window"));
     }
-    int w, h;
-    glfwGetWindowSize(m_window, &w, &h);
-    glfwSetCursorPos(m_window, w/2, h/2);
+    m_width = width;
+    m_height = height;
+
+    glfwSetCursorPos(m_window, m_width/2, m_height/2);
     glfwMakeContextCurrent(m_window);
     check_gl_error();
 
@@ -81,7 +87,7 @@ void Window::init() {
     glfwSetCursor(m_window, nullptr);
     check_gl_error();
     // Notify about window being created
-    signal_window_created.notify(this);
+    signal_window_created.notify(shared_from_this());
     check_gl_error();
 
     Engine* e = Engine::instance();
@@ -97,6 +103,9 @@ void Window::init() {
 }
 
 Window::~Window() {
+    if(m_window != nullptr){
+        glfwDestroyWindow(m_window);
+    }
 }
 
 void Window::start_rendering() {
@@ -112,6 +121,20 @@ void Window::end_rendering() {
     glfwPollEvents();
 }
 
-bool Window::keyPressed(unsigned int key) {
+bool Window::keyPressed(unsigned int key) const {
     return glfwGetKey(m_window, key) == GLFW_PRESS;
+}
+
+unsigned int Window::width() const {
+    return size().width;
+}
+
+unsigned int Window::height() const {
+    return size().height;
+}
+
+Window::_size Window::size() const {
+    _size size;
+    glfwGetWindowSize(m_window, &size.width, &size.height);
+    return size;
 }

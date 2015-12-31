@@ -70,10 +70,10 @@ void Mesh::create(const std::string &shader,
     std::cout << "Size of normals: " << normals.size() << std::endl;
     std::cout << "Size of texcoord: " << texcoords.size() << std::endl;
 
-    for(auto v : vertices ) m_vertices.push_back(v);
-    for(auto n : normals ) m_normals.push_back(n);
-    for(auto t : texcoords ) m_texture_coords.push_back(t);
-    for(auto i : indices ) m_vertex_indices.push_back(i);
+    for (auto v : vertices) m_vertices.push_back(v);
+    for (auto n : normals) m_normals.push_back(n);
+    for (auto t : texcoords) m_texture_coords.push_back(t);
+    for (auto i : indices) m_vertex_indices.push_back(i);
 
     genBuffers();
 }
@@ -152,6 +152,7 @@ void Mesh::initialize() {
     fInnerTess = 1.0;
     fOuterTess = 1.0;
     mPolygonMode = GL_LINE;
+    mPolygonMode = GL_FILL;
     m_shader = nullptr;
     m_material = nullptr;
     m_position = glm::vec3(0);
@@ -239,7 +240,8 @@ void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoords);
         check_gl_error();
         glBufferData(GL_ARRAY_BUFFER, texcoords.size() * sizeof(glm::vec2), &texcoords[0], GL_STATIC_DRAW);
-        glVertexAttribPointer(m_vertex_texture_coord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+        glVertexAttribPointer(m_vertex_texture_coord_attrib, 2/*num elems*/, GL_FLOAT/*elem type*/,
+                              GL_FALSE/*normalized*/,
                               0/*stride*/,
                               0/*offset*/);
         check_gl_error();
@@ -263,7 +265,7 @@ void Mesh::createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3>
 
 
 Mesh::~Mesh() {
-
+    std::cout << "Default Mesh destructor" << std::endl;
 }
 
 /*
@@ -415,13 +417,13 @@ void Mesh::createPatches() {
 }
 */
 
-void Mesh::render(const glm::mat4 &viewProjection) {
-    //glPolygonMode(GL_FRONT_AND_BACK, mPolygonMode);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
+void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
+    glPolygonMode(GL_FRONT, mPolygonMode);
+    glPolygonMode(GL_BACK, GL_LINE);
     check_gl_error();
     Engine *e = Engine::instance();
     check_gl_error();
-    m_position.y = (float) (m_amplitude * sin(e->time() * m_frequency + m_phase));
+    m_position.y += (float) 0.01 * (m_amplitude * sin(e->time() * m_frequency + m_phase));
     check_gl_error();
     glBindVertexArray(m_vao);
     check_gl_error();
@@ -463,12 +465,36 @@ void Mesh::render(const glm::mat4 &viewProjection) {
           */
 
             glm::mat4 model;
+
             model = glm::translate(model, m_position);
+            model = glm::rotate(model, (float)(e->time()*m_frequency), glm::vec3(0,1,0) );
+
             glm::mat4 mvp = viewProjection * model;
-            float *p = (float *) &mvp[0][0];
-            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, p, false);
+            glm::mat4 mv = view * model;
+            glm::mat4 mvi = glm::transpose(glm::inverse(mv));
+            glm::mat4 mi = glm::transpose(glm::inverse(model));
+
+            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, (GLfloat*)&mvp[0], false);
+            m_shader->setUniformMatrix4fv("ModelView", 1, (GLfloat*)&mv[0], false);
+            m_shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat*)&mvi[0], false);
+            m_shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat*)&mi[0], false);
+            //m_shader->setUniformMatrix4fv("ModelView", 1, )
             m_shader->setUniform1f("Time", (float) 0.0f);
 
+            /*
+            if (m_material->twoSided()) {
+                //glDisable(GL_CULL_FACE);
+                //glDisable(GL_DEPTH_TEST);
+                glEnable (GL_BLEND);
+                glBlendFunc (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+                glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+            }
+            else {
+                glEnable(GL_CULL_FACE);
+                //glEnable(GL_DEPTH_TEST);
+            }
+            */
             GLfloat value;
             glProgramUniform1f(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"),
                                m_material->texture() != nullptr ? 1.0 : 0.0);
@@ -488,11 +514,11 @@ void Mesh::render(const glm::mat4 &viewProjection) {
             }
 
 
-            if(m_vertices.size()>0)
+            if (m_vertices.size() > 0)
                 glEnableVertexAttribArray(m_vertex_position_attrib);
-            if(m_normals.size()>0)
+            if (m_normals.size() > 0)
                 glEnableVertexAttribArray(m_vertex_normals_attrib);
-            if(m_texture_coords.size()>0)
+            if (m_texture_coords.size() > 0)
                 glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
 
             //glDrawArrays(GL_QUADS, 0, 4);

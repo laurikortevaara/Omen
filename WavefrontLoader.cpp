@@ -4,6 +4,7 @@
 
 #include "WavefrontLoader.h"
 #include "Model.h"
+#include "utils.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -221,74 +222,32 @@ bool WavefrontLoader::loadMaterialLibrary(const std::string &filename) {
 
 using namespace Omen;
 std::unique_ptr<Omen::Mesh> WavefrontLoader::mesh::getMesh() {
-    Material* material = new Material();
-    WavefrontLoader::_material* mdef = nullptr;
-    for(auto mat : WavefrontLoader::materials )
-        if(mat->name==this->material){mdef=mat;break;}
-    if(mdef!= nullptr){
-        if(!mdef->map_Kd.empty())
-            material->setTexture(new Omen::Texture(mdef->map_Kd));
-        material->setDiffuseColor(glm::vec4(mdef->Kd,1));
-        material->setAmbientColor(glm::vec4(mdef->Ka,1));
-        material->setSpecularColor(glm::vec4(mdef->Ks,1));
-    }
-    std::string shader_name = "shaders/pass_through.glsl";
-
+    GLfloat s = 1000;
+    std::vector<GLsizei> indices;
     std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> texcoords;
     std::vector<glm::vec3> normals;
-    std::vector<GLsizei> vertex_indices_tris;
-
-    for(auto index : this->faces){
-        vertices.push_back({1,1,1});vertices.push_back({1,1,1});vertices.push_back({1,1,1});
-        texcoords.push_back({1,1});texcoords.push_back({1,1});texcoords.push_back({1,1});
-        normals.push_back({1,1,1});normals.push_back({1,1,1});normals.push_back({1,1,1});
-    }
+    std::vector<glm::vec2> texcoords;
     for(auto face : this->faces){
-
-        for(auto index : face.indices) {
-            int vi = index.vertex_index - 1;
-            int ti = index.texture_index - 1;
-            int ni = index.normal_index - 1;
-
-            glm::vec3 v = WavefrontLoader::m_vertices[vi];
-            glm::vec3 n = WavefrontLoader::m_normals[ni];
-            glm::vec2 t = WavefrontLoader::m_texcoords[ti];
-
-            glm::vec3 v1, v2, v3;
-            v1 = WavefrontLoader::m_vertices[face.indices[0].vertex_index];
-            v2 = WavefrontLoader::m_vertices[face.indices[1].vertex_index];
-            v3 = WavefrontLoader::m_vertices[face.indices[2].vertex_index];
-            glm::vec3 s1 = v3 - v1;
-            glm::vec3 s2 = v3 - v2;
-            glm::vec3 norm = glm::normalize(glm::cross(s1,s2));
-
-            std::cout << "v: " << v.x << ", " << v.y << ", " << v.z << " -- ";
-            std::cout << "n: " << n.x << ", " << n.y << ", " << n.z << " -- ";
-            std::cout << "t: " << t.x << ", " << t.y <<  std::endl;
-
-            vertices[vi] = WavefrontLoader::m_vertices[vi];
-            if(index.texture_index>=0)texcoords[vi]=WavefrontLoader::m_texcoords[ti];
-            if(index.normal_index>=0)normals[vi]=WavefrontLoader::m_normals[ni];
-            vertex_indices_tris.push_back(vi);
+        for(auto index : face.indices){
+            indices.push_back(indices.size());
+            vertices.push_back(WavefrontLoader::m_vertices.at(index.vertex_index-1));
+            if(!WavefrontLoader::m_normals.empty())normals.push_back(WavefrontLoader::m_normals.at(index.normal_index-1));
+            if(!WavefrontLoader::m_texcoords.empty())texcoords.push_back(WavefrontLoader::m_texcoords.at(index.texture_index-1));
         }
     }
 
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(shader_name.c_str(), material, vertices, normals, texcoords, vertex_indices_tris);
-    std::cout << "Qexit" << std::endl;
-    vertices.erase(vertices.begin(), vertices.end());
-    texcoords.erase(texcoords.begin(), texcoords.end());
-    normals.erase(normals.begin(), normals.end());
-    return std::move(mesh);
-    /*material2->setDiffuseColor(glm::vec4(mdef->Kd,1));
-    material2->setAmbientColor(glm::vec4(mdef->Ka,1));
-    material2->setSpecularColor(glm::vec4(mdef->Ks,1));
-    if(!mdef->map_Kd.empty())
-        material2->setTexture(new Texture(mdef->map_Kd));
+    Material* material = new Material();
+    for(auto matdef : WavefrontLoader::materials) {
+        if(matdef->name==this->material){
+            material->setDiffuseColor(glm::vec4(matdef->Kd,1));
+            material->setAmbientColor(glm::vec4(matdef->Ka,1));
+            material->setSpecularColor(glm::vec4(matdef->Ks,1));
+            if(!matdef->map_Kd.empty()) material->setTexture(new Texture(matdef->map_Kd));
+            break;
+        }
+    }
 
-    std::unique_ptr<Model> model2 = std::make_unique<Model>(std::move(mesh2));
-    model2->m_mesh->m_position = glm::vec3(0,0,0);
-    model2->m_mesh->m_amplitude = 0.0;
-     */
-    return nullptr;
+    std::string shader_name = "shaders/pass_through.glsl";
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(shader_name, material, vertices, normals, texcoords, indices);
+    return mesh;
 }
