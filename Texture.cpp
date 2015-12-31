@@ -35,6 +35,8 @@ void Texture::loadTexture(const std::string &bitmap_path) {
 
         int x, y, btm;
         FILE *f = fopen(bitmap_path.c_str(), "r");
+        if(!f)
+            return;
         stbi_uc *image = stbi_load_from_file(f, &x, &y, &btm, 0);
 
         m_width = x;
