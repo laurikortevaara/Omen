@@ -109,7 +109,7 @@ namespace Omen {
 
         void setMaterial(Material *material);
 
-        void setTexture(int textureIndex, Texture *texture);
+        void setTexture(int textureIndex, const std::string& textureName, Texture *texture);
     };
 } // namespace Omen
 

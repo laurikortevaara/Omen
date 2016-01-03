@@ -9,6 +9,7 @@
 #include "WavefrontLoader.h"
 #include "GL_error.h"
 #include "Engine.h"
+#include "MD3Loader.h"
 
 using namespace Omen;
 
@@ -44,18 +45,38 @@ Scene::Scene() {
      m_models.push_back(std::move(model));
 
 
-    /////
-    WavefrontLoader loader;
-    loader.loadObj("models/test.obj");
+    /*
+    {
+        WavefrontLoader loader;
+        loader.loadObj("models/ToDPirateHologuise/PirateHologuise.obj");
 
-    for(auto mesh : loader.meshes){
-        std::unique_ptr<Mesh> mp = mesh->getMesh();
-        std::unique_ptr<Model> model = std::make_unique<Model>(std::move(mp));
-        model->m_mesh->m_position = glm::vec3(Omen::random(-10,10),5,Omen::random(-10,10));
-        model->m_mesh->m_amplitude = 2.0;
-        m_models.push_back(std::move(model));
+        for (auto mesh : loader.meshes) {
+            std::unique_ptr<Mesh> mp = mesh->getMesh();
+            std::unique_ptr<Model> model = std::make_unique<Model>(std::move(mp));
+            model->m_mesh->m_position = glm::vec3(Omen::random(-10, 10), 5, Omen::random(-10, 10));
+            model->m_mesh->m_amplitude = 2.0;
+            m_models.push_back(std::move(model));
+        }
+        check_gl_error();
     }
-    check_gl_error();
+    */
+    {
+        Omen::MD3Loader loader;
+        //loader.loadModel("models/cube.md3");
+        loader.loadModel("models/ToDPirateHologuise/pirate.md3");
+        std::vector<std::unique_ptr<Omen::Mesh>> meshes;
+        loader.getMesh(meshes);
+        int i=0;
+        for(auto& mesh : meshes){
+            std::unique_ptr<Model> model = std::make_unique<Model>( std::move(mesh) );
+            model->m_mesh->m_amplitude = 0.0;
+            model->m_mesh->m_position.x = i * 3;
+            m_models.push_back(std::move(model));
+            i++;
+        }
+
+    }
+
 
 
     Engine* e = Engine::instance();
@@ -74,6 +95,7 @@ Scene::~Scene() {
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     check_gl_error();
+
     for (const auto &model : m_models)
         model->render(viewProjection, view);
 }

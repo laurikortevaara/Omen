@@ -17,6 +17,7 @@ namespace Omen {
         glm::vec4 m_specular_color;
         GLfloat m_spec_coeff;
         Texture *m_texture;
+        Texture *m_matcapTexture;
         bool m_isTwoSided;
     public:
         Material();
@@ -40,6 +41,10 @@ namespace Omen {
         Texture *texture() { return m_texture; }
 
         void setTexture(Texture *texture) { m_texture = texture; }
+
+        Texture *matcapTexture() { return m_matcapTexture; }
+
+        void setMatcapTexture(Texture *texture) { m_matcapTexture = texture; }
 
         bool twoSided() const { return m_isTwoSided; }
 
