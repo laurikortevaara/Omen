@@ -97,7 +97,7 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
     for (auto t : texcoords) m_texture_coords.push_back(t);
     for (auto i : indices) m_vertex_indices.push_back(i);
 
-    for(auto frame : frames) {
+    for (auto frame : frames) {
         m_frames.push_back(Frame());
         for (auto v : frame.m_vertices) m_frames.back().m_vertices.push_back(v);
         for (auto n : frame.m_normals) m_frames.back().m_normals.push_back(n);
@@ -154,7 +154,7 @@ void Mesh::genBuffers() {
 
     }
 
-    for(auto& frame : m_frames){
+    for (auto &frame : m_frames) {
         frame.m_vbo = createVertexCoordBuffer(m_vertex_position_attrib, frame.m_vertices);
         check_gl_error();
         frame.m_vbo_normals = createVertexNormalBuffer(m_vertex_normals_attrib, frame.m_normals);
@@ -496,25 +496,34 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
                         check_gl_error();
                     }
           */
-            Engine* e = Engine::instance();
-            double t = e->time()*24.0f*2;
+            Engine *e = Engine::instance();
+            double t = e->time() * 24.0f;
             glBindVertexArray(m_vao);
             int frame = static_cast<int>(t) % m_frames.size();
+
+
             glm::mat4 model;
-
+            if (m_frames.size() > 10) {
+                float radius = 3;
+                float angle = (3.14f / 180.f) * e->time() * 24.0f;
+                m_position.x = sin(angle) * radius;
+                m_position.z = cos(angle) * radius;
+                m_rotation = glm::rotate(glm::mat4(1), angle + 1.57f, glm::vec3(0, 1, 0));
+                m_position.y = -1;
+            }
             model = glm::translate(model, m_position);
-            model = m_rotation * model;
+            model = model * m_rotation;
 
-            glm::mat4 mvp = viewProjection * model;
-            glm::mat4 mv = view * model;
+            glm::mat4 mvp = viewProjection;
+            glm::mat4 mv = view;
             glm::mat4 mvi = glm::transpose(glm::inverse(mv));
             glm::mat4 mi = glm::transpose(glm::inverse(model));
 
-            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, (GLfloat*)&mvp[0], false);
-            m_shader->setUniformMatrix4fv("ModelView", 1, (GLfloat*)&mv[0], false);
-            m_shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat*)&mvi[0], false);
-            m_shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat*)&mi[0], false);
-            //m_shader->setUniformMatrix4fv("ModelView", 1, )
+            m_shader->setUniformMatrix4fv("Model", 1, (GLfloat *) &model[0], false);
+            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, (GLfloat *) &mvp[0], false);
+            m_shader->setUniformMatrix4fv("ModelView", 1, (GLfloat *) &mv[0], false);
+            m_shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat *) &mvi[0], false);
+            m_shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat *) &mi[0], false);
             m_shader->setUniform1f("Time", (float) 0.0f);
 
             /*
@@ -531,49 +540,38 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
                 //glEnable(GL_DEPTH_TEST);
             }
             */
-            GLfloat value;
-            glProgramUniform1f(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"),
-                               m_material->texture() != nullptr ? 1.0 : 0.0);
-            glGetUniformfv(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"), &value);
 
-            // Set the texture map
-            GLuint iTexture = 0;
+            m_shader->setUniform4fv("DiffuseColor", 1, &m_material->diffuseColor()[0]);
+            m_shader->setUniform4fv("AmbientColor", 1, &m_material->ambientColor()[0]);
+            m_shader->setUniform4fv("SpecularColor", 1, &m_material->specularColor()[0]);
 
-            if (m_material->texture() != nullptr) {
-                m_shader->setTexture(0, "Texture1", m_material->texture());
-                m_shader->setUniform4fv("DiffuseColor", 1, &glm::vec4(1, 1, 1, 1)[0]);
-            }
-            else {
-                m_shader->setUniform4fv("DiffuseColor", 1, &m_material->diffuseColor()[0]);
-                m_shader->setUniform4fv("AmbientColor", 1, &m_material->ambientColor()[0]);
-                m_shader->setUniform4fv("SpecularColor", 1, &m_material->specularColor()[0]);
-            }
-            if(m_material->matcapTexture())
-                m_shader->setTexture(1, "Texture2", m_material->matcapTexture());
-
-     //       if(m_material->matcapTexture()!= nullptr)
-     //           m_shader->setTexture(1, "MetacapTexture", m_material->matcapTexture());
-
-
-            if(m_frames.size()>frame) {
+            if (m_frames.size() > frame) {
                 glBindBuffer(GL_ARRAY_BUFFER, m_frames[frame].m_vbo);
-                glBufferData(GL_ARRAY_BUFFER, m_frames[frame].m_vertices.size() * sizeof(glm::vec3),
-                             &m_frames[frame].m_vertices[0], GL_STATIC_DRAW);
                 glVertexAttribPointer(m_vertex_position_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
                 glBindBuffer(GL_ARRAY_BUFFER, m_frames[frame].m_vbo_normals);
-                glBufferData(GL_ARRAY_BUFFER, m_frames[frame].m_normals.size() * sizeof(glm::vec3),
-                             &m_frames[frame].m_normals[0], GL_STATIC_DRAW);
                 glVertexAttribPointer(m_vertex_normals_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
             }
 
-            if (m_frames[0].m_vertices.size() > 0)
-                glEnableVertexAttribArray(m_vertex_position_attrib);
-            if (m_frames[0].m_normals.size() > 0)
-                glEnableVertexAttribArray(m_vertex_normals_attrib);
-            if (m_texture_coords.size() > 0)
-                glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
+            if(m_material->texture()) {
+                glEnable(GL_TEXTURE_2D);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, m_material->texture()->id());
+                //m_shader->setUniform1i("Texture",);
+            }
+            if(m_material->matcapTexture()){
+                glEnable(GL_TEXTURE_2D);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, m_material->matcapTexture()->id());
+                m_shader->setUniform1i("MetacapTextureEnabled",true);
+            }
+            else{
+                m_shader->setUniform1i("MetacapTextureEnabled",false);
+            }
 
-            //glDrawArrays(GL_QUADS, 0, 4);
+            glEnableVertexAttribArray(m_vertex_position_attrib);
+            glEnableVertexAttribArray(m_vertex_normals_attrib);
+            glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
+
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
             glDrawElements(GL_TRIANGLES, m_vertex_indices.size(), GL_UNSIGNED_INT, (void *) nullptr);
         }
