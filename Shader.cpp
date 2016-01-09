@@ -23,6 +23,58 @@ Shader::Shader(const std::string &shader_file) {
 
 }
 
+bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shader_source) {
+    std::string full_source;
+    GLuint shader = 0;
+
+    switch (shaderType) {
+        case GL_VERTEX_SHADER:
+            full_source = "#version 410\n#define VERTEX_SHADER\n";
+            break;
+        case GL_GEOMETRY_SHADER:
+            full_source = "#version 410\n#define GEOMETRY_SHADER\n";
+            break;
+        case GL_FRAGMENT_SHADER:
+            full_source = "#version 410\n#define FRAGMENT_SHADER\n";
+            break;
+        default:
+            break;
+    }
+
+    full_source += shader_source;
+    full_source += "\0";
+
+    shader = glCreateShader(shaderType);
+    check_gl_error();
+
+    char *shader_source_buffer = new char[full_source.length()];
+    strcpy(shader_source_buffer, full_source.c_str());
+    glShaderSource(shader, 1, (const char *const *) &shader_source_buffer, nullptr);
+    check_gl_error();
+
+    GLchar info_log[1024];
+
+    glCompileShader(shader);
+    check_gl_error();
+
+    int info_len = 0;
+    glGetShaderInfoLog(shader, sizeof(info_log), &info_len, info_log);
+    if (strlen(info_log) != 0) {
+        boxer::show(info_log, "Vertex Shader ERROR");
+        return false;
+    }
+    shader_id = shader;
+    return true;
+}
+
+std::string Shader::getShaderSource(GLuint &shader_id) {
+    GLchar vertex_shader_source[1024];
+    memset(vertex_shader_source, 0, 1024);
+    GLsizei vertex_shader_source_len = 0;
+    glGetShaderSource(shader_id, sizeof(vertex_shader_source), &vertex_shader_source_len, vertex_shader_source);
+    return vertex_shader_source;
+}
+
 bool Shader::readShaderFile(const std::string &shader_file) {
     std::ifstream is(shader_file, std::ifstream::binary);
     if (is) {
@@ -32,76 +84,31 @@ bool Shader::readShaderFile(const std::string &shader_file) {
                   std::ostreambuf_iterator<char>(sout));
         is.close();
 
-        // ...buffer contains the entire file...
-        std::string vsdefines = "#version 410\n#define VERTEX_SHADER\n";
-        std::string fsdefines = "#version 410\n#define FRAGMENT_SHADER\n";
-
-        vsdefines += sout.str();
-        vsdefines += "\0";
-        fsdefines += sout.str();
-        fsdefines += "\0";
-
-        GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
-        check_gl_error();
-        GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
-        check_gl_error();
-
-        char *vertex_shader = new char[vsdefines.length()];
-        char *fragment_shader = new char[fsdefines.length()];
-        strcpy(vertex_shader, vsdefines.c_str());
-        strcpy(fragment_shader, fsdefines.c_str());
-        glShaderSource(vShader, 1, (const char *const *) &vertex_shader, nullptr);
-        check_gl_error();
-        glShaderSource(fShader, 1, (const char *const *) &fragment_shader, nullptr);
-        check_gl_error();
         m_shader_program = glCreateProgram();
         check_gl_error();
 
-        delete vertex_shader;
-        delete fragment_shader;
-
-        GLchar info_log[1024];
-
-        glCompileShader(vShader);
-        check_gl_error();
-
-        int info_len = 0;
-        glGetShaderInfoLog(vShader, sizeof(info_log), &info_len, info_log);
-        if (strlen(info_log) != 0) {
-            boxer::show(info_log, "Vertex Shader ERROR");
-            exit(0);
+        std::string shader_source = sout.str();
+        GLuint vShader, gShader, fShader;
+        if (shader_source.find("VERTEX_SHADER") != std::string::npos) {
+            if (createShader(GL_VERTEX_SHADER, vShader, shader_source))
+                glAttachShader(m_shader_program, vShader);
+        }
+        if (shader_source.find("GEOMETRY_SHADER") != std::string::npos) {
+            if (createShader(GL_GEOMETRY_SHADER, gShader, shader_source))
+                glAttachShader(m_shader_program, gShader);
+        }
+        if (shader_source.find("FRAGMENT_SHADER") != std::string::npos) {
+            if (createShader(GL_FRAGMENT_SHADER, fShader, shader_source))
+                glAttachShader(m_shader_program, fShader);
         }
 
-        glCompileShader(fShader);
-        check_gl_error();
-
-        glGetShaderInfoLog(fShader, sizeof(info_log), &info_len, info_log);
-        if (strlen(info_log) != 0) {
-            boxer::show(info_log, "Fragment Shader");
-            exit(0);
-        }
-
-        glAttachShader(m_shader_program, vShader);
-        check_gl_error();
-        glAttachShader(m_shader_program, fShader);
-        check_gl_error();
         glLinkProgram(m_shader_program);
 
-        GLchar vertex_shader_source[1024];
-        memset(vertex_shader_source, 0, 1024);
-        GLsizei vertex_shader_source_len = 0;
-        glGetShaderSource(fShader, sizeof(vertex_shader_source), &vertex_shader_source_len, vertex_shader_source);
-
-        GLchar fragment_shader_source[1024];
-        memset(fragment_shader_source, 0, 1024);
-        GLsizei fragment_shader_source_len = 0;
-        glGetShaderSource(fShader, sizeof(fragment_shader_source), &fragment_shader_source_len, fragment_shader_source);
-
-
+        GLchar info_log[1024];
+        int info_len = 0;
         glGetProgramInfoLog(m_shader_program, sizeof(info_log), &info_len, info_log);
         if (strlen(info_log) != 0) {
-            boxer::show(info_log, "Error3");
-            //exit(0);
+            boxer::show(info_log, "Error");
         }
     }
 
@@ -119,8 +126,10 @@ void Shader::use() {
  * 1D
  */
 void Shader::setUniform1i(const std::string &uniform, GLint value) {
-    GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-    glUniform1i(uniform_loc, value);
+    if (getUniformLocation(uniform) >= 0) {
+        GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
+        glUniform1i(uniform_loc, value);
+    }
 }
 
 void Shader::setUniform1iv(const std::string &uniform, int count, int *value) {
@@ -337,31 +346,21 @@ GLint Shader::getAttribLocation(const std::string &attribName) {
 }
 
 GLint Shader::getUniformLocation(const std::string &uniformName) {
-    return glGetUniformLocation(m_shader_program, uniformName.c_str());
+    int loc = glGetUniformLocation(m_shader_program, uniformName.c_str());
+    return loc;
 }
 
 
-void Shader::setTexture(int textureIndex, const std::string& textureName, Texture *texture){
-    assert(texture!= nullptr);
-
-    glActiveTexture((GLenum) (GL_TEXTURE0 + textureIndex));
-    check_gl_error();
-
-    std::ostringstream os;
-    os << "Texture" << textureIndex+1;
-    std::string strTexName(os.str());
-    use();
-
-    setUniform1i(strTexName, GL_TEXTURE0+textureIndex);
-    check_gl_error();
-
-    texture->bind();
-    check_gl_error();
-
+void Shader::setTexture(int textureIndex, const std::string &textureName, Texture *texture) {
+    glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+    int loc = glGetUniformLocation(m_shader_program, "Texture");
+    glUniform1i(loc, GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture->id());
 }
 
 void Shader::setMaterial(Material *material) {
-    if(material->texture()!= nullptr)
-        setTexture(0, "Texture", material->texture());
+    /*if(material->texture()!= nullptr)
+        setTexture(0, "Texture", material->texture());*/
     use();
 }

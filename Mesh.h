@@ -165,6 +165,8 @@ namespace Omen {
                     std::vector<glm::vec3> &normals, std::vector<glm::vec2> &texcoords, std::vector<GLsizei> indices);
 
         glm::mat4 m_rotation;
+
+        void render(Shader *shader, const glm::mat4 &viewProjection, const glm::mat4 &view);
     };
 } // namespace Omen
 

@@ -62,7 +62,7 @@ void main() {
     vec3 normal = dataIn.normal;
     float alpha = texture(Texture, tcoord).r;
     out_color = vec4(alpha, alpha, alpha, 1) * FontColor;
-    if(alpha<0.1)
+    if(alpha<1)
     out_color.a = 0;
 }
 

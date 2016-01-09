@@ -60,10 +60,13 @@ Scene::Scene() {
         check_gl_error();
     }
     */
+    Engine::instance()->window()->signal_file_dropped.connect( [this](std::vector<std::string> files)
     {
         Omen::MD3Loader loader;
         //loader.loadModel("models/cube.md3");
-        loader.loadModel("models/ToDPirateHologuise/pirate.md3");
+        //loader.loadModel("models/ToDPirateHologuise/pirate.md3");
+        loader.loadModel(*files.begin());
+        //loader.loadModel("models/test.md3");
         std::vector<std::unique_ptr<Omen::Mesh>> meshes;
         loader.getMesh(meshes);
         int i=0;
@@ -75,7 +78,7 @@ Scene::Scene() {
             i++;
         }
 
-    }
+    });
 
 
 

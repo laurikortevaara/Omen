@@ -7,6 +7,7 @@
 
 #include <string>
 #include <glm/detail/type_mat4x4.hpp>
+#include <future>
 
 #include "Scene.h"
 #include "Camera.h"
@@ -60,6 +61,16 @@ namespace Omen {
             return nullptr;
         }
 
+        class t_future_task {
+        public:
+            std::chrono::time_point<std::chrono::system_clock> task_created;
+            std::chrono::duration<double> delay;
+            std::future<void> task;
+
+            bool pending() const {return  (std::chrono::system_clock::now()-task_created) >= delay; }
+        } ;
+        std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
+        void post(std::future<void> task, double delay = 0.0 );
 
 
     private:
@@ -84,6 +95,17 @@ namespace Omen {
         void renderScene();
 
         Joystick *m_joystick;
+
+        void doPhysics();
+
+        void handle_task_queue();
+
+        GLclampf m_sample_coverage;
+
+        bool createFramebuffer();
+
+        GLuint m_frame_buffer;
+        GLuint m_depthTexture;
     };
 } // namespace Omen
 

@@ -28,6 +28,7 @@ TextRenderer::TextRenderer() : m_vao(0) {
 void TextRenderer::render_text(const char *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
     m_font_shader->use();
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_TEXTURE_2D);
     GLuint tex;
     glActiveTexture(GL_TEXTURE0);

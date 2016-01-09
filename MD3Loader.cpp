@@ -76,7 +76,15 @@ void MD3Loader::readSurfaces() {
         // Read the texture coordinates
         for (int vert_i = 0; vert_i < s->num_verts; ++vert_i) {
             s_texcoord *tcoord = (s_texcoord * )((unsigned long) s + s->ofs_st + vert_i * sizeof(s_vertex));
+            std::cout << "Tcoord: " << tcoord->x << ", " << tcoord->y << std::endl;
             m_texcoords.push_back(*tcoord);
+        }
+
+        // Read shaders
+        for( int shader_i = 0; shader_i < s->num_shaders; ++shader_i){
+            s_shader* shader = (s_shader*)((unsigned long) s + s->ofs_shaders + shader_i * sizeof(s_shader));
+            std::string shader_path = (const char*)shader->name;
+            m_shaders.push_back(shader_path);
         }
 
         // Read the frames (consisting of vertices, normals and texcoords)
@@ -110,11 +118,11 @@ void MD3Loader::readFrames() {
 glm::vec3 MD3Loader::getRealVertex(S16 vertices[3]) {
     float conv = 1.0f / 64;
     conv *= 0.1;
-    return glm::vec3(vertices[0] * conv, vertices[2] * conv, vertices[1] * conv);
+    return glm::vec3(vertices[0] * conv, vertices[1] * conv, vertices[2] * conv);
 }
 
 glm::vec3 rationalVec(glm::vec3 vec) {
-    glm::vec3 v(vec.x, vec.z, vec.y);
+    glm::vec3 v(vec.x, vec.y, vec.z);
     v *= 0.1;
     float x_sign = v.x / fabs(v.x);
     float y_sign = v.y / fabs(v.y);
@@ -133,7 +141,7 @@ glm::vec3 MD3Loader::fromSpherical(U8 spherical_coord[2]) {
     glm::vec3 vec;
     float lat = spherical_coord[0] * (2 * M_PI) / 255.0f;
     float lng = spherical_coord[1] * (2 * M_PI) / 255.0f;
-    return rationalVec(glm::vec3(cos(lng) * sin(lat), sin(lng) * sin(lat), cos(lat)));
+    return rationalVec(glm::normalize(glm::vec3(cos(lng) * sin(lat), sin(lng) * sin(lat), cos(lat))));
 }
 
 
@@ -174,8 +182,8 @@ void MD3Loader::getMesh(std::vector<std::unique_ptr<Omen::Mesh>> &meshes) {
         material->setDiffuseColor(glm::vec4(0.75, 0.75, 0.75, 1));
         material->setAmbientColor(glm::vec4(0.75, 0.75, 0.75, 1));
         material->setSpecularColor(glm::vec4(0.75, 0.75, 0.75, 1));
-        //material->setTexture(new Texture("texture/checker.jpg"));
-        material->setMatcapTexture(new Texture("texture/matcap1.jpg"));
+        material->setTexture(new Texture("models/ToDPirateHologuise/Hologuise3_Color.png"));
+        //material->setMatcapTexture(new Texture("textures/generator1.jpg"));
 
         std::string shader_name = "shaders/pass_through.glsl";
         mesh = std::make_unique<Mesh>(shader_name, material, frames, texcoords, indices);

@@ -8,13 +8,18 @@
 namespace Omen {
     namespace ecs {
         class Component {
-
+        protected:
+            bool m_isEnabled;
         public:
-            Component() { };
+            Component() : m_isEnabled(false) { };
 
             virtual ~Component() { };
 
-            virtual void update(double time, double deltaTime){};
+            virtual void update(double time, double deltaTime) { };
+
+            bool enabled() const { return m_isEnabled; }
+
+            void setEnabled(bool enabled) { m_isEnabled = enabled; }
         };
     } // namespace ecs
 } // namespace Omen

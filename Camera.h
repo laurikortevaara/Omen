@@ -14,32 +14,38 @@ namespace Omen {
 
         bool m_bIsValid;
         float m_fov;
+        float m_near, m_far;
+        float m_yaw, m_pitch, m_roll;
+
         glm::vec3 m_pos;
         glm::vec3 m_lookAt;
+
+        glm::vec3 m_up;
+        glm::vec3 m_forward;
+
+        glm::mat4x4 m_viewProj;
+
+        glm::vec3 m_acceleration;
+        glm::vec3 m_velocity;
+
+        glm::mat4 m_view;
+
+        Joystick *m_joystick;
+
 
     public:
         Camera(const std::string &name, const glm::vec3 &pos, const glm::vec3 &lookAt, float fov);
 
-        glm::mat4x4 &mvp();
-
-        glm::mat4x4 m_mvp;
-
         void onWindowSizeChanged(int width, int height);
 
-        float m_yaw, m_pitch, m_roll;
-        glm::vec3 m_velocity;
-        glm::mat4 m_view;
-        float m_acceleration;
-        Joystick *m_joystick;
+        void updateViewProjection();
 
-        void updateMVP();
 
-        glm::vec3   m_right;
-        glm::vec3   m_up;
-        glm::vec3   m_forward;
-        glm::vec3 m_direction;
+        glm::mat4x4 &viewProjection();
 
-        glm::mat4x4 &viewMatrix();
+        glm::mat4x4 &view();
+
+        void setPosition(glm::vec3 position);
     };
 }
 

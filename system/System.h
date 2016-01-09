@@ -36,6 +36,8 @@ namespace Omen {
                         return dynamic_cast<type *>(c);
                 return nullptr;
             }
+
+            bool m_isEnabled;
         };
     }
 }

@@ -110,6 +110,12 @@ namespace Omen {
         void setMaterial(Material *material);
 
         void setTexture(int textureIndex, const std::string& textureName, Texture *texture);
+
+        std::string printShaderSource(GLuint &shader_id);
+
+        std::string getShaderSource(GLuint &shader_id);
+
+        bool createShader(GLenum shaderType, GLuint &shader_id, std::string shader_source);
     };
 } // namespace Omen
 

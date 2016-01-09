@@ -23,22 +23,26 @@ using namespace Omen;
 Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 &lookAt, float fov) :
         GameObject(name),
         m_pos(pos),
+        m_near(0.01), m_far(100.0),
         m_yaw(0), m_pitch(0), m_roll(0),
         m_lookAt(lookAt),
-        m_fov(fov),
+        m_fov(fov*glm::pi<float>()/180.0f),
         m_bIsValid(false),
-        m_joystick(nullptr),
-        m_direction(glm::normalize(lookAt - pos)) {
-    m_view = glm::lookAt(pos, lookAt, glm::vec3(0, 1, 0));
+        m_joystick(nullptr) {
 
-    m_right = glm::vec3(m_view[0]);
-    m_up = glm::vec3(m_view[1]);
-    m_forward = glm::vec3(m_view[2]);
-
-    // Connect key-hit, -press and -release signals to observers
     Omen::Engine *e = Omen::Engine::instance();
     Omen::Window *w = e->window();
 
+    // Create View matrix
+    float aspect = (float) w->width() / (float) w->height();
+    m_view = glm::perspective(m_fov, aspect, m_near, m_far);
+
+    // Initialize forward and up vectors
+    m_forward = glm::vec3(0, 0, 1);
+    m_up = glm::vec3(0, 1, 0);
+
+
+    // Connect key-hit, -press and -release signals to observers
     JoystickInput *ji = e->findSystem<InputSystem>()->findComponent<JoystickInput>();
     if (ji != nullptr) {
         ji->joystick_connected.connect([&](Joystick *joystick) {
@@ -59,8 +63,8 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
             old_x = x;
             old_y = y;
 
-            m_yaw += dx;
-            m_pitch -= dy;
+            m_yaw -= dx;
+            m_pitch += dy;
         });
     }
 
@@ -68,27 +72,27 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         // velocity = velocity + accelleration
         // velo = m/s
         // acceleration = m/s^2
-        m_acceleration = 0.25;
+        m_acceleration = glm::vec3(0.35);
 
         if (w->keyPressed(GLFW_KEY_W)) {
-            m_velocity.z += m_acceleration * deltaTime;
+            m_velocity.z += m_acceleration.z * deltaTime;
         }
         if (w->keyPressed(GLFW_KEY_S)) {
-            m_velocity.z -= m_acceleration * deltaTime;
+            m_velocity.z -= m_acceleration.z * deltaTime;
         }
 
         if (w->keyPressed(GLFW_KEY_A)) {
-            m_velocity.x -= m_acceleration * deltaTime;
+            m_velocity.x -= m_acceleration.x * deltaTime;
         }
         if (w->keyPressed(GLFW_KEY_D)) {
-            m_velocity.x += m_acceleration * deltaTime;
+            m_velocity.x += m_acceleration.x * deltaTime;
         }
 
         if (w->keyPressed(GLFW_KEY_E)) {
-            m_velocity.y += m_acceleration * deltaTime;
+            m_velocity.y += m_acceleration.y * deltaTime;
         }
         if (w->keyPressed(GLFW_KEY_C)) {
-            m_velocity.y -= m_acceleration * deltaTime;
+            m_velocity.y -= m_acceleration.y * deltaTime;
         }
 
         if (m_joystick != nullptr) {
@@ -96,9 +100,9 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
             std::vector<int> &buttons = m_joystick->getJoystickButtons();
 
             bool valid = true;
-            if(axes.size() >=4 && axes[0]==-1 && axes[1]  == -1 && axes[2]==-1 && axes[3] == -1)
+            if (axes.size() >= 4 && axes[0] == -1 && axes[1] == -1 && axes[2] == -1 && axes[3] == -1)
                 valid = false;
-            if(valid){
+            if (valid) {
                 float dx = axes[2];
                 float dy = axes[3];
                 m_yaw += 200.0f * dx * deltaTime;
@@ -108,28 +112,24 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
             }
 
         }
+        glm::mat4 m = glm::rotate(glm::mat4(1), m_yaw*glm::pi<float>()/180.0f, glm::vec3(0,1,0));
+                  m = glm::rotate(m, m_pitch*glm::pi<float>()/180.0f, glm::vec3(1,0,0));
+        m_forward = glm::vec3(m * glm::vec4(0,0,1,0));
 
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 cameraRight = glm::normalize(glm::cross(up, m_direction));
-        glm::vec3 cameraUp = glm::cross(m_direction, cameraRight);
+        glm::vec3 cameraRight = glm::normalize(glm::cross(m_up, m_forward));
+        glm::vec3 cameraUp = glm::cross(m_forward, cameraRight);
         glm::vec3 cameraFront = glm::cross(cameraRight, cameraUp);
 
         m_pitch = fmax(m_pitch, -89.9);
         m_pitch = fmin(m_pitch, 89.9);
+        m_pos += m_forward * m_velocity.z;
+        m_pos += glm::normalize(glm::cross(m_forward, m_up))*m_velocity.x;
+        m_pos += glm::normalize(glm::cross(m_forward, cameraRight))*m_velocity.y;
 
-        m_direction = glm::normalize(glm::vec3(cos(glm::radians(m_pitch)) * cos(glm::radians(m_yaw)),
-                                sin(glm::radians(m_pitch)),
-                                cos(glm::radians(m_pitch)) * sin(glm::radians(m_yaw))));
+        m_view = glm::lookAt(m_pos, m_pos+m_forward, m_up);
+        m_velocity *= 0.90;
 
-        m_view = glm::lookAt(m_pos, m_pos+m_direction, glm::vec3(0, 1, 0));
-
-        m_pos += cameraFront * m_velocity.z;
-        m_pos += glm::normalize(glm::cross(cameraFront, cameraUp))*m_velocity.x;
-        m_pos += glm::normalize(glm::cross(cameraFront, cameraRight))*m_velocity.y;
-
-        m_velocity *= 0.95;
-
-        updateMVP();
+        updateViewProjection();
     });
 }
 
@@ -140,39 +140,39 @@ void Camera::onWindowSizeChanged(int width, int height) {
 /**
  * Return ModelViewProjection Matrix
  */
-glm::mat4x4 &Camera::mvp() {
+glm::mat4x4 &Camera::viewProjection() {
     if (!m_bIsValid) {
-        updateMVP();
+        updateViewProjection();
     }
-    return m_mvp;
+    return m_viewProj;
 }
 
 /**
  * Return ModelViewProjection Matrix
  */
-glm::mat4x4 &Camera::viewMatrix() {
+glm::mat4x4 &Camera::view() {
     return m_view;
 }
 
-void Camera::updateMVP() {
-    double ViewPortParams[4];
-    glGetDoublev(GL_VIEWPORT, ViewPortParams);
-    GLFWwindow *pWindow = glfwGetCurrentContext();
+void Camera::updateViewProjection() {
 
-    int width, height;
-    glfwGetWindowSize(pWindow, &width, &height);
-    float aspectRatio = width / (float) height;
+    Omen::Engine *e = Omen::Engine::instance();
+    Omen::Window *w = e->window();
+
+    float aspectRatio = (float) w->width() / (float) w->height();
     // Generates a really hard-to-read matrix, but a normal, standard 4x4 matrix nonetheless
     glm::mat4 Projection = glm::perspective(
-            45.0f,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
+            m_fov,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
             aspectRatio, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
-            0.1f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
-            1000.0f       // Far clipping plane. Keep as little as possible.
+            m_near,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+            m_far       // Far clipping plane. Keep as little as possible.
     );
 
     // Our ModelViewProjection : multiplication of our 3 matrices
-    glm::mat4 model(1);
-    model = glm::translate(model, -m_pos);
-    m_mvp = Projection * m_view * model;     // Remember, matrix multiplication is the other way around
+    m_viewProj = Projection * m_view;     // Remember, matrix multiplication is the other way around
     m_bIsValid = true;
+}
+
+void Camera::setPosition(glm::vec3 position) {
+    m_pos = position;
 }

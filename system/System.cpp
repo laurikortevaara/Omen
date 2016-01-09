@@ -12,10 +12,12 @@ void System::update(double time, double deltaTime) {
         component->update(time, deltaTime);
 }
 
-System::System() {
+System::System():
+        m_isEnabled(false) {
     Omen::Engine *e = Omen::Engine::instance();
     e->signal_engine_update.connect([this, e](double time, double deltaTime) {
-        update(time, deltaTime);
+        if(m_isEnabled)
+            update(time, deltaTime);
     });
 }
 

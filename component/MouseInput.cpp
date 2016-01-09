@@ -23,7 +23,7 @@ MouseInput::MouseInput() : Component() {
     });
 
     // Hide te cursor and disable it's movement, kinda like capturing the mouse
-    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 MouseInput::~MouseInput() {
@@ -33,7 +33,8 @@ MouseInput::~MouseInput() {
 
 void MouseInput::cursorPosChanged(GLFWwindow *window, double x, double y) {
     // First notify about generic key-hit event
-    signal_cursorpos_changed.notify(x,y);
+    if(m_isEnabled)
+        signal_cursorpos_changed.notify(x,y);
 }
 
 void MouseInput::update(double time, double deltaTime) {

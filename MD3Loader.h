@@ -196,6 +196,7 @@ namespace Omen {
         std::vector<glm::vec3> m_parameter_coords;
         //std::vector<glm::vec3> m_normals;
         std::vector<glm::vec2> m_texcoords;
+        std::vector<std::string> m_shaders;
 
     public:
         std::vector<mesh *> m_meshes;

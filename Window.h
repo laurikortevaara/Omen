@@ -23,18 +23,26 @@ namespace Omen {
         typedef Signal< std::function<void (std::shared_ptr<Window>) > > WindowCreated;
         static WindowCreated signal_window_created;
 
+        typedef Signal< std::function<void (std::vector<std::string> filePaths) > > FileDropped;
+        FileDropped signal_file_dropped;
+
     private:
-        static std::map<GLFWwindow*,Omen::Window&> window_size_changed_callbacks;
+        static std::map<GLFWwindow*,Omen::Window&>      window_size_changed_callbacks;
+        static std::map<GLFWwindow*,Omen::Window&>      file_drop_callbacks;
 
     public:
         ~Window();
         void createWindow(unsigned int width, unsigned int height);
+        void destroy();
 
         bool keyPressed(unsigned int key) const;
 
         bool shouldClose() const;
         void start_rendering();
         void end_rendering();
+
+        void showMouseCursor();
+        void hideMouseCursor();
 
         unsigned int width() const;
         unsigned int height() const;
@@ -52,6 +60,10 @@ namespace Omen {
         unsigned int m_width;
         unsigned int m_height;
         int m_swapInterval;
+
+        void fileDropped(GLFWwindow *window, int count, const char **filePaths);
+
+
     };
 
 } // namespace Omen

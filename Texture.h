@@ -43,9 +43,15 @@ namespace Omen {
 
         GLuint height() { return m_height; }
 
-        GLuint id(){return m_textureID;};
+        GLuint id(){return m_textureID;}
 
         void initialize();
+
+        GLuint m_sampler_state;
+
+        void bindSampler();
+
+        void unbindSampler();
     };
 } // namespace Omen
 
