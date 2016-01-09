@@ -341,7 +341,7 @@ GLint Shader::getUniformLocation(const std::string &uniformName) {
 }
 
 
-void Shader::setTexture(int textureIndex, Texture *texture){
+void Shader::setTexture(int textureIndex, const std::string& textureName, Texture *texture){
     assert(texture!= nullptr);
 
     glActiveTexture((GLenum) (GL_TEXTURE0 + textureIndex));
@@ -352,7 +352,7 @@ void Shader::setTexture(int textureIndex, Texture *texture){
     std::string strTexName(os.str());
     use();
 
-    setUniform1i(strTexName.c_str(), GL_TEXTURE0+textureIndex);
+    setUniform1i(strTexName, GL_TEXTURE0+textureIndex);
     check_gl_error();
 
     texture->bind();
@@ -362,6 +362,6 @@ void Shader::setTexture(int textureIndex, Texture *texture){
 
 void Shader::setMaterial(Material *material) {
     if(material->texture()!= nullptr)
-        setTexture(0, material->texture());
+        setTexture(0, "Texture", material->texture());
     use();
 }

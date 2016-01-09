@@ -70,13 +70,42 @@ void Mesh::create(const std::string &shader,
     std::cout << "Size of normals: " << normals.size() << std::endl;
     std::cout << "Size of texcoord: " << texcoords.size() << std::endl;
 
-    for (auto v : vertices) m_vertices.push_back(v);
-    for (auto n : normals) m_normals.push_back(n);
+    m_frames.push_back(Frame());
+    for (auto v : vertices) m_frames[0].m_vertices.push_back(v);
+    for (auto n : normals) m_frames[0].m_normals.push_back(n);
     for (auto t : texcoords) m_texture_coords.push_back(t);
     for (auto i : indices) m_vertex_indices.push_back(i);
 
     genBuffers();
 }
+
+Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,
+           std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices) {
+    createShader(shader);
+    m_vertex_position_attrib = m_shader->getAttribLocation("position");
+    m_vertex_normals_attrib = m_shader->getAttribLocation("normal");
+    m_vertex_texture_coord_attrib = m_shader->getAttribLocation("texcoord");
+
+
+    setMaterial(material);
+    if (m_material != nullptr) {
+        //if(m_material->texture() == nullptr)
+        //    m_material->setTexture(new Texture(getDefaultTexture()));
+        m_shader->setMaterial(m_material);
+    }
+
+    for (auto t : texcoords) m_texture_coords.push_back(t);
+    for (auto i : indices) m_vertex_indices.push_back(i);
+
+    for (auto frame : frames) {
+        m_frames.push_back(Frame());
+        for (auto v : frame.m_vertices) m_frames.back().m_vertices.push_back(v);
+        for (auto n : frame.m_normals) m_frames.back().m_normals.push_back(n);
+    }
+
+    genBuffers();
+}
+
 
 /**
  * Default CTOR with test content
@@ -86,7 +115,7 @@ Mesh::Mesh() {
     m->setTexture(new Texture(getDefaultTexture()));
 
     std::string shader_name = "shaders/pass_through.glsl";
-    create(shader_name, m, m_vertices, m_normals, m_texture_coords, m_vertex_indices);
+    create(shader_name, m, m_frames[0].m_vertices, m_frames[0].m_normals, m_texture_coords, m_vertex_indices);
 }
 
 void Mesh::genBuffers() {
@@ -101,16 +130,17 @@ void Mesh::genBuffers() {
      */
 
     // Enable vertex attributes
-    if (m_vertices.empty()) {
+    if (m_frames[0].m_vertices.empty()) {
         GLfloat s = 1;
         float aspect = m_material->texture() == nullptr ? 1.0f : (float) m_material->texture()->width() /
                                                                  (float) material()->texture()->height();
-        m_vertices = {
+        m_frames.push_back(Frame());
+        m_frames[0].m_vertices = {
                 {-s * aspect, 2, -s},
                 {s * aspect,  2, -s},
                 {s * aspect,  2, s},
                 {-s * aspect, 2, s}};
-        m_normals = {
+        m_frames[0].m_normals = {
                 {0, 1, 0},
                 {0, 1, 0},
                 {0, 1, 0},
@@ -124,11 +154,13 @@ void Mesh::genBuffers() {
 
     }
 
+    for (auto &frame : m_frames) {
+        frame.m_vbo = createVertexCoordBuffer(m_vertex_position_attrib, frame.m_vertices);
+        check_gl_error();
+        frame.m_vbo_normals = createVertexNormalBuffer(m_vertex_normals_attrib, frame.m_normals);
+        check_gl_error();
+    }
 
-    createVertexCoordBuffer(m_vertex_position_attrib, m_vertices);
-    check_gl_error();
-    createVertexNormalBuffer(m_vertex_normals_attrib, m_normals);
-    check_gl_error();
     createTextureCoordBuffer(m_vertex_texture_coord_attrib, m_texture_coords);
     check_gl_error();
     createIndexBuffer(m_vertex_indices);
@@ -140,8 +172,6 @@ void Mesh::genBuffers() {
  */
 void Mesh::initialize() {
     m_vao = 0;
-    m_vbo = 0;
-    m_vbo_normals = 0;
     m_vbo_texcoords = 0;
     m_ibo = 0;
 
@@ -219,13 +249,29 @@ void Mesh::createIndexBuffer(std::vector<GLsizei> &indices) {
 /**
  * Create a vertex coordinate buffer
  */
-void Mesh::createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3> &vertices) {
+GLuint Mesh::createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3> &vertices) {
     // Create vbo
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
     glVertexAttribPointer(vcoord_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
                           0/*stride*/, 0/*offset*/);
+    return vbo;
+}
+
+/**
+* Create a vertex normal buffer
+*/
+GLuint Mesh::createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3> &normals) {
+    // Create vbo
+    GLuint vbo_normals;
+    glGenBuffers(1, &vbo_normals);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_vertex_normals_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
+                          0/*stride*/, 0/*offset*/);
+    return vbo_normals;
 }
 
 /**
@@ -248,19 +294,6 @@ void Mesh::createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         check_gl_error();
     }
-}
-
-
-/**
- * Create a vertex normal buffer
- */
-void Mesh::createVertexNormalBuffer(GLint vnormal_attrib, std::vector<glm::vec3> &normals) {
-    // Create vbo
-    glGenBuffers(1, &m_vbo_normals);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
-    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(m_vertex_normals_attrib, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
-                          0/*stride*/, 0/*offset*/);
 }
 
 
@@ -425,7 +458,7 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     check_gl_error();
     m_position.y += (float) 0.01 * (m_amplitude * sin(e->time() * m_frequency + m_phase));
     check_gl_error();
-    glBindVertexArray(m_vao);
+
     check_gl_error();
     if (m_shader == nullptr)
         return;
@@ -463,22 +496,34 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
                         check_gl_error();
                     }
           */
+            Engine *e = Engine::instance();
+            double t = e->time() * 24.0f;
+            glBindVertexArray(m_vao);
+            int frame = static_cast<int>(t) % m_frames.size();
+
 
             glm::mat4 model;
-
+            if (m_frames.size() > 10) {
+                float radius = 3;
+                float angle = (3.14f / 180.f) * e->time() * 24.0f;
+                m_position.x = sin(angle) * radius;
+                m_position.z = cos(angle) * radius;
+                m_rotation = glm::rotate(glm::mat4(1), angle + 1.57f, glm::vec3(0, 1, 0));
+                m_position.y = -1;
+            }
             model = glm::translate(model, m_position);
-            model = glm::rotate(model, (float)(e->time()*m_frequency), glm::vec3(0,1,0) );
+            model = model * m_rotation;
 
-            glm::mat4 mvp = viewProjection * model;
-            glm::mat4 mv = view * model;
+            glm::mat4 mvp = viewProjection;
+            glm::mat4 mv = view;
             glm::mat4 mvi = glm::transpose(glm::inverse(mv));
             glm::mat4 mi = glm::transpose(glm::inverse(model));
 
-            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, (GLfloat*)&mvp[0], false);
-            m_shader->setUniformMatrix4fv("ModelView", 1, (GLfloat*)&mv[0], false);
-            m_shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat*)&mvi[0], false);
-            m_shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat*)&mi[0], false);
-            //m_shader->setUniformMatrix4fv("ModelView", 1, )
+            m_shader->setUniformMatrix4fv("Model", 1, (GLfloat *) &model[0], false);
+            m_shader->setUniformMatrix4fv("ModelViewProjection", 1, (GLfloat *) &mvp[0], false);
+            m_shader->setUniformMatrix4fv("ModelView", 1, (GLfloat *) &mv[0], false);
+            m_shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat *) &mvi[0], false);
+            m_shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat *) &mi[0], false);
             m_shader->setUniform1f("Time", (float) 0.0f);
 
             /*
@@ -495,38 +540,41 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
                 //glEnable(GL_DEPTH_TEST);
             }
             */
-            GLfloat value;
-            glProgramUniform1f(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"),
-                               m_material->texture() != nullptr ? 1.0 : 0.0);
-            glGetUniformfv(m_shader->m_shader_program, m_shader->getUniformLocation("TextureEnabled"), &value);
 
-            // Set the texture map
-            GLuint iTexture = 0;
+            m_shader->setUniform4fv("DiffuseColor", 1, &m_material->diffuseColor()[0]);
+            m_shader->setUniform4fv("AmbientColor", 1, &m_material->ambientColor()[0]);
+            m_shader->setUniform4fv("SpecularColor", 1, &m_material->specularColor()[0]);
 
-            if (m_material->texture() != nullptr) {
-                m_shader->setTexture(0, m_material->texture());
-                m_shader->setUniform4fv("DiffuseColor", 1, &glm::vec4(1, 1, 1, 1)[0]);
-            }
-            else {
-                m_shader->setUniform4fv("DiffuseColor", 1, &m_material->diffuseColor()[0]);
-                m_shader->setUniform4fv("AmbientColor", 1, &m_material->ambientColor()[0]);
-                m_shader->setUniform4fv("SpecularColor", 1, &m_material->specularColor()[0]);
+            if (m_frames.size() > frame) {
+                glBindBuffer(GL_ARRAY_BUFFER, m_frames[frame].m_vbo);
+                glVertexAttribPointer(m_vertex_position_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+                glBindBuffer(GL_ARRAY_BUFFER, m_frames[frame].m_vbo_normals);
+                glVertexAttribPointer(m_vertex_normals_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
             }
 
+            if(m_material->texture()) {
+                glEnable(GL_TEXTURE_2D);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, m_material->texture()->id());
+                //m_shader->setUniform1i("Texture",);
+            }
+            if(m_material->matcapTexture()){
+                glEnable(GL_TEXTURE_2D);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, m_material->matcapTexture()->id());
+                m_shader->setUniform1i("MetacapTextureEnabled",true);
+            }
+            else{
+                m_shader->setUniform1i("MetacapTextureEnabled",false);
+            }
 
-            if (m_vertices.size() > 0)
-                glEnableVertexAttribArray(m_vertex_position_attrib);
-            if (m_normals.size() > 0)
-                glEnableVertexAttribArray(m_vertex_normals_attrib);
-            if (m_texture_coords.size() > 0)
-                glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
+            glEnableVertexAttribArray(m_vertex_position_attrib);
+            glEnableVertexAttribArray(m_vertex_normals_attrib);
+            glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
 
-            //glDrawArrays(GL_QUADS, 0, 4);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
             glDrawElements(GL_TRIANGLES, m_vertex_indices.size(), GL_UNSIGNED_INT, (void *) nullptr);
         }
     }
     glBindVertexArray(0);
 }
-
-

@@ -8,6 +8,7 @@ using namespace Omen;
 
 Material::Material() :
         m_texture(nullptr),
-        m_isTwoSided(false) {
+        m_isTwoSided(false),
+        m_matcapTexture(nullptr){
 
 }

@@ -25,6 +25,7 @@ vec3 ExtractCameraPos_NoScale(mat4 ModelView)
  uniform mat4      ModelViewInverse;
  uniform mat4      NormalMatrix;
  uniform sampler2D Texture;
+ uniform sampler2D Texture2;
  uniform float     Time;
 
 
@@ -74,17 +75,16 @@ void main() {
     vec2 tcoord = dataIn.texcoord;
     vec3 normal = normalize(mat3(NormalMatrix)*dataIn.normal);
 
+    float len = length(vpos);
     if(TextureEnabled)
         out_color = texture(Texture,tcoord);
-    else
-        out_color = DiffuseColor;
-
-    vec3 surfaceToLight = vec3(50,100,30)-vpos.xyz;
-    float brightness = 1.2*dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));
-
-    float len = length(vpos.xyz);
-    out_color.xyz *= 3.0/len;
-    out_color *= brightness;
+    else {
+        float radius = length(normal);
+        float theta = atan(normal.y, normal.x);
+        float phi = acos(normal.z / radius);
+        out_color = vec4(theta, phi, 0, 1);//texture(Texture2, )
+        }
+    out_color /= len;
     out_color.a = 1;
 }
 
