@@ -14,6 +14,7 @@
 #include "Material.h"
 #include "Shader.h"
 #include "component/Transform.h"
+#include "BoundingBox.h"
 
 namespace Omen {
     class Mesh {
@@ -29,34 +30,6 @@ namespace Omen {
 
         Mesh();
 
-/*
- * // C++11 Move-ctor
-        Mesh(Mesh&& other) {
-            int i=1;
-        }
-        // Copy-ctor
-        Mesh(const Mesh& other){}
-
-        // Copy assignment operator
-        Mesh& operator=(const Mesh& other) {
-            return *this;
-        }
-
-        // C++11 Move-ctor
-        Mesh(Mesh&& other) {
-        }
-
-        // C++11 Move assignment operator
-        Mesh& operator=(Mesh&& other)  {
-            if(this != &other){
-            }
-            return *this;
-        }
-
-        Mesh& operator=(const Mesh&& other) {
-            return *this;
-        }
-*/
         Mesh(const std::string &shader,
              Material *material,
              std::vector<glm::vec3> &vertices,
@@ -73,6 +46,7 @@ namespace Omen {
         virtual ~Mesh();
 
         Transform m_transform;
+        Omen::BoundingBox m_boundingBox;
 
         std::vector<std::shared_ptr<Triangle> > m_triangles;
 
@@ -142,8 +116,6 @@ namespace Omen {
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
-        glm::vec3 m_position;
-
         void createTextureCoordBuffer(GLint texcoord_attrib, std::vector<glm::vec2> &texcoords);
 
         GLuint createVertexCoordBuffer(GLint vcoord_attrib, std::vector<glm::vec3> &vertices);
@@ -164,9 +136,9 @@ namespace Omen {
         void create(const std::string &shader, Material *material, std::vector<glm::vec3> &vertices,
                     std::vector<glm::vec3> &normals, std::vector<glm::vec2> &texcoords, std::vector<GLsizei> indices);
 
-        glm::mat4 m_rotation;
-
         void render(Shader *shader, const glm::mat4 &viewProjection, const glm::mat4 &view);
+
+        void renderBB();
     };
 } // namespace Omen
 

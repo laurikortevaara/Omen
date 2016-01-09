@@ -8,7 +8,6 @@
 #include <sstream>
 #include <iomanip>
 #include <queue>
-#include <btBulletDynamicsCommon.h>
 
 #include "Engine.h"
 #include "GL_error.h"
@@ -17,6 +16,7 @@
 #include "component/MouseInput.h"
 #include "utils.h"
 #include "thirdparty/glfw/include/GLFW/glfw3.h"
+#include "MD3Loader.h"
 
 
 using namespace Omen;
@@ -24,51 +24,95 @@ using namespace Omen;
 // Singleton instance
 Engine *Engine::m_instance = nullptr;
 
+Engine::Engine() :
+        m_scene(nullptr),
+        m_camera(nullptr),
+        m_window(nullptr),
+        m_joystick(nullptr),
+        m_time(0),
+        m_timeDelta(0),
+        m_framecounter(0),
+        m_sample_coverage(1),
+        m_currentSelection(nullptr) {
+
+    std::string currentDir = Omen::getWorkingDir();
+    if (currentDir.find("bin") == std::string::npos)
+        chdir("bin");
+
+    Window::signal_window_created.connect([this](std::shared_ptr<Window> window) {
+        m_window = window;
+
+        initializeSystems();
+
+        m_camera = new Camera("Camera1", {0, 1, -2}, {0, 0, 0}, 60.0f);
+        m_scene = std::make_unique<Scene>();
+        m_text = std::make_unique<TextRenderer>();
+
+        createFramebuffer();
+
+        Omen::MD3Loader loader;
+        loader.loadModel("models/sphere.md3");
+        std::vector<std::shared_ptr<Omen::Mesh>> meshes;
+        for(int i=0; i < 10; ++i )
+        {
+            loader.getMesh(meshes);
+            m_currentSelection = nullptr;
+            std::shared_ptr<Model> model = std::make_shared<Model>(meshes.front());
+            m_currentSelection = model.get();
+            model->m_mesh->m_amplitude = 0.0;
+            model->m_mesh->m_transform.pos() = {Omen::random(-10, 10), Omen::random(1, 5), Omen::random(-10, 10)};
+            model->m_mesh->m_transform.scale({Omen::random(1, 4), Omen::random(1, 4), Omen::random(1, 4)});
+            m_scene->m_models.push_back(model);
+            meshes.clear();
+        }
+
+        initPhysics();
+    });
+}
+
 Engine *Engine::instance() {
     if (m_instance == nullptr)
         m_instance = new Engine();
     return m_instance;
 }
 
-void Engine::doPhysics() {
-    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-    btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -10, 0));
+void Engine::initPhysics() {
+    m_broadphase = new btDbvtBroadphase();
+    m_collisionConfiguration = new btDefaultCollisionConfiguration();
+    m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
+    m_solver = new btSequentialImpulseConstraintSolver;
+    m_dynamicsWorld = new btDiscreteDynamicsWorld(m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration);
+    m_dynamicsWorld->setGravity(btVector3(0, -0.981, 0));
 
-    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-    btCollisionShape* fallShape = new btBoxShape(btVector3(0.5,0.5,0.5)); //new btSphereShape(0.1);
+    m_groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+    m_groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
 
-    btDefaultMotionState* groundMotionState =
-            new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, m_groundMotionState, m_groundShape, btVector3(0, 0, 0));
+    m_groundRigidBody = new btRigidBody(groundRigidBodyCI);
 
-    btRigidBody::btRigidBodyConstructionInfo
-            groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-    btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+    m_dynamicsWorld->addRigidBody(m_groundRigidBody);
 
-    dynamicsWorld->addRigidBody(groundRigidBody);
+    m_fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 10, 0)));
 
-    btDefaultMotionState* fallMotionState =
-            new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
+    m_fallShape = new btBoxShape(btVector3(0.1, 0.5, 0.1)); //
+    m_fallShape = new btSphereShape(0.1);
+    btScalar mass = 10;
+    btVector3 m_fallInertia(0, 0, 0);
+    m_fallShape->calculateLocalInertia(mass, m_fallInertia);
 
-    btScalar mass = 1;
-    btVector3 fallInertia(0, 0, 0);
-    fallShape->calculateLocalInertia(mass, fallInertia);
+    btRigidBody::btRigidBodyConstructionInfo m_fallRigidBodyCI(mass, m_fallMotionState, m_fallShape, m_fallInertia);
+    m_fallRigidBody = new btRigidBody(m_fallRigidBodyCI);
+    m_dynamicsWorld->addRigidBody(m_fallRigidBody);
+}
 
-    btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-    btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
-    dynamicsWorld->addRigidBody(fallRigidBody);
+void Engine::doPhysics(double dt) {
 
-    for (int i = 0 ; i < 300 ; i++) {
+    m_dynamicsWorld->stepSimulation(dt, 1000);
 
-        dynamicsWorld->stepSimulation(1 / 60.f, 10);
-
-        btTransform trans;
-        fallRigidBody->getMotionState()->getWorldTransform(trans);
-
-        //std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
+    btTransform trans;
+    m_fallRigidBody->getMotionState()->getWorldTransform(trans);
+    if (m_currentSelection != nullptr) {
+        m_currentSelection->m_mesh->m_transform.pos() = {trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()};
     }
 }
 
@@ -114,39 +158,13 @@ void Engine::initializeSystems() {
     });
 }
 
-Engine::Engine() :
-        m_scene(nullptr),
-        m_camera(nullptr),
-        m_window(nullptr),
-        m_joystick(nullptr),
-        m_time(0),
-        m_timeDelta(0),
-        m_framecounter(0),
-        m_sample_coverage(1){
-
-    std::string currentDir = Omen::getWorkingDir();
-    if (currentDir.find("bin") == std::string::npos)
-        chdir("bin");
-
-    Window::signal_window_created.connect([this](std::shared_ptr<Window> window) {
-        m_window = window;
-
-        initializeSystems();
-
-        m_camera = new Camera("Camera1", {0, 0, 0}, {0, 0, 0.01f}, 60.0f);
-        m_scene = std::make_unique<Scene>();
-        m_text = std::make_unique<TextRenderer>();
-
-        createFramebuffer();
-    });
-}
 
 void Engine::update() {
     m_timeDelta = glfwGetTime() - m_time;
     m_time = glfwGetTime();
     signal_engine_update.notify(m_time, m_timeDelta);
     glSampleCoverage(m_sample_coverage, GL_FALSE);
-    doPhysics();
+    doPhysics(m_timeDelta);
 }
 
 double Engine::time() {
@@ -158,7 +176,7 @@ void Engine::renderScene() {
         m_scene->render(m_camera->viewProjection(), m_camera->view());
 }
 
-std::string stringify(float f){
+std::string stringify(float f) {
     std::ostringstream os;
     os << std::setprecision(3) << std::setw(7) << f;
     return os.str();
@@ -172,7 +190,7 @@ bool Engine::createFramebuffer() {
     // Depth texture. Slower than a depth buffer, but you can sample it later in your shader
     glGenTextures(1, &m_depthTexture);
     glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -183,7 +201,7 @@ bool Engine::createFramebuffer() {
     glDrawBuffer(GL_NONE); // No color buffer is drawn to.
 
     // Always check that our framebuffer is ok
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         return false;
     return true;
 }
@@ -218,7 +236,7 @@ void Engine::render() {
     avg_fps /= q_fps.size();
 
     glm::mat4 viewmat = m_camera->view();
-    MouseInput* mi = findComponent<MouseInput>();
+    MouseInput *mi = findComponent<MouseInput>();
 
     int samples;
     glGetIntegerv(GL_SAMPLES, &samples);
@@ -228,13 +246,17 @@ void Engine::render() {
     std::vector<float> axes = m_joystick != nullptr ? m_joystick->getJoystickAxes() : std::vector<float>({0, 0, 0, 0});
     os << "FPS: " << std::setprecision(3) << avg_fps << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 <<
     " ms./frame]" << "\nFRAME:(" << m_framecounter << ")\nMEM:xxx MB"\
-    << "\nCAMERA_ENABLED: [" << (mi->enabled() ? "YES" : "NO") << "] Key=TAB"\
+ << "\nCAMERA_ENABLED: [" << (mi->enabled() ? "YES" : "NO") << "] Key=TAB"\
  << "\nSAMPLES: [" << samples << "]"\
  << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]\n\n"\
- << "\nviewmatRIX :[" << stringify(viewmat[0][0]) << ", " << stringify(viewmat[0][1]) << ", " << stringify(viewmat[0][2]) << ", " << stringify(viewmat[0][3]) << "]"\
- << "\n            [" << stringify(viewmat[1][0]) << ", " << stringify(viewmat[1][1]) << ", " << stringify(viewmat[1][2]) << ", " << stringify(viewmat[1][3]) << "]"\
- << "\n            [" << stringify(viewmat[2][0]) << ", " << stringify(viewmat[2][1]) << ", " << stringify(viewmat[2][2]) << ", " << stringify(viewmat[2][3]) << "]"\
- << "\n            [" << stringify(viewmat[3][0]) << ", " << stringify(viewmat[3][1]) << ", " << stringify(viewmat[3][2]) << ", " << stringify(viewmat[3][3]) << "]" ;
+ << "\nviewmatRIX :[" << stringify(viewmat[0][0]) << ", " << stringify(viewmat[0][1]) << ", " <<
+    stringify(viewmat[0][2]) << ", " << stringify(viewmat[0][3]) << "]"\
+ << "\n            [" << stringify(viewmat[1][0]) << ", " << stringify(viewmat[1][1]) << ", " <<
+    stringify(viewmat[1][2]) << ", " << stringify(viewmat[1][3]) << "]"\
+ << "\n            [" << stringify(viewmat[2][0]) << ", " << stringify(viewmat[2][1]) << ", " <<
+    stringify(viewmat[2][2]) << ", " << stringify(viewmat[2][3]) << "]"\
+ << "\n            [" << stringify(viewmat[3][0]) << ", " << stringify(viewmat[3][1]) << ", " <<
+    stringify(viewmat[3][2]) << ", " << stringify(viewmat[3][3]) << "]";
     std::string text(os.str());
     m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
 
@@ -253,8 +275,8 @@ std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int he
     check_gl_error();
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     return m_window;
 }
 
@@ -263,10 +285,10 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
         if (key == GLFW_KEY_Q || key == GLFW_KEY_ESCAPE)
             exit(0);
 
-        if(key == GLFW_KEY_TAB){
+        if (key == GLFW_KEY_TAB) {
 
-            MouseInput* mi = findComponent<MouseInput>();
-            if(mi->enabled()){
+            MouseInput *mi = findComponent<MouseInput>();
+            if (mi->enabled()) {
                 mi->setEnabled(false);
                 m_window->showMouseCursor();
             }
@@ -277,26 +299,26 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 
         }
 
-        if(key == GLFW_KEY_M){
-            if(glIsEnabled(GL_MULTISAMPLE))
+        if (key == GLFW_KEY_M) {
+            if (glIsEnabled(GL_MULTISAMPLE))
                 glDisable(GL_MULTISAMPLE);
             else
                 glEnable(GL_MULTISAMPLE);
         }
 
-        if(key == GLFW_KEY_KP_ADD){
-            post( std::async([&](void) {
-                m_sample_coverage = fmin(1.0, m_sample_coverage+.1);
-            } ));
+        if (key == GLFW_KEY_KP_ADD) {
+            post(std::async([&](void) {
+                m_sample_coverage = fmin(1.0, m_sample_coverage + .1);
+            }));
         }
 
-        if(key==GLFW_KEY_KP_SUBTRACT){
-            post( std::async([&](void) {
-                m_sample_coverage = fmax(0.0, m_sample_coverage-.1);
-            } ));
+        if (key == GLFW_KEY_KP_SUBTRACT) {
+            post(std::async([&](void) {
+                m_sample_coverage = fmax(0.0, m_sample_coverage - .1);
+            }));
         }
 
-        std::cout<< "You presssed: " << key << std::endl;
+        std::cout << "You presssed: " << key << std::endl;
         /*if (m_scene != nullptr) {
             if (key == GLFW_KEY_W) {
                 for (auto model : m_scene->m_models)
@@ -338,15 +360,14 @@ void Engine::post(std::future<void> task, double delay) {
 
 void Engine::handle_task_queue() {
     // Run tasks that are not pending
-    for(auto& task : m_future_tasks){
-        if(!task.pending())
+    for (auto &task : m_future_tasks) {
+        if (!task.pending())
             task.task.get();
     }
     // Erase tasks that are not pending
     auto i = m_future_tasks.begin();
-    while(i!=m_future_tasks.end())
-    {
-        if(!i->pending())
+    while (i != m_future_tasks.end()) {
+        if (!i->pending())
             i = m_future_tasks.erase(i);
         ++i;
     }

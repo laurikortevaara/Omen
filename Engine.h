@@ -8,6 +8,7 @@
 #include <string>
 #include <glm/detail/type_mat4x4.hpp>
 #include <future>
+#include <btBulletDynamicsCommon.h>
 
 #include "Scene.h"
 #include "Camera.h"
@@ -16,6 +17,7 @@
 #include "Texture.h"
 #include "system/System.h"
 #include "TextRenderer.h"
+
 
 namespace Omen {
 
@@ -96,7 +98,7 @@ namespace Omen {
 
         Joystick *m_joystick;
 
-        void doPhysics();
+        void doPhysics(double dt);
 
         void handle_task_queue();
 
@@ -106,6 +108,23 @@ namespace Omen {
 
         GLuint m_frame_buffer;
         GLuint m_depthTexture;
+
+        Omen::Model* m_currentSelection;
+
+        // Bullet phycics
+        btBroadphaseInterface*                  m_broadphase;
+        btDefaultCollisionConfiguration*        m_collisionConfiguration;
+        btCollisionDispatcher*                  m_dispatcher;
+        btSequentialImpulseConstraintSolver*    m_solver;
+        btDiscreteDynamicsWorld*                m_dynamicsWorld;
+        btCollisionShape*                       m_groundShape;
+        btCollisionShape*                       m_fallShape;
+        btDefaultMotionState*                   m_groundMotionState;
+        btRigidBody*                            m_groundRigidBody;
+        btDefaultMotionState*                   m_fallMotionState;
+        btRigidBody*                            m_fallRigidBody;
+
+        void initPhysics();
     };
 } // namespace Omen
 

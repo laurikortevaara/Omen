@@ -41,6 +41,13 @@ Mesh::Mesh(const std::string &shader,
 
     initialize();
 
+    glm::vec3 min(0,0,0);
+    glm::vec3 max(0,0,0);
+    std::for_each(vertices.begin(), vertices.end(), [&min,&max](glm::vec3& vec) {
+        min.x = std::min(vec.x, min.x);min.y = std::min(vec.y, min.y);min.z = std::min(vec.z, min.z);
+        max.x = std::max(vec.x, max.x);max.y = std::max(vec.y, max.y);max.z = std::max(vec.z, max.z);
+    });
+    m_boundingBox.set(min, max);
     create(shader,
            material,
            vertices,
@@ -49,17 +56,93 @@ Mesh::Mesh(const std::string &shader,
            indices);
 }
 
+void Mesh::renderBB() {
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    GLuint vbo = 0;
+    GLuint ibo = 0;
+    glGenBuffers(1, &vbo);
+    std::vector<glm::vec4> vertices = { {m_boundingBox.min().x, m_boundingBox.min().y, m_boundingBox.min().z, 1.0},
+                                       {m_boundingBox.max().x, m_boundingBox.min().y, m_boundingBox.min().z, 1.0},
+                                       {m_boundingBox.max().x, m_boundingBox.max().y, m_boundingBox.min().z, 1.0},
+                                       {m_boundingBox.min().x, m_boundingBox.max().y, m_boundingBox.min().z, 1.0},
+                                       {m_boundingBox.min().x, m_boundingBox.min().y, m_boundingBox.max().z, 1.0},
+                                       {m_boundingBox.max().x, m_boundingBox.min().y, m_boundingBox.max().z, 1.0},
+                                       {m_boundingBox.max().x, m_boundingBox.max().y, m_boundingBox.max().z, 1.0},
+                                       {m_boundingBox.min().x, m_boundingBox.max().y, m_boundingBox.max().z, 1.0}
+                                        };
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size()*4*sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ibo);
+    std::vector<GLushort> indices = {0,1,2,3,4,5,6,7,0,4,1,5,2,6,3,7};
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(GLushort), indices.data(), GL_STATIC_DRAW);
+
+    normalShader->use();
+    normalShader->setUniformMatrix4fv("Model", 1, (GLfloat *) &m_transform.tr()[0][0], false);
+    normalShader->setUniformMatrix4fv("ModelViewProjection", 1, &Engine::instance()->camera()->viewProjection()[0][0], false);
+
+    glLineWidth(5.0f);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+            0,  // attribute
+            4,                  // number of elements per vertex, here (x,y,z,w)
+            GL_FLOAT,           // the type of each element
+            GL_FALSE,           // take our values as-is
+            0,                  // no extra data between each position
+            0                   // offset of first element
+    );
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glDisable(GL_CULL_FACE);
+    //glDisable(GL_DEPTH_TEST);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glLineWidth(2.0);
+    glPolygonOffset(1, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, (GLvoid*)(4*sizeof(GLushort)));
+    glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, (GLvoid*)(8*sizeof(GLushort)));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glDeleteBuffers(1, &vbo);
+    //glPolygonOffset(0, 0);
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    /*glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
+}
+
 void Mesh::create(const std::string &shader,
                   Material *material,
                   std::vector<glm::vec3> &vertices,
                   std::vector<glm::vec3> &normals,
                   std::vector<glm::vec2> &texcoords,
                   std::vector<GLsizei> indices) {
+    std::cout << "const std::string &shader,\n"
+                         "                  Material *material,\n"
+                         "                  std::vector<glm::vec3> &vertices,\n"
+                         "                  std::vector<glm::vec3> &normals,\n"
+                         "                  std::vector<glm::vec2> &texcoords,\n"
+                         "                  std::vector<GLsizei> indices" << std::endl;
     createShader(shader);
     m_vertex_position_attrib = m_shader->getAttribLocation("position");
     m_vertex_normals_attrib = m_shader->getAttribLocation("normal");
     m_vertex_texture_coord_attrib = m_shader->getAttribLocation("texcoord");
 
+
+    glm::vec3 min(0,0,0);
+    glm::vec3 max(0,0,0);
+    std::for_each(vertices.begin(), vertices.end(), [&min,&max](glm::vec3& vec) {
+        min.x = std::min(vec.x, min.x);min.y = std::min(vec.y, min.y);min.z = std::min(vec.z, min.z);
+        max.x = std::max(vec.x, max.x);max.y = std::max(vec.y, max.y);max.z = std::max(vec.z, max.z);
+    });
+    m_boundingBox.set(min, max);
 
     setMaterial(material);
     if (m_material != nullptr) {
@@ -88,6 +171,7 @@ void Mesh::create(const std::string &shader,
 
 Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,
            std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices) {
+    std::cout << "Mesh::Mesh(onst std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices)" << std::endl;
     createShader(shader);
     m_vertex_position_attrib = m_shader->getAttribLocation("position");
     m_vertex_normals_attrib = m_shader->getAttribLocation("normal");
@@ -106,6 +190,16 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
 
     for (auto frame : frames) {
         m_frames.push_back(Frame());
+
+        glm::vec3 min(0,0,0);
+        glm::vec3 max(0,0,0);
+        std::for_each(frame.m_vertices.begin(), frame.m_vertices.end(), [&min,&max](glm::vec3& vec) {
+            min.x = std::min(vec.x, min.x);min.y = std::min(vec.y, min.y);min.z = std::min(vec.z, min.z);
+            max.x = std::max(vec.x, max.x);max.y = std::max(vec.y, max.y);max.z = std::max(vec.z, max.z);
+        });
+        m_boundingBox.set(min, max);
+
+
         for (auto v : frame.m_vertices) m_frames.back().m_vertices.push_back(v);
         for (auto n : frame.m_normals) m_frames.back().m_normals.push_back(n);
     }
@@ -118,6 +212,7 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
  * Default CTOR with test content
  */
 Mesh::Mesh() {
+    std::cout << "Mesh::Mesh()" << std::endl;
     Material *m = new Material();
     m->setTexture(new Texture(getDefaultTexture()));
 
@@ -192,7 +287,7 @@ void Mesh::initialize() {
     mPolygonMode = GL_FILL;
     m_shader = nullptr;
     m_material = nullptr;
-    m_position = glm::vec3(0);
+    m_transform.pos() = glm::vec3(0);
     m_amplitude = Omen::random(-10, 10) * 0.05;
     m_phase = 3.14 * Omen::random(0, 100) / 100.0;
     m_frequency = 0.5 + Omen::random(0, 100) / 100.0;
@@ -465,11 +560,8 @@ void Mesh::createPatches() {
 */
 
 void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
+    m_transform.rotate(Engine::instance()->time(), glm::vec3(0,1,0));
     Engine *e = Engine::instance();
-    check_gl_error();
-    m_position.y += (float) 0.01 * (m_amplitude * sin(e->time() * m_frequency + m_phase));
-    check_gl_error();
-
     check_gl_error();
     if (m_shader == nullptr)
         return;
@@ -477,11 +569,13 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     mPolygonMode = GL_FILL;
     glPolygonOffset(GL_POLYGON_OFFSET_LINE, 0.0);
     render(m_shader, viewProjection, view);
-    mPolygonMode = GL_LINE;
+
+    /*mPolygonMode = GL_LINE;
     glPolygonOffset(GL_POLYGON_OFFSET_LINE, 0.1);
     glPolygonOffset(GL_POLYGON_OFFSET_FILL, 0.1);
-
     render(normalShader, viewProjection, view);
+*/
+    renderBB();
 
 }
 
@@ -495,12 +589,6 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
         shader->setUniform1f("innerTess", fInnerTess);
         shader->setUniform1f("outerTess", fOuterTess);
         check_gl_error();
-
-        ////
-        //// Projection Matrix
-        ////
-        glm::mat4 ModelViewProjection = viewProjection * m_transform.tr();
-        shader->setUniformMatrix4fv("ModelViewProjection", 1, &ModelViewProjection[0][0], false);
 
         ////
         //// Drawing the mesh
@@ -529,14 +617,14 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
             if (false && m_frames.size() > 10) {
                 float radius = 3;
                 float angle = (3.14f / 180.f) * e->time() * 24.0f;
-                m_position.x = sin(angle) * radius;
-                m_position.z = cos(angle) * radius;
-                m_rotation = glm::rotate(glm::mat4(1), angle + 1.57f, glm::vec3(0, 1, 0));
-                m_position.y = -1;
-            }
-            model = glm::translate(model, m_position);
-            model = model * m_rotation;
+                m_transform.pos() = { sin(angle) * radius,
+                                      m_transform.pos().y,
+                                       cos(angle) * radius};
 
+                m_transform.rotate( angle + 1.57f, glm::vec3(0, 1, 0));
+            }
+
+            model = m_transform.tr();
 
             /**
              *
@@ -576,6 +664,16 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
             shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat *) &mvi[0], false);
             shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat *) &mi[0], false);
             shader->setUniform1f("Time", (float) 0.0f);
+
+            /*
+            //shader->setUniformMatrix4fv("View", 1, (GLfloat *)&Engine::instance()->camera()->view()[0][0], false);
+            shader->setUniformMatrix4fv("Model", 1, (GLfloat *) &glm::mat4(1)[0][0], false);
+            shader->setUniformMatrix4fv("ModelViewProjection", 1, &Engine::instance()->camera()->viewProjection()[0][0], false);
+            //shader->setUniformMatrix4fv("ModelView", 1, (GLfloat *) &mv[0], false);
+            //shader->setUniformMatrix4fv("ModelViewInverse", 1, (GLfloat *) &mvi[0], false);
+            //shader->setUniformMatrix4fv("NormalMatrix", 1, (GLfloat *) &mi[0], false);
+            //shader->setUniform1f("Time", (float) 0.0f);
+            */
 
             /*
             if (m_material->twoSided()) {

@@ -18,10 +18,10 @@ Scene::Scene() {
 
     GLfloat s = 50;
      std::vector<glm::vec3> vertices = {
-             {-s, -1, -s},
-             {s,  -1, -s},
-             {s,  -1, s},
-             {-s, -1, s}};
+             {-s, 0, -s},
+             {s,  0, -s},
+             {s,  0, s},
+             {-s, 0, s}};
      std::vector<glm::vec3> normals = {
              {0, 1, 0},
              {0, 1, 0},
@@ -39,7 +39,6 @@ Scene::Scene() {
 
      std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(shader_name, material, vertices, normals, texcoords, indices);
      std::unique_ptr<Model> model = std::make_unique<Model>(std::move(mesh));
-     model->m_mesh->m_position = glm::vec3(0,0,0);
      model->m_mesh->m_amplitude = 0.0;
      model->m_mesh->m_frequency = 0.0f;
      m_models.push_back(std::move(model));
@@ -67,14 +66,14 @@ Scene::Scene() {
         //loader.loadModel("models/ToDPirateHologuise/pirate.md3");
         loader.loadModel(*files.begin());
         //loader.loadModel("models/test.md3");
-        std::vector<std::unique_ptr<Omen::Mesh>> meshes;
+        std::vector<std::shared_ptr<Omen::Mesh>> meshes;
         loader.getMesh(meshes);
         int i=0;
         for(auto& mesh : meshes){
-            std::unique_ptr<Model> model = std::make_unique<Model>( std::move(mesh) );
+            std::shared_ptr<Model> model = std::make_shared<Model>( mesh );
             model->m_mesh->m_amplitude = 0.0;
-            model->m_mesh->m_position.x = i * 3;
-            m_models.push_back(std::move(model));
+            model->m_mesh->m_transform.pos().x = i * 3;
+            m_models.push_back(model);
             i++;
         }
 

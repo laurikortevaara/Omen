@@ -103,6 +103,7 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/tinydir)
 # Os x specific libraries/frameworks
 ######################################################################
 if (APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
     find_library(CARBON Carbon)
     if (NOT CARBON)
         message(FATAL_ERROR "Carbon not found")
@@ -143,7 +144,7 @@ endif (WINDOWS)
 ######################################################################
 # Define the source files and the executable
 ######################################################################
-set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/MouseInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h TextRenderer.cpp TextRenderer.h Material.cpp Material.h utils.h utils.cpp WavefrontLoader.cpp WavefrontLoader.h MD3Loader.cpp MD3Loader.h)
+set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/MouseInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h TextRenderer.cpp TextRenderer.h Material.cpp Material.h utils.h utils.cpp WavefrontLoader.cpp WavefrontLoader.h MD3Loader.cpp MD3Loader.h BoundingBox.cpp BoundingBox.h BoundingVolume.cpp BoundingVolume.h)
 add_executable(Omen ${SOURCE_FILES})
 
 ######################################################################

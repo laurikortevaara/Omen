@@ -210,7 +210,7 @@ namespace Omen {
         bool readHeader();
         void readSurfaces();
 
-        void getMesh(std::vector<std::unique_ptr<Omen::Mesh>>& meshes);
+        void getMesh(std::vector<std::shared_ptr<Omen::Mesh>>& meshes);
 
         glm::vec3 getRealVertex(S16 vertices[3]);
         glm::vec3 fromSpherical(U8 spherical_coord[2]);
