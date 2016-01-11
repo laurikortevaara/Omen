@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Omen::Window> window = engine->createWindow(1280, 720);
     check_gl_error();
 
-    Omen::ecs::System *inputSystem = engine->findSystem<Omen::InputSystem>();
+    Omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
     check_gl_error();
     if (inputSystem != nullptr) {
         Omen::KeyboardInput *keyboardInput = dynamic_cast<Omen::KeyboardInput *>(inputSystem->findComponent<Omen::KeyboardInput>());

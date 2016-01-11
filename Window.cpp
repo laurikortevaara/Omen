@@ -106,8 +106,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
     check_gl_error();
 
     Engine* e = Engine::instance();
-    InputSystem* is = (InputSystem*)e->findSystem<InputSystem>();
-    KeyboardInput* ki = (KeyboardInput*)is->findComponent<KeyboardInput>();
+    KeyboardInput* ki = (KeyboardInput*)e->findComponent<KeyboardInput>();
     ki->signal_key_press.connect([&](int k, int s, int a, int m) {
         if(k == GLFW_KEY_0 || k == GLFW_KEY_F){
             m_swapInterval = m_swapInterval == 60 ? 0 : 60;

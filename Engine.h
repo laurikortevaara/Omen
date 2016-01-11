@@ -30,6 +30,8 @@ namespace Omen {
         static Engine* instance();
 
         /** Signals **/
+        Scene *scene();
+
     public:
         typedef Signal< std::function<void (double time, double delta_time)> > Update;
         Update signal_engine_update;

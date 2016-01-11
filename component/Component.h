@@ -11,7 +11,7 @@ namespace Omen {
         protected:
             bool m_isEnabled;
         public:
-            Component() : m_isEnabled(false) { };
+            Component() : m_isEnabled(true) { };
 
             virtual ~Component() { };
 

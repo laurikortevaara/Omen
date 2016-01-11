@@ -47,8 +47,8 @@ Engine::Engine() :
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 0.1, -0.5}, {0, 0.1, 0}, 60.0f);
-        findComponent<CameraController>()->setCamera(m_camera);
+        m_camera = new Camera("Camera1", {0, 1, -2}, {0, 0, 0}, 60.0f);
+        findComponent<CameraController>()->setCamera(m_camera);qq =87
         m_scene = std::make_unique<Scene>();
         m_text = std::make_unique<TextRenderer>();
 
@@ -57,7 +57,7 @@ Engine::Engine() :
         Omen::MD3Loader loader;
         loader.loadModel("models/sphere.md3");
         std::vector<std::shared_ptr<Omen::Mesh>> meshes;
-        for(int i=0; i < 1; ++i )
+        for(int i=0; i < 10; ++i )
         {
             loader.getMesh(meshes);
             m_currentSelection = nullptr;
@@ -125,6 +125,9 @@ void Engine::initializeSystems() {
     ecs::CoreSystem* coreSystem = new ecs::CoreSystem();
     m_systems.push_back(coreSystem);
 
+    CameraController* cameraController = new CameraController();
+    coreSystem->add(cameraController);
+
     // Initialize input system
     ecs::InputSystem *inputSystem = new ecs::InputSystem();
     m_systems.push_back(inputSystem);
@@ -168,10 +171,6 @@ void Engine::initializeSystems() {
     m_window->signal_window_size_changed.connect([this](int width, int height) {
         m_camera->onWindowSizeChanged(width, height);
     });
-
-
-    CameraController* cameraController = new CameraController();
-    coreSystem->add(cameraController);
 
 }
 
@@ -259,7 +258,6 @@ void Engine::render() {
     glGetIntegerv(GL_SAMPLES, &samples);
 
 
-    Picker* p = findComponent<Picker>();
     std::ostringstream os;
     std::vector<float> axes = m_joystick != nullptr ? m_joystick->getJoystickAxes() : std::vector<float>({0, 0, 0, 0});
     os << "FPS: " << std::setprecision(3) << avg_fps << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 <<
@@ -267,15 +265,14 @@ void Engine::render() {
  << "\nCAMERA_ENABLED: [" << (mi->enabled() ? "YES" : "NO") << "] Key=TAB"\
  << "\nSAMPLES: [" << samples << "]"\
  << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]\n\n"\
- << "\nviewmatrix :[" << stringify(viewmat[0][0]) << ", " << stringify(viewmat[0][1]) << ", " <<
+ << "\nviewmatRIX :[" << stringify(viewmat[0][0]) << ", " << stringify(viewmat[0][1]) << ", " <<
     stringify(viewmat[0][2]) << ", " << stringify(viewmat[0][3]) << "]"\
  << "\n            [" << stringify(viewmat[1][0]) << ", " << stringify(viewmat[1][1]) << ", " <<
     stringify(viewmat[1][2]) << ", " << stringify(viewmat[1][3]) << "]"\
  << "\n            [" << stringify(viewmat[2][0]) << ", " << stringify(viewmat[2][1]) << ", " <<
     stringify(viewmat[2][2]) << ", " << stringify(viewmat[2][3]) << "]"\
  << "\n            [" << stringify(viewmat[3][0]) << ", " << stringify(viewmat[3][1]) << ", " <<
-    stringify(viewmat[3][2]) << ", " << stringify(viewmat[3][3]) << "]"\
-<< "\nPickRay: [" << p->ray().x << ", " << p->ray().y << ", " << p->ray().z << "]";
+    stringify(viewmat[3][2]) << ", " << stringify(viewmat[3][3]) << "]";
     std::string text(os.str());
     m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
 
@@ -390,8 +387,4 @@ void Engine::handle_task_queue() {
             i = m_future_tasks.erase(i);
         ++i;
     }
-}
-
-Scene *Engine::scene() {
-    return m_scene.get();
 }

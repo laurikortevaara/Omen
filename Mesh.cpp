@@ -171,6 +171,7 @@ void Mesh::create(const std::string &shader,
 
 Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,
            std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices) {
+    bRenderBB = true;
     std::cout << "Mesh::Mesh(onst std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices)" << std::endl;
     createShader(shader);
     m_vertex_position_attrib = m_shader->getAttribLocation("position");
@@ -205,6 +206,10 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
     }
 
     genBuffers();
+    if (normalShader == nullptr) {
+        normalShader = new Shader("shaders/wireframe.glsl");
+        //normalShader = new Shader("shaders/normal_visualizer.glsl");
+    }
 }
 
 
@@ -560,7 +565,7 @@ void Mesh::createPatches() {
 */
 
 void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
-    m_transform.rotate(Engine::instance()->time(), glm::vec3(0,1,0));
+    //m_transform.rotate(Engine::instance()->time(), glm::vec3(0,1,0));
     Engine *e = Engine::instance();
     check_gl_error();
     if (m_shader == nullptr)
@@ -575,7 +580,8 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     glPolygonOffset(GL_POLYGON_OFFSET_FILL, 0.1);
     render(normalShader, viewProjection, view);
 */
-    renderBB();
+    if(bRenderBB)
+        renderBB();
 
 }
 
@@ -728,4 +734,9 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
         }
     }
     glBindVertexArray(0);
+}
+
+Omen::BoundingBox &Mesh::aabb() {
+    m_boundingBox.tr() = m_transform;
+    return m_boundingBox;
 }

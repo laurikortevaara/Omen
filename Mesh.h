@@ -46,6 +46,8 @@ namespace Omen {
         virtual ~Mesh();
 
         Transform m_transform;
+
+        Omen::BoundingBox& aabb();
         Omen::BoundingBox m_boundingBox;
 
         std::vector<std::shared_ptr<Triangle> > m_triangles;
@@ -91,6 +93,7 @@ namespace Omen {
         Shader *m_shader;
         Material *m_material;
         GLuint m_vao;
+        bool bRenderBB;
 
         GLuint m_vbo_texcoords;
         GLuint m_ibo;

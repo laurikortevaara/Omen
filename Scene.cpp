@@ -14,36 +14,8 @@
 using namespace Omen;
 
 Scene::Scene() {
-    std::string shader_name = "shaders/pass_through.glsl";
 
-    GLfloat s = 50;
-     std::vector<glm::vec3> vertices = {
-             {-s, 0, -s},
-             {s,  0, -s},
-             {s,  0, s},
-             {-s, 0, s}};
-     std::vector<glm::vec3> normals = {
-             {0, 1, 0},
-             {0, 1, 0},
-             {0, 1, 0},
-             {0, 1, 0}};
-     std::vector<glm::vec2> texcoords = {
-             {0, 0},
-             {s, 0},
-             {s, s},
-             {0, s}};
-     std::vector<GLsizei> indices  = {0, 3, 1, 2, 1, 3};
-
-     Material* material = new Material();
-     material->setTexture(new Texture("textures/checker.jpg"));
-
-     std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(shader_name, material, vertices, normals, texcoords, indices);
-     std::unique_ptr<Model> model = std::make_unique<Model>(std::move(mesh));
-     model->m_mesh->m_amplitude = 0.0;
-     model->m_mesh->m_frequency = 0.0f;
-     m_models.push_back(std::move(model));
-
-
+    createGround();
     /*
     {
         WavefrontLoader loader;
@@ -93,6 +65,37 @@ Scene::Scene() {
 
 Scene::~Scene() {
     m_models.clear();
+}
+
+void Scene::createGround() {
+    std::string shader_name = "shaders/pass_through.glsl";
+
+    GLfloat s = 50;
+    std::vector<glm::vec3> vertices = {
+            {-s, 0, -s},
+            {s,  0, -s},
+            {s,  0, s},
+            {-s, 0, s}};
+    std::vector<glm::vec3> normals = {
+            {0, 1, 0},
+            {0, 1, 0},
+            {0, 1, 0},
+            {0, 1, 0}};
+    std::vector<glm::vec2> texcoords = {
+            {0, 0},
+            {s, 0},
+            {s, s},
+            {0, s}};
+    std::vector<GLsizei> indices  = {0, 3, 1, 2, 1, 3};
+
+    Material* material = new Material();
+    material->setTexture(new Texture("textures/checker.jpg"));
+
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(shader_name, material, vertices, normals, texcoords, indices);
+    std::unique_ptr<Model> model = std::make_unique<Model>(std::move(mesh));
+    model->m_mesh->m_amplitude = 0.0;
+    model->m_mesh->m_frequency = 0.0f;
+    m_models.push_back(std::move(model));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {

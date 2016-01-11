@@ -9,9 +9,11 @@
 #include "System.h"
 
 namespace Omen {
-    class InputSystem : public ecs::System {
+    namespace ecs {
+        class InputSystem : public ecs::System {
 
-    };
+        };
+    } // namespace Omen;
 } // namespace Omen
 
 
