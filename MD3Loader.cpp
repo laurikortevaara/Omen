@@ -97,7 +97,6 @@ void MD3Loader::readSurfaces() {
 
                 glm::vec2 *normal = (glm::vec2 *) &vertex->normal;
                 f.m_vertices.push_back(getRealVertex(vertex->coord));
-                //f.m_vertices.back().z += 2*frame_i;
                 f.m_normals.push_back(fromSpherical(vertex->normal));
             }
             mesh *mesh = m_meshes.back();
@@ -118,11 +117,12 @@ void MD3Loader::readFrames() {
 glm::vec3 MD3Loader::getRealVertex(S16 vertices[3]) {
     float conv = 1.0f / 64;
     conv *= 0.1;
-    return glm::vec3(vertices[0] * conv, vertices[1] * conv, vertices[2] * conv);
+    return glm::vec3(vertices[0] * conv, vertices[2] * conv, vertices[1] * conv);
 }
 
 glm::vec3 rationalVec(glm::vec3 vec) {
-    glm::vec3 v(vec.x, vec.y, vec.z);
+    glm::vec3 v(vec.x, vec.z, vec.y);
+    return v;
     v *= 0.1;
     float x_sign = v.x / fabs(v.x);
     float y_sign = v.y / fabs(v.y);
@@ -161,7 +161,7 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<Omen::Mesh>> &meshes) {
         for (auto face : m->faces) {
             for (auto index : face.indices) {
                 indices.push_back(indices.size());
-                if (!m_texcoords.empty())texcoords.push_back(m_texcoords.at(index.texture_index));
+                if (!m_texcoords.empty()&&index.texture_index>=0)texcoords.push_back(m_texcoords.at(index.texture_index));
             }
         }
 

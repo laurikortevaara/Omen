@@ -10,11 +10,13 @@
 #include "GL_error.h"
 #include "Engine.h"
 #include "MD3Loader.h"
+#include "PointLight.h"
 
 using namespace Omen;
 
 Scene::Scene() {
 
+    m_sky = new Sky();
     createGround();
     /*
     {
@@ -96,11 +98,19 @@ void Scene::createGround() {
     model->m_mesh->m_amplitude = 0.0;
     model->m_mesh->m_frequency = 0.0f;
     m_models.push_back(std::move(model));
+
+    m_lights.push_back( std::make_shared<PointLight>(PointLight({0,5,0}, {1,1,1}, 1) ));
+
+    Engine::instance()->signal_engine_update.connect([&](double time, double dt){
+       m_lights.front()->tr().pos().x = (float) cos(time)*5;
+        m_lights.front()->tr().pos().y = (float) fabs(sin(time)*5);
+    });
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     check_gl_error();
 
+    m_sky->render();
     for (const auto &model : m_models)
         model->render(viewProjection, view);
 }

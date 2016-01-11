@@ -66,7 +66,7 @@ Engine::Engine() :
             model->m_mesh->m_amplitude = 0.0;
             model->m_mesh->m_transform.pos() = {Omen::random(-10, 10), Omen::random(1, 5), Omen::random(-10, 10)};
             model->m_mesh->m_transform.scale({Omen::random(1, 4), Omen::random(1, 4), Omen::random(1, 4)});
-            m_scene->m_models.push_back(model);
+            m_scene->models().push_back(model);
             meshes.clear();
         }
 
@@ -290,7 +290,7 @@ std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int he
     check_gl_error();
     glFrontFace(GL_CCW);
     check_gl_error();
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     check_gl_error();
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);

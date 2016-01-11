@@ -18,8 +18,18 @@ namespace Omen {
         glm::vec3   m_position;
     public:
         Transform() : m_scale(1), m_tr(1), m_rotation(0), m_position(0) {};
+        Transform(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale):
+                m_position(position),m_rotation(rotation), m_scale(scale){}
         glm::vec3 pos() const  { return m_position; }
         glm::vec3& pos()  { return m_position; }
+
+        explicit Transform(const Transform& tr) {
+            m_tr = tr.m_tr;
+            m_scale = tr.m_scale;
+            m_rotation = tr.m_rotation;
+            m_position = tr.m_position;
+            m_isEnabled = tr.m_isEnabled;
+        }
 
         glm::mat4 tr() {
             glm::mat4 translation = glm::translate(glm::mat4(1), m_position);

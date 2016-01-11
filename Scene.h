@@ -8,6 +8,8 @@
 
 #include <vector>
 #include "Model.h"
+#include "Light.h"
+#include "Sky.h"
 
 namespace Omen {
     class Scene {
@@ -15,13 +17,22 @@ namespace Omen {
         Scene();
 
         virtual ~Scene();
-        
+
     public:
-        std::vector< std::shared_ptr<Model> > m_models;
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
         void createGround();
+
+        std::vector<std::shared_ptr<Model> >& models() {return m_models;}
+        std::vector<std::shared_ptr<Light> >& lights() {return m_lights;}
+
+    private:
+        std::vector<std::shared_ptr<Model> > m_models;
+        std::vector<std::shared_ptr<Light> > m_lights;
+        Sky*    m_sky;
+
+
     };
 } // namespace Omen
 

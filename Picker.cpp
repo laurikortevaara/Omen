@@ -23,30 +23,28 @@ public:
     bool raySlabIntersect(float smin, float smax, float r0, float r1, float &t0, float &t1) {
         float raydir = r1 - r0;
 
-        if (fabs(raydir) < std::numeric_limits<float>::max()) {
-            // ray parallel to the slab, but ray not inside the slab planes
+        if (fabs(raydir) < std::numeric_limits<float>::min()) {
             if (r0 < smin || r0 > smax) {
                 return false;
             }
-                // ray parallel to the slab, but ray inside the slab planes
             else {
                 return true;
             }
         }
 
-        float tsenter = (smin - r0) / raydir;
-        float tsexit = (smax - r0) / raydir;
+        float ts0 = (smin - r0) / raydir;
+        float ts1 = (smax - r0) / raydir;
 
-        if (tsenter > tsexit) {
-            std::swap(tsenter, tsexit);
+        if (ts0 > ts1) {
+            std::swap(ts0, ts1);
         }
 
-        if (t0 > tsexit || tsenter > t1) {
+        if (t0 > ts1 || ts0 > t1) {
             return false;
         }
         else {
-            t0 = std::max(t0, tsenter);
-            t1 = std::min(t1, tsexit);
+            t0 = std::max(t0, ts0);
+            t1 = std::min(t1, ts1);
             return true;
         }
     }
@@ -85,7 +83,7 @@ Picker::Picker() {
 
     Engine::instance()->findComponent<MouseInput>()->
             signal_cursorpos_changed.connect([&](float x, float y) -> void {
-        pick();
+        //pick();
     });
 }
 
@@ -106,7 +104,7 @@ void Picker::pick() {
     ray.direction = glm::normalize(v1 - v0);
 
     Scene *scene = Engine::instance()->scene();
-    for (auto model : scene->m_models) {
+    for (auto model : scene->models()) {
         float intersect = 0.0f;
         BoundingBox b = model->m_mesh->aabb();
         if (ray.segmentAABBoxIntersect(b, {v0, (v1 - v0) * 100.0f}, intersect))

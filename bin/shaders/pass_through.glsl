@@ -30,7 +30,9 @@ uniform mat4      View;
 uniform mat4      ModelViewInverse;
 uniform mat4      NormalMatrix;
 uniform mat4      DepthBiasMVP;
-uniform vec3      LightDirection;
+uniform vec3      LightPosition;
+uniform vec3      LightColor;
+uniform float     LightIntensity;
 
 
 uniform float     Time;
@@ -72,7 +74,7 @@ void main() {
     dataOut.eye_direction_cameraspace = vec3(0,0,0) - ( ModelView * position).xyz;
 
     // Vector that goes from the vertex to the light, in camera space
-    dataOut.light_direction_cameraspace = (View*vec4(LightDirection,0)).xyz;
+    dataOut.light_direction_cameraspace = (View*vec4(vec3(-LightPosition),0)).xyz;
 
     // Normal of the the vertex, in camera space
     dataOut.normal_cameraspace = ( ModelView * vec4(normal,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
@@ -117,7 +119,9 @@ void main() {
 
     out_color = texture(Texture, tcoord);
     //out_color = vec4(mod(tcoord.x,1), mod(tcoord.y,1.0), 0, 1 );
-    float brightness = dot(normal, vec3(1,1,1));
+    len = length(dataIn.position_worldspace - LightPosition);
+    float brightness = max(0.15,dot(normal, LightPosition)*(1/len));
+
     //out_color = mix(AmbientColor, out_color*brightness, 0.5 );
 
     if(MetacapTextureEnabled){
@@ -127,10 +131,10 @@ void main() {
        out_color = vec4(theta, phi, 0, 1);//texture(Texture2, )
        out_color = texture(Texture, vec2(0.5+cos(theta),0.5+sin(phi)) );
     }
-    out_color.rgb = abs(normal);
-    //out_color *= visibility;
-    out_color.a = 1;
 
+
+    out_color *= brightness;
+    out_color.a = 1;
 }
 
 

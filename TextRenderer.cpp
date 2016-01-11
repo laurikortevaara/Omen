@@ -90,10 +90,10 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
         float h = g->bitmap.rows * sy;
 
         GLfloat box[4][4] = {
-                {x2,     -y2,     0, 0},
                 {x2 + w, -y2,     1, 0},
-                {x2,     -y2 - h, 0, 1},
+                {x2,     -y2,     0, 0},
                 {x2 + w, -y2 - h, 1, 1},
+                {x2,     -y2 - h, 0, 1},
         };
 
         glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
