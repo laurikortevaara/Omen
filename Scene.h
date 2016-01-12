@@ -10,6 +10,7 @@
 #include "Model.h"
 #include "Light.h"
 #include "Sky.h"
+#include "Renderable.h"
 
 namespace Omen {
     class Scene {
@@ -30,9 +31,11 @@ namespace Omen {
     private:
         std::vector<std::shared_ptr<Model> > m_models;
         std::vector<std::shared_ptr<Light> > m_lights;
+        std::vector<std::shared_ptr<Omen::Renderable> > m_renderables;
         Sky*    m_sky;
 
 
+        std::shared_ptr<Model> loadModel(const std::string filename);
     };
 } // namespace Omen
 

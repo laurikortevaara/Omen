@@ -11,6 +11,7 @@
 #include "Engine.h"
 #include "MD3Loader.h"
 #include "PointLight.h"
+#include "Ocean.h"
 
 using namespace Omen;
 
@@ -35,24 +36,11 @@ Scene::Scene() {
     */
     Engine::instance()->window()->signal_file_dropped.connect( [this](std::vector<std::string> files)
     {
-        Omen::MD3Loader loader;
-        //loader.loadModel("models/cube.md3");
-        //loader.loadModel("models/ToDPirateHologuise/pirate.md3");
-        loader.loadModel(*files.begin());
-        //loader.loadModel("models/test.md3");
-        std::vector<std::shared_ptr<Omen::Mesh>> meshes;
-        loader.getMesh(meshes);
-        int i=0;
-        for(auto& mesh : meshes){
-            std::shared_ptr<Model> model = std::make_shared<Model>( mesh );
-            model->m_mesh->m_amplitude = 0.0;
-            model->m_mesh->m_transform.pos().x = i * 3;
-            m_models.push_back(model);
-            i++;
-        }
-
+        loadModel(files.front());
     });
 
+    std::shared_ptr<Model> m = loadModel("models/cube.md3");
+    m->m_mesh->m_transform.pos() = glm::vec3(3,0.2,0);
 
 
     Engine* e = Engine::instance();
@@ -62,7 +50,26 @@ Scene::Scene() {
                 
         });
     }
+}
 
+std::shared_ptr<Model> Scene::loadModel(const std::string filename){
+    Omen::MD3Loader loader;
+    //loader.loadModel("models/cube.md3");
+    //loader.loadModel("models/ToDPirateHologuise/pirate.md3");
+    loader.loadModel(filename);
+    //loader.loadModel("models/test.md3");
+    std::vector<std::shared_ptr<Omen::Mesh>> meshes;
+    loader.getMesh(meshes);
+    int i=0;
+    std::shared_ptr<Model> model;
+    for(auto& mesh : meshes){
+        model = std::make_shared<Model>( mesh );
+        model->m_mesh->m_amplitude = 0.0;
+        model->m_mesh->m_transform.pos().x = i * 3;
+        m_models.push_back(model);
+        i++;
+    }
+    return model;
 }
 
 Scene::~Scene() {
@@ -103,9 +110,11 @@ void Scene::createGround() {
 
     Engine::instance()->signal_engine_update.connect([&](double time, double dt){
        m_lights.front()->tr().pos().x = (float) cos(time)*5;
-        m_lights.front()->tr().pos().y = (float) fabs(sin(time)*5);
-        m_lights.front()->tr().pos().z = 0;
+        m_lights.front()->tr().pos().y = 5.0;
+        m_lights.front()->tr().pos().z = (float) sin(time)*5;
     });
+
+    m_renderables.push_back( std::make_shared<Ocean>() );
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
@@ -114,5 +123,7 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     m_sky->render();
     for (const auto &model : m_models)
         model->render(viewProjection, view);
+    for( const auto &r : m_renderables)
+        r->render();
 }
 

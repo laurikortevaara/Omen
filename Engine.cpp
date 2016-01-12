@@ -48,7 +48,7 @@ Engine::Engine() :
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 0, 0}, {0, 0, 0}, 60.0f);
+        m_camera = new Camera("Camera1", {0, 1, 5}, {0, 0, 0}, 60.0f);
         findComponent<CameraController>()->setCamera(m_camera);
         m_scene = std::make_unique<Scene>();
         m_text = std::make_unique<TextRenderer>();
@@ -92,20 +92,26 @@ void Engine::initPhysics() {
     m_groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
     m_groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
 
+    float rest = 0.4;
+    float friction = 1.05;
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, m_groundMotionState, m_groundShape, btVector3(0, 0, 0));
+    groundRigidBodyCI.m_restitution = rest;
+    groundRigidBodyCI.m_friction = friction;
     m_groundRigidBody = new btRigidBody(groundRigidBodyCI);
 
     m_dynamicsWorld->addRigidBody(m_groundRigidBody);
 
     m_fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 10, 0)));
 
-    m_fallShape = new btBoxShape(btVector3(0.1, 0.5, 0.1)); //
+    m_fallShape = new btBoxShape(btVector3(0.1, 0.1, 0.1)); //
     m_fallShape = new btSphereShape(0.1);
     btScalar mass = 10;
     btVector3 m_fallInertia(0, 0, 0);
     m_fallShape->calculateLocalInertia(mass, m_fallInertia);
 
     btRigidBody::btRigidBodyConstructionInfo m_fallRigidBodyCI(mass, m_fallMotionState, m_fallShape, m_fallInertia);
+    m_fallRigidBodyCI.m_restitution = rest;
+    m_fallRigidBodyCI.m_friction = friction;
     m_fallRigidBody = new btRigidBody(m_fallRigidBodyCI);
     m_dynamicsWorld->addRigidBody(m_fallRigidBody);
 }

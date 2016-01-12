@@ -57,7 +57,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         m_pos += glm::normalize(glm::cross(m_forward, m_up))*m_velocity.x;
         m_pos += glm::normalize(glm::cross(m_forward, cameraRight))*m_velocity.y;
 
-        m_view = glm::lookAt(m_pos, m_pos+m_forward, m_up);
+        m_view = glm::scale(glm::lookAt(m_pos, m_pos+m_forward, m_up), {-1,1,-1});
         m_velocity *= 0.90;
 
         updateViewProjection();
