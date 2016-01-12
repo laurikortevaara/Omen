@@ -4,8 +4,9 @@
 
 #include <iostream>
 #include "Picker.h"
-#include "Engine.h"
-#include "component/MouseInput.h"
+#include "../Engine.h"
+#include "MouseInput.h"
+#include "KeyboardInput.h"
 
 using namespace Omen;
 
@@ -85,6 +86,11 @@ Picker::Picker() {
             signal_cursorpos_changed.connect([&](float x, float y) -> void {
         //pick();
     });
+
+    Engine::instance()->findComponent<Omen::KeyboardInput>()->signal_key_release.connect([&](int key, int action, int mods, int t){
+        if(key==GLFW_KEY_ESCAPE)
+            signal_object_picked.notify(nullptr);
+    });
 }
 
 void Picker::pick() {
@@ -104,14 +110,20 @@ void Picker::pick() {
     ray.direction = glm::normalize(v1 - v0);
 
     Scene *scene = Engine::instance()->scene();
+    float min_intersect =  std::numeric_limits<float>::max();
+    Mesh* pSelected = nullptr;
     for (auto model : scene->models()) {
-        float intersect = 0.0f;
+        float intersect;
         BoundingBox b = model->m_mesh->aabb();
-        if (ray.segmentAABBoxIntersect(b, {v0, (v1 - v0) * 100.0f}, intersect))
-            model->m_mesh->bRenderBB = true;
-        else
-            model->m_mesh->bRenderBB = false;
+        if (ray.segmentAABBoxIntersect(b, {v0, (v1 - v0) * 100.0f}, intersect)){
+            signal_object_picked.notify(model->m_mesh.get());
+            if(intersect<min_intersect){
+                min_intersect = intersect;
+                pSelected = model->m_mesh.get();
+            }
+        }
     }
+    signal_object_picked.notify(pSelected);
 }
 
 Picker::~Picker() {

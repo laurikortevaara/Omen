@@ -99,11 +99,12 @@ void Scene::createGround() {
     model->m_mesh->m_frequency = 0.0f;
     m_models.push_back(std::move(model));
 
-    m_lights.push_back( std::make_shared<PointLight>(PointLight({0,5,0}, {1,1,1}, 1) ));
+    m_lights.push_back( std::make_shared<PointLight>(PointLight({0,0,0}, {1,1,1}, 1) ));
 
     Engine::instance()->signal_engine_update.connect([&](double time, double dt){
        m_lights.front()->tr().pos().x = (float) cos(time)*5;
         m_lights.front()->tr().pos().y = (float) fabs(sin(time)*5);
+        m_lights.front()->tr().pos().z = 0;
     });
 }
 

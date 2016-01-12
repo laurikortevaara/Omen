@@ -179,10 +179,10 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<Omen::Mesh>> &meshes) {
 
         Material *material = new Material();
 
-        material->setDiffuseColor(glm::vec4(0.75, 0.75, 0.75, 1));
+        /*material->setDiffuseColor(glm::vec4(0.75, 0.75, 0.75, 1));
         material->setAmbientColor(glm::vec4(0.75, 0.75, 0.75, 1));
-        material->setSpecularColor(glm::vec4(0.75, 0.75, 0.75, 1));
-        material->setTexture(new Texture("models/ToDPirateHologuise/Hologuise3_Color.png"));
+        material->setSpecularColor(glm::vec4(0.75, 0.75, 0.75, 1));*/
+        //material->setTexture(new Texture("models/ToDPirateHologuise/Hologuise3_Color.png"));
         //material->setMatcapTexture(new Texture("textures/generator1.jpg"));
 
         std::string shader_name = "shaders/pass_through.glsl";

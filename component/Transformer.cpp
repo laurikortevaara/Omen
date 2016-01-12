@@ -3,13 +3,16 @@
 //
 
 #include <CoreImage/CoreImage.h>
-#include "CameraController.h"
+#include "Transformer.h"
 #include "../system/InputSystem.h"
 #include "MouseInput.h"
 #include "../Engine.h"
+#include "Transformer.h"
 #include "Picker.h"
 
-Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullptr) {
+using namespace Omen;
+
+Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
     // Get the connected joystic
     JoystickInput *ji = Engine::instance()->findComponent<JoystickInput>();
@@ -25,7 +28,13 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
         picker->signal_object_picked.connect([&](Omen::Mesh* obj){
-           this->setEnabled(obj== nullptr);
+            setEnabled(obj!= nullptr);
+            m_obj = obj;
+            if(obj) {
+                m_tr = &obj->m_transform;
+            }
+            else
+                m_tr = nullptr;
         });
 
     // Get the Mouse coordinates
@@ -41,16 +50,16 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
             old_x = x;
             old_y = y;
 
-            if (m_camera >= nullptr) {
+            /*if (m_camera >= nullptr) {
                 m_camera->yaw() += -dx;
                 m_camera->pitch() += dy;
-            }
+            }*/
 
         });
     }
 
     Engine::instance()->signal_engine_update.connect([this](double time, double deltaTime) {
-        if(!enabled())
+        if(!enabled()||m_tr == nullptr)
             return;
 
         // velocity = velocity + accelleration
@@ -59,28 +68,31 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
         Engine* e = Engine::instance();
         Window* w = e->window();
 
-        if (m_camera != nullptr) {
-            m_camera->acceleration() = glm::vec3(0.35);
-
+        if (m_tr != nullptr) {
+            deltaTime *= 100.0f;
             if (w->keyPressed(GLFW_KEY_W)) {
-                m_camera->velocity().z += m_camera->acceleration().z * deltaTime;
+                //m_obj->m_transform.pos().z += deltaTime;
+                m_obj->m_transform.translate(glm::vec3(0,0,deltaTime));
             }
             if (w->keyPressed(GLFW_KEY_S)) {
-                m_camera->velocity().z -= m_camera->acceleration().z * deltaTime;
+                //m_obj->m_transform.pos().z -= deltaTime;
+                m_obj->m_transform.translate(glm::vec3(0,0,-deltaTime));
             }
 
             if (w->keyPressed(GLFW_KEY_A)) {
-                m_camera->velocity().x -= m_camera->acceleration().x * deltaTime;
+                //m_obj->m_transform.pos().x -= deltaTime;
+                m_obj->m_transform.translate(glm::vec3(-deltaTime,0,0));
             }
             if (w->keyPressed(GLFW_KEY_D)) {
-                m_camera->velocity().x += m_camera->acceleration().x * deltaTime;
+                //m_obj->m_transform.pos().x += deltaTime;
+                m_obj->m_transform.translate(glm::vec3(deltaTime,0,0));
             }
 
             if (w->keyPressed(GLFW_KEY_E)) {
-                m_camera->velocity().y += m_camera->acceleration().y * deltaTime;
+                m_obj->m_transform.pos().y += deltaTime;
             }
             if (w->keyPressed(GLFW_KEY_C)) {
-                m_camera->velocity().y -= m_camera->acceleration().y * deltaTime;
+                m_obj->m_transform.pos().y -= deltaTime;
             }
 
             if (m_joystick != nullptr) {
@@ -93,10 +105,11 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
                 if (valid) {
                     float dx = axes[2];
                     float dy = axes[3];
-                    m_camera->yaw() += 200.0f * dx * deltaTime;
+                    /*m_camera->yaw() += 200.0f * dx * deltaTime;
                     m_camera->pitch() -= 200.0f * dy * deltaTime;
                     m_camera->velocity().x += axes[0] * deltaTime;
                     m_camera->velocity().z -= axes[1] * deltaTime;
+                     */
                 }
 
             }
@@ -104,6 +117,6 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
     });
 }
 
-Omen::CameraController::~CameraController() {
+Transformer::~Transformer() {
 
 }

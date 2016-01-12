@@ -11,15 +11,16 @@
 
 #include "Engine.h"
 #include "GL_error.h"
-#include "system/InputSystem.h"
-#include "component/KeyboardInput.h"
-#include "component/MouseInput.h"
 #include "utils.h"
 #include "thirdparty/glfw/include/GLFW/glfw3.h"
 #include "MD3Loader.h"
-#include "Picker.h"
 #include "system/CoreSystem.h"
+#include "system/InputSystem.h"
+#include "component/KeyboardInput.h"
+#include "component/MouseInput.h"
+#include "component/Picker.h"
 #include "component/CameraController.h"
+#include "component/Transformer.h"
 
 
 using namespace Omen;
@@ -47,7 +48,7 @@ Engine::Engine() :
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 0.1, -0.5}, {0, 0.1, 0}, 60.0f);
+        m_camera = new Camera("Camera1", {0, 0, 0}, {0, 0, 0}, 60.0f);
         findComponent<CameraController>()->setCamera(m_camera);
         m_scene = std::make_unique<Scene>();
         m_text = std::make_unique<TextRenderer>();
@@ -173,6 +174,7 @@ void Engine::initializeSystems() {
     CameraController* cameraController = new CameraController();
     coreSystem->add(cameraController);
 
+    Omen::Transformer* transformer = new Transformer();
 }
 
 
@@ -301,7 +303,7 @@ std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int he
 
 void Engine::keyHit(int key, int scanCode, int action, int mods) {
     if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_Q || key == GLFW_KEY_ESCAPE)
+        if (key == GLFW_KEY_Q)
             exit(0);
 
         if (key == GLFW_KEY_TAB) {

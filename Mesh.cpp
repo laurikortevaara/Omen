@@ -15,6 +15,7 @@
 #include "Engine.h"
 #include "component/KeyboardInput.h"
 #include "PointLight.h"
+#include "component/Picker.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 #include <tinydir.h>
@@ -226,6 +227,15 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
         normalShader = new Shader("shaders/wireframe.glsl");
         //normalShader = new Shader("shaders/normal_visualizer.glsl");
     }
+
+    Picker* picker = Engine::instance()->findComponent<Picker>();
+    if(picker)
+        picker->signal_object_picked.connect([&](Omen::Mesh* obj){
+           if(obj==this)
+               bRenderBB=true;
+            else
+               bRenderBB=false;
+        });
 }
 
 
@@ -635,7 +645,7 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
             int frame = static_cast<int>(t) % m_frames.size();
 
 
-            glm::mat4 model;
+
             if (false && m_frames.size() > 10) {
                 float radius = 3;
                 float angle = (3.14f / 180.f) * e->time() * 24.0f;
@@ -646,7 +656,6 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
                 m_transform.rotate(angle + 1.57f, glm::vec3(0, 1, 0));
             }
 
-            model = m_transform.tr();
 
             /**
              *
@@ -674,7 +683,8 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
             /**
              *
              */
-            glm::mat4 mvp = viewProjection * glm::mat4(1);
+            glm::mat4 model = m_transform.tr();
+            glm::mat4 mvp = viewProjection;
             glm::mat4 mv = view;
             glm::mat4 mvi = glm::transpose(glm::inverse(mv));
             glm::mat4 mi = glm::transpose(glm::inverse(model));
@@ -737,11 +747,15 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
             }
 
             if (m_material->texture()) {
+                shader->setUniform1i("TextureEnabled", 1);
                 glEnable(GL_TEXTURE_2D);
                 glActiveTexture(GL_TEXTURE0);
                 //glBindTexture(GL_TEXTURE_2D, m_material->texture()->id());
                 m_material->texture()->bind();
                 //shader->setUniform1i("Texture",);
+            }
+            else{
+                shader->setUniform1i("TextureEnabled", 0);
             }
             if (m_material->matcapTexture()) {
                 glEnable(GL_TEXTURE_2D);

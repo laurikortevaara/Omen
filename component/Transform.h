@@ -20,7 +20,6 @@ namespace Omen {
         Transform() : m_scale(1), m_tr(1), m_rotation(0), m_position(0) {};
         Transform(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale):
                 m_position(position),m_rotation(rotation), m_scale(scale){}
-        glm::vec3 pos() const  { return m_position; }
         glm::vec3& pos()  { return m_position; }
 
         explicit Transform(const Transform& tr) {

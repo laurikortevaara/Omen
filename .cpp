@@ -298,7 +298,7 @@ std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int he
 
 void Engine::keyHit(int key, int scanCode, int action, int mods) {
     if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_Q || key == GLFW_KEY_ESCAPE)
+        if (key == GLFW_KEY_Q)
             exit(0);
 
         if (key == GLFW_KEY_TAB) {

@@ -106,21 +106,19 @@ void main() {
     vec2 tcoord = dataIn.texcoord;
     vec3 normal = dataIn.normal; //normalize(mat3(NormalMatrix)*dataIn.normal);
 
-    float len = length(vpos.xyz);
-    if(TextureEnabled){
-        out_color = texture(Texture,tcoord);
-        out_color /= len;
-        }
-
-
     float visibility = 1.0;
     //visibility = texture( ShadowMap, vec3(dataIn.shadow_coord.xy, (dataIn.shadow_coord.z)/dataIn.shadow_coord.w) );
 
 
-    out_color = texture(Texture, tcoord);
+    float len = length(dataIn.position_worldspace);
+    if(TextureEnabled)
+        out_color = texture(Texture,tcoord);
+    else
+        out_color = DiffuseColor;
+
     //out_color = vec4(mod(tcoord.x,1), mod(tcoord.y,1.0), 0, 1 );
     len = length(dataIn.position_worldspace - LightPosition);
-    float brightness = max(0.15,dot(normal, LightPosition)*(1/len));
+    float brightness = max(0.05,dot(normal, LightPosition)*(1/len));
 
     //out_color = mix(AmbientColor, out_color*brightness, 0.5 );
 
@@ -133,8 +131,30 @@ void main() {
     }
 
 
-    out_color *= brightness;
+    //out_color *= brightness;
     out_color.a = 1;
+    vec4 ambient = vec4(0.01,0.01,0.01,1.0);
+
+    // set the specular term to black
+    vec4 spec = vec4(0.0);
+
+    // normalize both input vectors
+    vec3 l_dir = normalize(LightPosition-dataIn.position_worldspace);
+    vec3 n = normalize(dataIn.normal);
+    vec3 e = normalize(vec3(dataIn.eye_direction_cameraspace));
+
+    float intensity = max(dot(n,l_dir), 0.0);
+    vec4 specular = vec4(0.884,0.596,0.620,1.00);
+    float shininess = 100;
+    // if the vertex is lit compute the specular color
+    if (intensity > 0.0) {
+        // compute the half vector
+        vec3 h = normalize(l_dir + e);
+        // compute the specular term into spec
+        float intSpec = max(dot(h,n), 0.0);
+        spec = specular * pow(intSpec,shininess);
+    }
+    out_color = max(intensity *  out_color + spec, ambient);
 }
 
 
