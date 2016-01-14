@@ -13,6 +13,13 @@ namespace Omen {
         Ocean();
         virtual ~Ocean();
         virtual void render();
+
+        void evaluateWaves(float t);
+
+        int* m_innerTesselationLevel;
+        int* m_outerTesselationLevel;
+        std::vector<int> m_innerTessellationLevels;
+        std::vector<int> m_outerTessellationLevels;
     };
 
 } // namespace Omen

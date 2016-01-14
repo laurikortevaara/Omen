@@ -32,6 +32,8 @@ namespace Omen {
         /** Signals **/
         Scene *scene();
 
+        GLenum getPolygonMode();
+
     public:
         typedef Signal< std::function<void (double time, double delta_time)> > Update;
         Update signal_engine_update;
@@ -127,6 +129,10 @@ namespace Omen {
         btRigidBody*                            m_fallRigidBody;
 
         void initPhysics();
+
+        void renderText();
+
+        GLenum m_polygonMode;
     };
 } // namespace Omen
 

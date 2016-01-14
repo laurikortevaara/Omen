@@ -64,6 +64,7 @@ namespace Omen {
         void fileDropped(GLFWwindow *window, int count, const char **filePaths);
 
 
+        bool m_fullscreen;
     };
 
 } // namespace Omen

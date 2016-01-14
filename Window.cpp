@@ -20,7 +20,7 @@ std::map<GLFWwindow *, Omen::Window &> Window::window_size_changed_callbacks;
 std::map<GLFWwindow *, Omen::Window &> Window::file_drop_callbacks;
 Window::WindowCreated Window::signal_window_created;
 
-Window::Window() {
+Window::Window():m_fullscreen(false) {
     init();
 }
 
@@ -61,8 +61,8 @@ void Window::createWindow(unsigned int width, unsigned int height) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
 
-    /* Create a windowed mode window and its OpenGL context */
-    m_window = glfwCreateWindow(width, height, "The Omen Game engine", NULL, NULL);
+        /* Create a windowed mode window and its OpenGL context */
+    m_window = glfwCreateWindow(width, height, "The Omen Game engine", m_fullscreen?glfwGetPrimaryMonitor():NULL, NULL);
     if (m_window == nullptr) {
         glfwTerminate();
         throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to create window"));
@@ -74,7 +74,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
     glfwMakeContextCurrent(m_window);
     check_gl_error();
 
-    glEnable(GL_SAMPLE_COVERAGE);
+    //glEnable(GL_SAMPLE_COVERAGE);
 
     // WindowSizeChange signal handler
     // Add a static C-function callback wrapper with pointer to this
@@ -92,7 +92,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
     });
     check_gl_error();
 
-    m_swapInterval = 00; // by default 60 FPS
+    m_swapInterval = 0; // by default 60 FPS
     glfwSwapInterval(m_swapInterval);
     check_gl_error();
 

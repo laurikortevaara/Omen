@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     /* initialize random seed: */
     srand (time(NULL));
     Omen::Engine *engine = Omen::Engine::instance();
-    std::shared_ptr<Omen::Window> window = engine->createWindow(1280, 720);
+    std::shared_ptr<Omen::Window> window = engine->createWindow(1920, 1080);
     check_gl_error();
 
     Omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();

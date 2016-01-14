@@ -34,6 +34,12 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
         case GL_GEOMETRY_SHADER:
             full_source = "#version 410\n#define GEOMETRY_SHADER\n";
             break;
+        case GL_TESS_CONTROL_SHADER:
+            full_source = "#version 410\n#define TESS_CONTROL_SHADER\n";
+            break;
+        case GL_TESS_EVALUATION_SHADER:
+            full_source = "#version 410\n#define TESS_EVALUATION_SHADER\n";
+            break;
         case GL_FRAGMENT_SHADER:
             full_source = "#version 410\n#define FRAGMENT_SHADER\n";
             break;
@@ -88,7 +94,7 @@ bool Shader::readShaderFile(const std::string &shader_file) {
         check_gl_error();
 
         std::string shader_source = sout.str();
-        GLuint vShader, gShader, fShader;
+        GLuint vShader, gShader, tcShader, teShader, fShader;
         if (shader_source.find("VERTEX_SHADER") != std::string::npos) {
             if (createShader(GL_VERTEX_SHADER, vShader, shader_source))
                 glAttachShader(m_shader_program, vShader);
@@ -96,6 +102,14 @@ bool Shader::readShaderFile(const std::string &shader_file) {
         if (shader_source.find("GEOMETRY_SHADER") != std::string::npos) {
             if (createShader(GL_GEOMETRY_SHADER, gShader, shader_source))
                 glAttachShader(m_shader_program, gShader);
+        }
+        if (shader_source.find("TESS_CONTROL_SHADER") != std::string::npos) {
+            if (createShader(GL_TESS_CONTROL_SHADER, tcShader, shader_source))
+                glAttachShader(m_shader_program, tcShader);
+        }
+        if (shader_source.find("TESS_EVALUATION_SHADER") != std::string::npos) {
+            if (createShader(GL_TESS_EVALUATION_SHADER, teShader, shader_source))
+                glAttachShader(m_shader_program, teShader);
         }
         if (shader_source.find("FRAGMENT_SHADER") != std::string::npos) {
             if (createShader(GL_FRAGMENT_SHADER, fShader, shader_source))

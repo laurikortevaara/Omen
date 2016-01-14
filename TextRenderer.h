@@ -22,9 +22,11 @@ namespace Omen {
         bool initializeFreeType();
     public:
         TextRenderer();
-        void render_text(const char *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color);
+        void render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color);
 
         GLuint m_vao;
+        GLuint m_texture;
+        GLuint m_vbo;
     };
 } // namespace Omen
 

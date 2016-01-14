@@ -20,42 +20,41 @@ using namespace Omen;
 TextRenderer::TextRenderer() : m_vao(0) {
     initializeFreeType();
     m_font_shader = new Shader("shaders/font_shader.glsl");
-}
-
-/**
- * Render given text with given fontsize, position, scale, and color
- */
-void TextRenderer::render_text(const char *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
-    m_font_shader->use();
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glEnable(GL_TEXTURE_2D);
-    GLuint tex;
+    glGenTextures(1, &m_texture);
     glActiveTexture(GL_TEXTURE0);
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    m_font_shader->setUniform1i("Texture", 0);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if(!glIsVertexArray(m_vao))
         glGenVertexArrays(1,&m_vao);
+}
+
+/**
+ * Render given text with given fontsize, position, scale, and color
+ */
+void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
+    m_font_shader->use();
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_TEXTURE_2D);
+
+    m_font_shader->setUniform1i("Texture", 0);
+
     glBindVertexArray(m_vao);
 
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &m_vbo);
     GLint attribute_coord = m_font_shader->getAttribLocation("position");
     glEnableVertexAttribArray(attribute_coord);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glVertexAttribPointer(attribute_coord, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-    const char *p;
+    const wchar_t *p;
     FT_GlyphSlot g = m_fontFace->glyph;
     float x_orig = x;
 
@@ -101,7 +100,7 @@ void TextRenderer::render_text(const char *text, float fontSize, float x, float 
         x += (g->advance.x >> 6) * sx;
         y += (g->advance.y >> 6) * sy;
     }
-    check_gl_error();
+    //check_gl_error();
     glBindVertexArray(0);
 }
 
@@ -115,7 +114,7 @@ bool TextRenderer::initializeFreeType() {
         return false;
     }
 
-    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Light.otf", 0, &m_fontFace)) {
+    if (FT_New_Face(m_freetype, "fonts/SourceCodePro-Regular.otf", 0, &m_fontFace)) {
         std::cerr << "Could not open font" << std::endl;
         return false;
     }

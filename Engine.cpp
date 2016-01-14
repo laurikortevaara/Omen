@@ -37,7 +37,8 @@ Engine::Engine() :
         m_timeDelta(0),
         m_framecounter(0),
         m_sample_coverage(1),
-        m_currentSelection(nullptr) {
+        m_currentSelection(nullptr),
+        m_polygonMode(GL_FILL){
 
     std::string currentDir = Omen::getWorkingDir();
     if (currentDir.find("bin") == std::string::npos)
@@ -48,7 +49,7 @@ Engine::Engine() :
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 1, 5}, {0, 0, 0}, 60.0f);
+        m_camera = new Camera("Camera1", {0, 7, 10}, {0, 0, 0}, 60.0f);
         findComponent<CameraController>()->setCamera(m_camera);
         m_scene = std::make_unique<Scene>();
         m_text = std::make_unique<TextRenderer>();
@@ -168,7 +169,9 @@ void Engine::initializeSystems() {
     keyboardInput->signal_key_press.connect([](int k, int s, int a, int m) {
     });
 
-    keyboardInput->signal_key_release.connect([](int k, int s, int a, int m) {
+    keyboardInput->signal_key_release.connect([this](int k, int s, int a, int m) {
+        if(k==GLFW_KEY_T)
+            m_polygonMode = m_polygonMode == GL_FILL ? GL_LINE : GL_FILL;
     });
 
     // Connect key-hit, -press and -release signals to observers
@@ -188,8 +191,8 @@ void Engine::update() {
     m_timeDelta = glfwGetTime() - m_time;
     m_time = glfwGetTime();
     signal_engine_update.notify(m_time, m_timeDelta);
-    glSampleCoverage(m_sample_coverage, GL_FALSE);
-    doPhysics(m_timeDelta);
+    //glSampleCoverage(m_sample_coverage, GL_FALSE);
+    //doPhysics(m_timeDelta);
 }
 
 double Engine::time() {
@@ -228,6 +231,8 @@ bool Engine::createFramebuffer() {
     // Always check that our framebuffer is ok
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         return false;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return true;
 }
 
@@ -235,62 +240,18 @@ void Engine::render() {
     m_framecounter++;
     m_window->start_rendering();
     check_gl_error();
-    glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-    renderScene();
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+    //renderScene();
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     renderScene();
     check_gl_error();
 
-    //
-    // Render FPS counter as text
-    //
-    Window::_size s = m_window->size();
-    float sx = (float) (2.0 / s.width);
-    float sy = (float) (2.0 / s.height);
-    static std::vector<double> q_fps;
-    if (q_fps.size() < 500)
-        q_fps.push_back(1.0 / m_timeDelta);
-    else {
-        q_fps.erase(q_fps.begin());
-        q_fps.push_back(1.0 / m_timeDelta);
-    }
-
-    double avg_fps = 0.0;
-    for (auto fps : q_fps)
-        avg_fps += fps;
-    avg_fps /= q_fps.size();
-
-    glm::mat4 viewmat = m_camera->view();
-    MouseInput *mi = findComponent<MouseInput>();
-
-    int samples;
-    glGetIntegerv(GL_SAMPLES, &samples);
-
-
-    Picker* p = findComponent<Picker>();
-    std::ostringstream os;
-    std::vector<float> axes = m_joystick != nullptr ? m_joystick->getJoystickAxes() : std::vector<float>({0, 0, 0, 0});
-    os << "FPS: " << std::setprecision(3) << avg_fps << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 <<
-    " ms./frame]" << "\nFRAME:(" << m_framecounter << ")\nMEM:xxx MB"\
- << "\nCAMERA_ENABLED: [" << (mi->enabled() ? "YES" : "NO") << "] Key=TAB"\
- << "\nSAMPLES: [" << samples << "]"\
- << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]\n\n"\
- << "\nviewmatrix :[" << stringify(viewmat[0][0]) << ", " << stringify(viewmat[0][1]) << ", " <<
-    stringify(viewmat[0][2]) << ", " << stringify(viewmat[0][3]) << "]"\
- << "\n            [" << stringify(viewmat[1][0]) << ", " << stringify(viewmat[1][1]) << ", " <<
-    stringify(viewmat[1][2]) << ", " << stringify(viewmat[1][3]) << "]"\
- << "\n            [" << stringify(viewmat[2][0]) << ", " << stringify(viewmat[2][1]) << ", " <<
-    stringify(viewmat[2][2]) << ", " << stringify(viewmat[2][3]) << "]"\
- << "\n            [" << stringify(viewmat[3][0]) << ", " << stringify(viewmat[3][1]) << ", " <<
-    stringify(viewmat[3][2]) << ", " << stringify(viewmat[3][3]) << "]"\
-<< "\nPickRay: [" << p->ray().x << ", " << p->ray().y << ", " << p->ray().z << "]";
-    std::string text(os.str());
-    m_text->render_text(text.c_str(), 14.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
-
+    renderText();
     m_window->end_rendering();
 
     handle_task_queue();
 }
+
 
 std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int height) {
     m_window = std::make_shared<Window>();
@@ -402,4 +363,68 @@ void Engine::handle_task_queue() {
 
 Scene *Engine::scene() {
     return m_scene.get();
+}
+
+void Engine::renderText() {
+    //
+    // Render FPS counter as text
+    //
+    Window::_size s = m_window->size();
+    float sx = (float) (2.0 / s.width);
+    float sy = (float) (2.0 / s.height);
+    static std::vector<double> q_fps;
+    if (q_fps.size() < 500)
+        q_fps.push_back(1.0 / m_timeDelta);
+    else {
+        q_fps.erase(q_fps.begin());
+        q_fps.push_back(1.0 / m_timeDelta);
+    }
+
+    double avg_fps = 0.0;
+    for (auto fps : q_fps)
+        avg_fps += fps;
+    avg_fps /= q_fps.size();
+
+    glm::mat4 viewmat = m_camera->view();
+    MouseInput *mi = findComponent<MouseInput>();
+
+    int samples;
+    glGetIntegerv(GL_SAMPLES, &samples);
+
+
+    Picker* p = findComponent<Picker>();
+    std::wostringstream os;
+    std::vector<float> axes = m_joystick != nullptr ? m_joystick->getJoystickAxes() : std::vector<float>({0, 0, 0, 0});
+    /*  os << "FPS: " << std::setprecision(3) << avg_fps << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 <<
+      " ms./frame]" << "\nFRAME:(" << m_framecounter << ")\nMEM:xxx MB"\
+   << "\nCAMERA_ENABLED: [" << (mi->enabled() ? "YES" : "NO") << "] Key=TAB"\
+   << "\nSAMPLES: [" << samples << "]"\
+   << "\nJOYSTICK:[" << axes[0] << ", " << axes[1] << ", " << axes[2] << ", " << axes[3] << "]\n\n"\
+   << "\nviewmatrix :[" << stringify(viewmat[0][0]) << ", " << stringify(viewmat[0][1]) << ", " <<
+      stringify(viewmat[0][2]) << ", " << stringify(viewmat[0][3]) << "]"\
+   << "\n            [" << stringify(viewmat[1][0]) << ", " << stringify(viewmat[1][1]) << ", " <<
+      stringify(viewmat[1][2]) << ", " << stringify(viewmat[1][3]) << "]"\
+   << "\n            [" << stringify(viewmat[2][0]) << ", " << stringify(viewmat[2][1]) << ", " <<
+      stringify(viewmat[2][2]) << ", " << stringify(viewmat[2][3]) << "]"\
+   << "\n            [" << stringify(viewmat[3][0]) << ", " << stringify(viewmat[3][1]) << ", " <<
+      stringify(viewmat[3][2]) << ", " << stringify(viewmat[3][3]) << "]"\
+  << "\nPickRay: [" << p->ray().x << ", " << p->ray().y << ", " << p->ray().z << "]";
+
+  */
+      os << "FPS: " << std::setprecision(3) << avg_fps; // << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 << " ms./frame]\n";
+      /*int i=1;
+      for(int y=0; y < 40; ++y ) {
+          for (int x = 0; x < 128; ++x){
+              if(std::isprint(i))
+                  os << wchar_t(i);
+              ++i;
+          }
+          os << "\n";
+      }*/
+      std::wstring text(os.str());
+      m_text->render_text(text.c_str(), 16.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
+}
+
+GLenum Engine::getPolygonMode() {
+    return m_polygonMode;
 }

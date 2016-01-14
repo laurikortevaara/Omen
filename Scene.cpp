@@ -120,9 +120,9 @@ void Scene::createGround() {
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     check_gl_error();
 
-    m_sky->render();
+    /*m_sky->render();
     for (const auto &model : m_models)
-        model->render(viewProjection, view);
+        model->render(viewProjection, view);*/
     for( const auto &r : m_renderables)
         r->render();
 }
