@@ -14,7 +14,7 @@ namespace Omen {
         Shader* m_shader;
         virtual void render() = 0;
     protected:
-        std::vector<GLshort> m_indices;
+        std::vector<GLuint> m_indices;
         GLuint m_vao;
         GLuint m_vbo;
         GLuint m_ibo;

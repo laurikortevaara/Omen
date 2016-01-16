@@ -114,14 +114,14 @@ void Scene::createGround() {
         m_lights.front()->tr().pos().z = (float) sin(time)*5;
     });
 
-    m_renderables.push_back( std::make_shared<Ocean>() );
+    m_renderables.push_back( std::make_shared<Ocean>(64,0.0005f, glm::vec2(32.0f, 32.0f), 64) );
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     check_gl_error();
 
-    /*m_sky->render();
-    for (const auto &model : m_models)
+    m_sky->render();
+    /*for (const auto &model : m_models)
         model->render(viewProjection, view);*/
     for( const auto &r : m_renderables)
         r->render();

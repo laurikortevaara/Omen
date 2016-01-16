@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iomanip>
 #include <queue>
+#include <png.h>
 
 #include "Engine.h"
 #include "GL_error.h"
@@ -49,7 +50,7 @@ Engine::Engine() :
 
         initializeSystems();
 
-        m_camera = new Camera("Camera1", {0, 7, 10}, {0, 0, 0}, 60.0f);
+        m_camera = new Camera("Camera1", {0, 5, 10}, {0, 0, 0}, 45.0f);
         findComponent<CameraController>()->setCamera(m_camera);
         m_scene = std::make_unique<Scene>();
         m_text = std::make_unique<TextRenderer>();
@@ -216,6 +217,39 @@ bool Engine::createFramebuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 
     // Depth texture. Slower than a depth buffer, but you can sample it later in your shader
+    glGenTextures(1, &m_colorTexture);
+    glBindTexture(GL_TEXTURE_2D, m_colorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
+
+    glDrawBuffer(GL_BACK);
+
+    // Always check that our framebuffer is ok
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        return false;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    int w, h;
+    int miplevel = 0;
+    glBindTexture(GL_TEXTURE_2D, m_colorTexture);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &w);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &h);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return true;
+}
+
+bool Engine::createShadowFramebuffer() {
+    // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+    glGenFramebuffers(1, &m_frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+
+    // Depth texture. Slower than a depth buffer, but you can sample it later in your shader
     glGenTextures(1, &m_depthTexture);
     glBindTexture(GL_TEXTURE_2D, m_depthTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -233,6 +267,13 @@ bool Engine::createFramebuffer() {
         return false;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    int w, h;
+    int miplevel = 0;
+    glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &w);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &h);
+    glBindTexture(GL_TEXTURE_2D, 0);
     return true;
 }
 
@@ -268,7 +309,116 @@ std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int he
     return m_window;
 }
 
+void abort_(const char * s, ...)
+{
+    va_list args;
+    va_start(args, s);
+    vfprintf(stderr, s, args);
+    fprintf(stderr, "\n");
+    va_end(args);
+    abort();
+}
+
+
+void write_png_file(char* file_name, char* pixels, unsigned long width, unsigned long height)
+{
+    png_byte color_type = PNG_COLOR_TYPE_RGBA;
+    png_byte bit_depth = 8;
+
+    png_structp png_ptr;
+    png_infop info_ptr;
+    int number_of_passes;
+    png_bytep * row_pointers;
+
+
+    /* create file */
+    FILE *fp = fopen(file_name, "wb");
+    if (!fp)
+        abort_("[write_png_file] File %s could not be opened for writing", file_name);
+
+
+    /* initialize stuff */
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+
+    if (!png_ptr)
+        abort_("[write_png_file] png_create_write_struct failed");
+
+    ///
+    row_pointers = static_cast<png_bytepp>(png_malloc(png_ptr,height*sizeof(png_bytep)));
+    for (unsigned long i=0; i<height; i++)
+        row_pointers[i]=static_cast<png_bytep>(png_malloc(png_ptr,width*4));
+
+    for(int y=0; y < height; ++y){
+        row_pointers[y] = (png_bytep)(pixels + (height - y - 1) * width * 4);
+    }
+    ///
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr)
+        abort_("[write_png_file] png_create_info_struct failed");
+
+    if (setjmp(png_jmpbuf(png_ptr)))
+        abort_("[write_png_file] Error during init_io");
+
+    png_init_io(png_ptr, fp);
+
+
+    /* write header */
+    if (setjmp(png_jmpbuf(png_ptr)))
+        abort_("[write_png_file] Error during writing header");
+
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+                 bit_depth, color_type, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    png_write_info(png_ptr, info_ptr);
+
+
+    /* write bytes */
+    if (setjmp(png_jmpbuf(png_ptr)))
+        abort_("[write_png_file] Error during writing bytes");
+
+    png_write_image(png_ptr, row_pointers);
+
+
+    /* end write */
+    if (setjmp(png_jmpbuf(png_ptr)))
+        abort_("[write_png_file] Error during end of write");
+
+    png_write_end(png_ptr, NULL);
+
+    /* cleanup heap allocation */
+    for (int y=0; y<height; y++)
+        png_free_ptr(row_pointers[y]);
+
+    free(row_pointers);
+
+    fclose(fp);
+}
+
 void Engine::keyHit(int key, int scanCode, int action, int mods) {
+    if(key==GLFW_KEY_W && action==GLFW_RELEASE && mods == GLFW_MOD_SHIFT){
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+        renderScene();
+
+        int w, h;
+        int miplevel = 0;
+        glBindTexture(GL_TEXTURE_2D, m_colorTexture);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &w);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &h);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        char* buf = new char[w*h*4];
+
+        glReadBuffer((GLenum)GL_COLOR_ATTACHMENT0);
+        glReadPixels(0,0,w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)buf);
+
+        write_png_file("test.png", buf, w,h );
+        delete[] buf;
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_Q)
             exit(0);
@@ -350,7 +500,7 @@ void Engine::handle_task_queue() {
     // Run tasks that are not pending
     for (auto &task : m_future_tasks) {
         if (!task.pending())
-            task.task.get();
+            task.task.wait();
     }
     // Erase tasks that are not pending
     auto i = m_future_tasks.begin();

@@ -94,6 +94,16 @@ endif ()
 include_directories(${BULLET_INCLUDE_DIRS})
 
 ######################################################################
+# LIBPNG
+######################################################################
+find_package(Png REQUIRED)
+if(NOT PNG_FOUND)
+    message(FATAL_ERROR "Png not found")
+endif ()
+
+include_directories(${BULLET_INCLUDE_DIRS})
+
+######################################################################
 # tinydir
 ######################################################################
 include_directories(${CMAKE_SOURCE_DIR}/thirdparty/tinydir)
@@ -129,7 +139,7 @@ if (APPLE)
         message(FATAL_ERROR "CoreVideo not found")
     endif ()
 
-    SET(LIBRARIES Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES})
+    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES})
 endif (APPLE)
 
 
@@ -137,7 +147,7 @@ endif (APPLE)
 # Windows platform specific libs
 ######################################################################
 if (WINDOWS)
-    SET(LIBRARIES Boxer glfw ${GLEW} ${OPENGL} ${FREETYPE} ${BULLET_LIBRARIES})
+    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${FREETYPE} ${BULLET_LIBRARIES})
 endif (WINDOWS)
 
 

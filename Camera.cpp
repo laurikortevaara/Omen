@@ -23,7 +23,7 @@ using namespace Omen;
 Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 &lookAt, float fov) :
         GameObject(name),
         m_pos(pos),
-        m_near(0.01), m_far(100.0),
+        m_near(0.01), m_far(1000.0),
         m_yaw(0), m_pitch(0), m_roll(0),
         m_lookAt(lookAt),
         m_fov(fov*glm::pi<float>()/180.0f),

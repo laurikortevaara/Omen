@@ -1,4 +1,5 @@
 uniform mat4 ViewMatrix;
+uniform mat4 Model;
 uniform mat4 Projection;
 uniform mat4 ModelViewProjection;
 uniform mat3 NormalMatrix;
@@ -14,15 +15,22 @@ uniform int OuterTessellationLevel4;
 const float PI = 3.14159265359;
 
 #ifdef VERTEX_SHADER
-layout(location=0) in vec3 position;
+in vec3 position;
+in vec3 normal;
+in vec2 texcoord;
 
-out vec3 vposition;
+//out vec3 vposition;
+out float fog_factor;
+out vec3 vnormal;
 void main() {
-    vposition = position;
+    //vposition = position;
+    vnormal = NormalMatrix*normal;
+    fog_factor = 0.1;
+    gl_Position = ModelViewProjection * Model * vec4(position,1);
 }
 #endif
 
-#ifdef TESS_CONTROL_SHADER
+#ifdef TESS_CONTROL_SHADE
 layout(vertices = 3) out;
 
 in  vec3 vposition[];
@@ -43,7 +51,7 @@ void main(void)
  	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 }
 #endif
-#ifdef TESS_EVALUATION_SHADER
+#ifdef TESS_EVALUATION_SHADE
 layout (triangles, equal_spacing, ccw) in;
 
 in vec3 tc_position[];
@@ -141,5 +149,6 @@ void main() {
     //color = vec4(vnormal.x, vnormal.y, vnormal.z, 1 );
     color = color * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
     color.a = 1;
+
 }
 #endif

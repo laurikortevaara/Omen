@@ -111,6 +111,7 @@ namespace Omen {
         bool createFramebuffer();
 
         GLuint m_frame_buffer;
+        GLuint m_colorTexture;
         GLuint m_depthTexture;
 
         Omen::Model* m_currentSelection;
@@ -133,6 +134,8 @@ namespace Omen {
         void renderText();
 
         GLenum m_polygonMode;
+
+        bool createShadowFramebuffer();
     };
 } // namespace Omen
 
