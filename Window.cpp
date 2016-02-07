@@ -2,21 +2,12 @@
 // Created by Lauri Kortevaara(personal) on 20/12/15.
 //
 
+#include "Omen_OpenGL.h"
+
 #include <memory>
 #include <exception>
 #include <stdexcept>
 #include <iostream>
-#ifdef _WIN32
-#include <GL/glew.h>
-#define GLFW_INCLUDE_GLU
-#include <glfw/glfw3.h>
-#elif __APPLE__
-#define GL3_PROTOTYPES
-#include <OpenGL/gl3.h>
-#else
-//#include <GL/glew.h>
-#include <glfw/glfw3.h>
-#endif
 #include "Window.h"
 #include "GL_error.h"
 #include "Engine.h"

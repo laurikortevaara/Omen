@@ -63,7 +63,7 @@ Engine::Engine() :
 
         createFramebuffer();
 
-        omen::MD3Loader loader;
+       /* omen::MD3Loader loader;
         loader.loadModel("models/sphere.md3");
         std::vector<std::shared_ptr<omen::Mesh>> meshes;
         for (int i = 0; i < 1; ++i) {
@@ -77,7 +77,7 @@ Engine::Engine() :
             m_scene->models().push_back(model);
             meshes.clear();
         }
-
+		*/
         initPhysics();
 
         //m_button = new Button("Button1");

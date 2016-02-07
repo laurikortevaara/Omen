@@ -80,14 +80,14 @@ void Mesh::renderBB() {
     GLuint vbo = 0;
     GLuint ibo = 0;
     glGenBuffers(1, &vbo);
-    std::vector<glm::vec4> vertices = {{m_boundingBox.min().x, m_boundingBox.min().y, m_boundingBox.min().z, 1.0},
-                                       {m_boundingBox.max().x, m_boundingBox.min().y, m_boundingBox.min().z, 1.0},
-                                       {m_boundingBox.max().x, m_boundingBox.max().y, m_boundingBox.min().z, 1.0},
-                                       {m_boundingBox.min().x, m_boundingBox.max().y, m_boundingBox.min().z, 1.0},
-                                       {m_boundingBox.min().x, m_boundingBox.min().y, m_boundingBox.max().z, 1.0},
-                                       {m_boundingBox.max().x, m_boundingBox.min().y, m_boundingBox.max().z, 1.0},
-                                       {m_boundingBox.max().x, m_boundingBox.max().y, m_boundingBox.max().z, 1.0},
-                                       {m_boundingBox.min().x, m_boundingBox.max().y, m_boundingBox.max().z, 1.0}
+    std::vector<glm::vec4> vertices = {{m_boundingBox.Min().x, m_boundingBox.Min().y, m_boundingBox.Min().z, 1.0},
+                                       {m_boundingBox.Max().x, m_boundingBox.Min().y, m_boundingBox.Min().z, 1.0},
+                                       {m_boundingBox.Max().x, m_boundingBox.Max().y, m_boundingBox.Min().z, 1.0},
+                                       {m_boundingBox.Min().x, m_boundingBox.Max().y, m_boundingBox.Min().z, 1.0},
+                                       {m_boundingBox.Min().x, m_boundingBox.Min().y, m_boundingBox.Max().z, 1.0},
+                                       {m_boundingBox.Max().x, m_boundingBox.Min().y, m_boundingBox.Max().z, 1.0},
+                                       {m_boundingBox.Max().x, m_boundingBox.Max().y, m_boundingBox.Max().z, 1.0},
+                                       {m_boundingBox.Min().x, m_boundingBox.Max().y, m_boundingBox.Max().z, 1.0}
     };
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * 4 * sizeof(float), vertices.data(), GL_STATIC_DRAW);

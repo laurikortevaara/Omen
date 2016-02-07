@@ -6,7 +6,6 @@
 #define OMEN_PICKER_H
 
 #include <functional>
-#include <GLFW/glfw3.h>
 #include <map>
 #include "../Signal.h"
 #include "Component.h"

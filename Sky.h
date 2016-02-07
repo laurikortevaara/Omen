@@ -5,8 +5,7 @@
 #ifndef OMEN_SKY_H
 #define OMEN_SKY_H
 
-#include <glfw/glfw3.h>
-#include <OpenGL/OpenGL.h>
+#include "Omen_OpenGL.h"
 #include <vector>
 #include "Shader.h"
 #include "component/Renderable.h"

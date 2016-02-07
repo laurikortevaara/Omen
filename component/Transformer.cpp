@@ -2,7 +2,6 @@
 // Created by Lauri Kortevaara(Intopalo) on 10/01/16.
 //
 
-#include <CoreImage/CoreImage.h>
 #include "Transformer.h"
 #include "../system/InputSystem.h"
 #include "MouseInput.h"

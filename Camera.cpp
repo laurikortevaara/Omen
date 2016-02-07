@@ -22,8 +22,8 @@ using namespace omen;
 Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 &lookAt, float fov) :
         GameObject(name),
         m_pos(pos),
-        m_near(0.01), m_far(1000.0),
-        m_yaw(0), m_pitch(0), m_roll(0),
+        m_near(0.01f), m_far(1000.0f),
+        m_yaw(.0f), m_pitch(.0f), m_roll(.0f),
         m_lookAt(lookAt),
         m_fov(fov*glm::pi<float>()/180.0f),
         m_bIsValid(false),
@@ -53,8 +53,8 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         glm::vec3 cameraUp = glm::cross(m_forward, cameraRight);
         glm::vec3 cameraFront = glm::cross(cameraRight, cameraUp);
 
-        m_pitch = fmax(m_pitch, -89.9);
-        m_pitch = fmin(m_pitch, 89.9);
+        m_pitch = fmax(m_pitch, -89.9f);
+        m_pitch = fmin(m_pitch, 89.9f);
         m_pos += m_forward * m_velocity.z;
         m_pos += glm::normalize(glm::cross(m_forward, m_up))*m_velocity.x;
         m_pos += glm::normalize(glm::cross(m_forward, cameraRight))*m_velocity.y;

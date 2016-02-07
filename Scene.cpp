@@ -61,8 +61,8 @@ Scene::Scene() {
         loadModel(files.front());
     });
 
-    std::shared_ptr<Model> m = loadModel("models/cube.md3");
-    m->m_mesh->m_transform.pos() = glm::vec3(3,0.2,0);
+    //std::shared_ptr<Model> m = loadModel("models/cube.md3");
+    //m->m_mesh->m_transform.pos() = glm::vec3(3,0.2,0);
 
 
     JoystickInput* ji = (JoystickInput*)e->findComponent<JoystickInput>();

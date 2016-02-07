@@ -48,7 +48,7 @@ if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${GLEW_INCLUDE_DIRS}")
 else()
     set(GLEW_INCLUDE_DIR $(CMAKE_SOURCE_DIR)/thirdparty/glew/include)
-    set(GLEW_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/glew/lib/libGLEW.a)
+    set(GLEW_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/glew/lib/Release/Win32/glew32s.lib)
     find_package(GLEW REQUIRED)
     if (GLEW_FOUND)
         include_directories(${GLEW_INCLUDE_DIRS})
@@ -112,12 +112,19 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
 ######################################################################
 # BULLET PHYSICS
 ######################################################################
-find_package(Bullet REQUIRED)
-if(NOT BULLET_FOUND)
-    message(FATAL_ERROR "FreeType not found")
-endif ()
+#set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/include)
+#find_package(Bullet REQUIRED)
+#if(NOT BULLET_FOUND)
+#    message(FATAL_ERROR "Bullet not found")
+#endif ()
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/bullet)
+#find_package(Bullet REQUIRED)
+#if(NOT BULLET_FOUND)
+#    message(FATAL_ERROR "Bullet not found")
+#endif ()
 include_directories(${BULLET_INCLUDE_DIRS})
+include_directories(thirdparty/bullet/src)
 
 ######################################################################
 # LIBPNG
@@ -181,7 +188,7 @@ if (WINDOWS)
         include_directories(${GLEW_INCLUDE_DIRS})
         link_libraries(${GLEW_LIBRARIES})
     endif()
-    SET(LIBRARIES Boxer glfw ${GLFW_LIBRARIES} GLEW_1130 ${OPENGL_LIBRARIES} ${FREETYPE} ${BULLET_LIBRARIES})
+    SET(LIBRARIES Boxer glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${FREETYPE} ${BULLET_LIBRARIES})
 endif(WINDOWS)
 
 
@@ -189,11 +196,24 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS} )
 
-#find_package(Freetype REQUIRED)
-#include_directories(${FREETYPE_INCLUDE_DIRS})
+set(FREETYPE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
+set(FREETYPE_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/freetype/lib/freetyped.lib)
+find_package(Freetype REQUIRED)
+include_directories(${FREETYPE_INCLUDE_DIRS})
 
-SET(LIBRARIES glfw ${GLFW_LIBRARIES} GLU GL ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES})
+set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/src)
+set(BULLET_DYNAMICS_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/BulletDynamics_Debug.lib)
+set(BULLET_COLLISION_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/BulletCollision_Debug.lib)
+set(BULLET_MATH_LIBRARY  ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/LinearMath_Debug.lib)
+set(BULLET_SOFTBODY_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/BulletSoftBody_Debug.lib)
 
+find_package(Bullet REQUIRED)
+include_directories(${BULLET_INCLUDE_DIRS})
+
+
+SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES})
+
+message(STATUS "Libs:" ${LIBRARIES})
 
 
 ######################################################################

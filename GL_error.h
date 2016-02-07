@@ -5,16 +5,7 @@
 #ifndef OMEN_GL_ERROR_H_H
 #define OMEN_GL_ERROR_H_H
 
-#ifdef WIN32
-#include <Windows.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#elif __APPLE__
-#define GL3_PROTOTYPES
-#include <OpenGL/gl3.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "Omen_OpenGL.h"
 #include <iostream>
 #include <signal.h>
 

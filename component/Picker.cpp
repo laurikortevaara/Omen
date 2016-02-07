@@ -53,16 +53,16 @@ public:
     bool segmentAABBoxIntersect(BoundingBox &aabb, const Segment &s, float &intersect) {
         float v0 = 0.0f, v1 = 1.0f;
 
-        if (!raySlabIntersect(aabb.min().x + aabb.tr().pos().x, aabb.max().x + aabb.tr().pos().x, s.start.x, s.end.x,
+        if (!raySlabIntersect(aabb.Min().x + aabb.tr().pos().x, aabb.Max().x + aabb.tr().pos().x, s.start.x, s.end.x,
                               v0, v1))
             return false;
 
         // test Y slab
-        if (!raySlabIntersect(aabb.min().y + aabb.tr().pos().y, aabb.max().y + aabb.tr().pos().y, s.start.y, s.end.y,
+        if (!raySlabIntersect(aabb.Min().y + aabb.tr().pos().y, aabb.Max().y + aabb.tr().pos().y, s.start.y, s.end.y,
                               v0, v1))
             return false;
 
-        if (!raySlabIntersect(aabb.min().z + aabb.tr().pos().z, aabb.max().z + aabb.tr().pos().z, s.start.z, s.end.z,
+        if (!raySlabIntersect(aabb.Min().z + aabb.tr().pos().z, aabb.Max().z + aabb.tr().pos().z, s.start.z, s.end.z,
                               v0, v1))
             return false;
 
@@ -83,7 +83,7 @@ Picker::Picker() {
     });
 
     Engine::instance()->findComponent<MouseInput>()->
-            signal_cursorpos_changed.connect([&](float x, float y) -> void {
+            signal_cursorpos_changed.connect([&](double x, double y) -> void {
         //pick();
     });
 
