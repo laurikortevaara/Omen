@@ -3,6 +3,7 @@
 //
 
 #include "GameObject.h"
+#include <algorithm>
 
 using namespace omen;
 

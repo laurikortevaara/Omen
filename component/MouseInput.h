@@ -7,12 +7,12 @@
 
 
 #include <functional>
-#include <GLFW/glfw3.h>
 #include <map>
 #include "../Signal.h"
 #include "Component.h"
 #include <glm/vec2.hpp>
 
+struct GLFWwindow;
 
 namespace omen {
     class MouseInput : public omen::ecs::Component {

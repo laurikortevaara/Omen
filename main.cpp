@@ -1,4 +1,4 @@
-#include <GLFW/glfw3.h>
+
 #include <stdlib.h>
 #include <memory>
 #include <iostream>
@@ -8,6 +8,7 @@
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
 #include "GL_error.h"
+#include <time.h>
 
 using namespace omen;
 
@@ -17,6 +18,8 @@ std::shared_ptr<omen::Scene> gScene = nullptr;
 * the main
 **/
 int main(int argc, char *argv[]) {
+	int* i = new int[5];
+	delete[] i;
     /* initialize random seed: */
     srand (time(NULL));
     omen::Engine *engine = omen::Engine::instance();

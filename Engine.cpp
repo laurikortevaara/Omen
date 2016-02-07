@@ -4,11 +4,16 @@
 
 
 #include <glm/glm.hpp>
-#include <GLFW/glfw3.h>
 #include <sstream>
 #include <iomanip>
 #include <queue>
 #include <png.h>
+#ifdef _WIN32
+#include <direct.h>
+#endif
+#ifndef _WIN32
+#include <sys/unistd.h>
+#endif
 
 #include "Engine.h"
 #include "GL_error.h"

@@ -7,11 +7,11 @@
 
 
 #include <functional>
-#include <GLFW/glfw3.h>
 #include <map>
 #include "../Signal.h"
 #include "Component.h"
 
+struct GLFWwindow;
 
 namespace omen {
     class KeyboardInput : public omen::ecs::Component {

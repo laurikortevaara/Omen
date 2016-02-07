@@ -3,6 +3,7 @@
 //
 
 #include "KeyboardInput.h"
+#include <memory>
 #include "../Window.h"
 #include "../Engine.h"
 

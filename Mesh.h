@@ -64,12 +64,12 @@ namespace omen {
 
         std::vector<GLsizei> &vertexIndices() { return m_vertex_indices; }
 
-        void setVertices(const std::vector<glm::vec3> &vertices, int frame_index = 0) {
+        void setVertices(const std::vector<glm::vec3> &vertices, unsigned int frame_index = 0) {
             if (m_frames.size() < frame_index + 1)m_frames.push_back(Frame());
             m_frames[frame_index].m_vertices = vertices;
         }
 
-        void setNormals(const std::vector<glm::vec3> &normals, int frame_index = 0) {
+        void setNormals(const std::vector<glm::vec3> &normals, unsigned int frame_index = 0) {
             if (m_frames.size() < frame_index + 1)m_frames.push_back(Frame());
             m_frames[frame_index].m_normals = normals;
         }

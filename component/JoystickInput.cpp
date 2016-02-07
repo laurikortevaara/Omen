@@ -37,6 +37,12 @@ void JoystickInput::update(double time, double deltaTime) {
 /**
  * Joystick functions
  */
+Joystick::Joystick(int joystickId) : 
+	m_joystick_id(joystickId) 
+{ 
+	m_name = glfwGetJoystickName(m_joystick_id); 
+}
+
 bool Joystick::isPresent(int id) {
     return glfwJoystickPresent(id);
 }

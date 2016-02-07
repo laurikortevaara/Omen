@@ -5,8 +5,11 @@
 #ifndef OMEN_WINDOW_H
 #define OMEN_WINDOW_H
 
-#include <GLFW/glfw3.h>
+#include <memory>
+#include <functional>
 #include "Signal.h"
+
+struct GLFWwindow;
 
 namespace omen {
 

@@ -2,8 +2,17 @@
 // Created by Lauri Kortevaara(personal) on 08/11/15.
 //
 
-#include "Mesh.h"
+#ifdef _WIN32
+#include <Windows.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#elif __APPLE__
+#define GL3_PROTOTYPES
+#include <OpenGL/gl3.h>
+#else
+#include <GL/glew.h>
+#include <glfw/glfw3.h>
+#endif
 #include "GL_error.h"
 
 #include <glm/vec3.hpp> // glm::vec3
@@ -21,6 +30,8 @@
 #include <tinydir.h>
 #include <algorithm>
 #include <time.h>
+
+#include "Mesh.h"
 
 using namespace omen;
 

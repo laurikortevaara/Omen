@@ -2,10 +2,22 @@
 // Created by Lauri Kortevaara(personal) on 21/12/15.
 //
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#elif __APPLE__
+#define GL3_PROTOTYPES
 #include <OpenGL/gl3.h>
+#else
+#include <GL/glew.h>
+#include <glfw/glfw3.h>
+#endif
 
 #include <boxer/boxer.h>
-#include <GLFW/glfw3.h>
+
+#include <string>
+#include <string.h>
 #include <fstream>
 #include <sstream>
 #include <assert.h>
@@ -58,7 +70,7 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
     glShaderSource(shader, 1, (const char *const *) &shader_source_buffer, nullptr);
     check_gl_error();
 
-    GLchar info_log[1024];
+        GLchar info_log[1024];
 
     glCompileShader(shader);
     check_gl_error();
@@ -125,6 +137,7 @@ bool Shader::readShaderFile(const std::string &shader_file) {
             boxer::show(info_log, "Error");
         }
     }
+
 
     return true;
 }

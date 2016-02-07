@@ -5,9 +5,6 @@
 #ifndef OMEN_SHADER_H
 #define OMEN_SHADER_H
 
-#include <string>
-#include <GLFW/glfw3.h>
-#include <OpenGL/gl3.h>
 #include "Texture.h"
 #include "Material.h"
 

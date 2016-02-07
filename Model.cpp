@@ -2,7 +2,17 @@
 // Created by Lauri Kortevaara(personal) on 08/11/15.
 //
 
-#include <OpenGL/gl.h>
+#ifdef _WIN32
+#include <Windows.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#elif __APPLE__
+#define GL3_PROTOTYPES
+#include <OpenGL/gl3.h>
+#else
+#include <GL/glew.h>
+#include <glfw/glfw3.h>
+#endif
 #include "Model.h"
 #include "Shader.h"
 #include "GL_error.h"

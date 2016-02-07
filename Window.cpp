@@ -2,11 +2,21 @@
 // Created by Lauri Kortevaara(personal) on 20/12/15.
 //
 
+#include <memory>
 #include <exception>
 #include <stdexcept>
 #include <iostream>
+#ifdef _WIN32
+#include <GL/glew.h>
+#define GLFW_INCLUDE_GLU
+#include <glfw/glfw3.h>
+#elif __APPLE__
+#define GL3_PROTOTYPES
 #include <OpenGL/gl3.h>
-#include <GLFW/glfw3.h>
+#else
+//#include <GL/glew.h>
+#include <glfw/glfw3.h>
+#endif
 #include "Window.h"
 #include "GL_error.h"
 #include "Engine.h"
@@ -47,34 +57,56 @@ bool Window::shouldClose() const {
 }
 
 void Window::createWindow(unsigned int width, unsigned int height) {
-    /* Initialize the library */
+    int minor, major, rev;
+    glfwGetVersion(&major, &minor, & rev);
+    const char* versionstr = glfwGetVersionString();
+    //setenv("DISPLAY", ":0.0", 1);
+    glfwSetErrorCallback([](int errorcode ,const char* errorstring){
+        std::cerr << "Error in glfw: " << errorcode << ", " << errorstring << std::endl;
+    });
+
     if (!glfwInit())
-        throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to initialize window."));
+        return;
+        //throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to initialize window."));
 
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
-    // Enable multisampling
-    glfwWindowHint(GLFW_SAMPLES, 16); // 4x antialiasing
-    //glfwWindowHint(GLFW_STEREO, GL_TRUE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.1
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
+    //glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);    
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.1
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
 
         /* Create a windowed mode window and its OpenGL context */
     m_window = glfwCreateWindow(width, height, "The omen Game engine", m_fullscreen?glfwGetPrimaryMonitor():NULL, NULL);
     if (m_window == nullptr) {
         glfwTerminate();
+#ifdef __APPLE__
         throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to create window"));
+#elif WIN32
+		throw std::runtime_error(std::string(__FUNCTION__) + std::string(": Unable to create window")); 
+#endif
     }
     m_width = width;
     m_height = height;
 
-    glfwSetCursorPos(m_window, m_width/2, m_height/2);
+    //glfwSetCursorPos(m_window, m_width/2, m_height/2);
     glfwMakeContextCurrent(m_window);
+	glfwShowWindow(m_window);
     check_gl_error();
 
-    //glEnable(GL_SAMPLE_COVERAGE);
+    glEnable(GL_SAMPLE_COVERAGE);
+	int w, h;
+	glfwGetFramebufferSize(m_window, &w, &h);
+	glViewport(0, 0, w, h);
+
+	/* Initialize the library */
+	glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK)
+		throw std::runtime_error("glewInit failed");
+
 
     // WindowSizeChange signal handler
     // Add a static C-function callback wrapper with pointer to this
@@ -102,6 +134,8 @@ void Window::createWindow(unsigned int width, unsigned int height) {
     glClearColor(0,0,0, 1.0f);
     check_gl_error();
 
+    //glfwSetCursor(m_window, nullptr);
+    check_gl_error();
     // Notify about window being created
     signal_window_created.notify(shared_from_this());
     check_gl_error();

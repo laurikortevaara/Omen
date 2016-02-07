@@ -7,12 +7,12 @@
 
 
 #include <functional>
-#include <GLFW/glfw3.h>
 #include <map>
 #include <string>
 #include "../Signal.h"
 #include "Component.h"
 
+struct GLFWwindow;
 
 namespace omen {
     class Joystick {
@@ -46,7 +46,7 @@ namespace omen {
             PS = 16
         };
 
-        Joystick(int joystickId) : m_joystick_id(joystickId){m_name = glfwGetJoystickName(m_joystick_id);};
+        Joystick(int joystickId);
 
         static bool isPresent(int id);
         bool isPresent();

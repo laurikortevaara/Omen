@@ -2,9 +2,20 @@
 // Created by Lauri Kortevaara(personal) on 08/11/15.
 //
 
-#define GL3_PROTOTYPES
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#elif __APPLE__
+#define GL3_PROTOTYPES
 #include <OpenGL/gl3.h>
+#else
+#include <GL/glew.h>
+#include <GL/gl.h>
+
+#endif
+
 #include <ostream>
 #include <iostream>
 #include "VertexArrayObject.h"

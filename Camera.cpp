@@ -2,7 +2,6 @@
 // Created by Lauri Kortevaara(personal) on 26/12/15.
 //
 
-#include <GLFW/glfw3.h>
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <ostream>

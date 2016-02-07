@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
+#include <string.h>
 
 #define _USE_MATH_DEFINES
 
