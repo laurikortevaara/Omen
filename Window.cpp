@@ -150,7 +150,9 @@ Window::~Window() {
 
 void Window::start_rendering() {
     // Set the clear color
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(1, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 }
 
 void Window::end_rendering() {

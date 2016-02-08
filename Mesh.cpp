@@ -76,10 +76,11 @@ Mesh::Mesh(const std::string &shader,
 void Mesh::renderBB() {
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+	glBindVertexArray(vao);
     GLuint vbo = 0;
     GLuint ibo = 0;
     glGenBuffers(1, &vbo);
+
     std::vector<glm::vec4> vertices = {{m_boundingBox.Min().x, m_boundingBox.Min().y, m_boundingBox.Min().z, 1.0},
                                        {m_boundingBox.Max().x, m_boundingBox.Min().y, m_boundingBox.Min().z, 1.0},
                                        {m_boundingBox.Max().x, m_boundingBox.Max().y, m_boundingBox.Min().z, 1.0},
@@ -131,6 +132,8 @@ void Mesh::renderBB() {
     //glPolygonOffset(0, 0);
 
     glDisable(GL_POLYGON_OFFSET_FILL);
+	glDeleteBuffers(1, &ibo);
+	glDeleteVertexArrays(1, &vao);
     /*glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
@@ -612,7 +615,7 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     glPolygonOffset(GL_POLYGON_OFFSET_LINE, 0.0);
     render(m_shader, viewProjection, view);
 
-    mPolygonMode = GL_LINE;
+	/*mPolygonMode = GL_LINE;
     glPolygonOffset(GL_POLYGON_OFFSET_LINE, 0.1);
     glPolygonOffset(GL_POLYGON_OFFSET_FILL, 0.1);
     render(normalShader, viewProjection, view);

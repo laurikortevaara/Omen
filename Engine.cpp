@@ -35,6 +35,21 @@ using namespace omen;
 // Singleton instance
 Engine *Engine::m_instance = nullptr;
 
+std::mutex Engine::t_future_task::task_mutex;
+
+void * operator new(size_t size)
+{       // try to allocate size bytes
+	void *p;
+	while ((p = malloc(size)) == 0)
+		if (_callnewh(size) == 0)
+		{       // report no memory
+			static const std::bad_alloc nomem;
+			_RAISE(nomem);
+		}
+
+	return (p);
+}
+
 Engine::Engine() :
         m_scene(nullptr),
         m_camera(nullptr),
@@ -42,6 +57,7 @@ Engine::Engine() :
         m_joystick(nullptr),
         m_time(0),
         m_timeDelta(0),
+		m_avg_fps(0),
         m_framecounter(0),
         m_sample_coverage(1),
         m_currentSelection(nullptr),
@@ -80,7 +96,10 @@ Engine::Engine() :
 		*/
         initPhysics();
 
-        //m_button = new Button("Button1");
+		post( std::function<void()>([&](void) {
+			std::cout << "FPS: " << m_avg_fps << std::endl;
+		}), 3.0, true);
+
     });
 }
 
@@ -298,9 +317,24 @@ void Engine::render() {
     //renderScene();
     //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     renderScene();
-    check_gl_error();
+    //check_gl_error();
 
-    //renderText();
+    //
+    // Render FPS counter as text
+    //
+
+    static std::vector<double> q_fps;
+    if (q_fps.size() < 500)
+        q_fps.push_back(1.0 / m_timeDelta);
+    else {
+        q_fps.erase(q_fps.begin());
+        q_fps.push_back(1.0 / m_timeDelta);
+    }
+	    
+    for (auto fps : q_fps)
+        m_avg_fps += fps;
+    m_avg_fps /= q_fps.size();
+
     m_window->end_rendering();
 
     handle_task_queue();
@@ -459,16 +493,16 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
         }
 
         if (key == GLFW_KEY_KP_ADD) {
-            post(std::async([&](void) {
+            post(std::function<void()>([&](void) {
                 m_sample_coverage = fmin(1.0, m_sample_coverage + .1);
             }));
         }
 
         if (key == GLFW_KEY_KP_SUBTRACT) {
-            post(std::async([&](void) {
-                m_sample_coverage = fmax(0.0, m_sample_coverage - .1);
-            }));
-        }
+			post(std::function<void()>([&](void) {
+				m_sample_coverage = fmax(0.0, m_sample_coverage - .1);
+			} ));			
+		}
 
         std::cout << "You presssed: " << key << std::endl;
         /*if (m_scene != nullptr) {
@@ -506,21 +540,27 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 
 }
 
-void Engine::post(std::future<void> task, double delay) {
-    m_future_tasks.push_back({std::chrono::system_clock::now(), std::chrono::duration<double>(delay), std::move(task)});
+void Engine::post(std::function<void()>& task, double delay, bool repeating) {
+	std::lock_guard<std::mutex> guard(Engine::t_future_task::task_mutex);
+    m_future_tasks.push_back({task, std::chrono::duration<double>(delay), repeating});
 }
 
 void Engine::handle_task_queue() {
     // Run tasks that are not pending
+	std::lock_guard<std::mutex> guard(Engine::t_future_task::task_mutex);
     for (auto &task : m_future_tasks) {
-        if (!task.pending())
-            task.task.get();
+        if (!task.pending()) {
+			task.run();
+		}
     }
     // Erase tasks that are not pending
     auto i = m_future_tasks.begin();
     while (i != m_future_tasks.end()) {
-        if (!i->pending())
-            i = m_future_tasks.erase(i);
+		if (!i->pending())
+			if (i->repeating)
+				i->reset();
+			else
+				i = m_future_tasks.erase(i);
         ++i;
     }
 }

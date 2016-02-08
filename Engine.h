@@ -6,6 +6,7 @@
 #define GLEW_TEST_ENGINE_H
 
 #include <string>
+#include <iostream>
 #include <glm/detail/type_mat4x4.hpp>
 #include <future>
 #include <btBulletDynamicsCommon.h>
@@ -70,14 +71,31 @@ namespace omen {
 
         class t_future_task {
         public:
+			t_future_task(std::function<void()>& f, std::chrono::duration<double> timeout, bool repeat)
+			: fun(f), delay(timeout), repeating(repeat){
+
+			}
+			static std::mutex task_mutex;
             std::chrono::time_point<std::chrono::system_clock> task_created;
             std::chrono::duration<double> delay;
-            std::future<void> task;
+			bool repeating;
+            std::shared_future<void> task;
+			std::function<void()> fun;
 
-            bool pending() const {return  (std::chrono::system_clock::now()-task_created) >= delay; }
+			void run() {
+				task = std::async(std::launch::async, fun);
+				task.get();
+			}
+			void reset() { 
+				task_created = std::chrono::system_clock::now(); 
+			}
+			bool pending() const {
+				std::chrono::duration<double> diff = std::chrono::system_clock::now() - task_created;
+				return  diff.count() < delay.count();
+			}
         } ;
         std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
-        void post(std::future<void> task, double delay = 0.0 );
+        void post(std::function<void()>& task, double delay = 0.0, bool repeating = false );
 
 
     private:
@@ -93,6 +111,7 @@ namespace omen {
 
         double m_time;
         double m_timeDelta;
+		double m_avg_fps;
 
 
 
