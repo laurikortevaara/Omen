@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #include "Signal.h"
 
-namespace Omen {
+namespace omen {
 
     // Key type wrapper
     #define OMEN_KEY(key) {GLFW_KEY_#key}
@@ -27,15 +27,13 @@ namespace Omen {
         FileDropped signal_file_dropped;
 
     private:
-        static std::map<GLFWwindow*,Omen::Window&>      window_size_changed_callbacks;
-        static std::map<GLFWwindow*,Omen::Window&>      file_drop_callbacks;
+        static std::map<GLFWwindow*,omen::Window&>      window_size_changed_callbacks;
+        static std::map<GLFWwindow*,omen::Window&>      file_drop_callbacks;
 
     public:
         ~Window();
         void createWindow(unsigned int width, unsigned int height);
         void destroy();
-
-        bool keyPressed(unsigned int key) const;
 
         bool shouldClose() const;
         void start_rendering();
@@ -46,8 +44,11 @@ namespace Omen {
 
         unsigned int width() const;
         unsigned int height() const;
+        unsigned int frameBufferWidth() const;
+        unsigned int frameBufferHeight() const;
         struct _size{
             int width, height;
+            int fb_width, fb_height; // frame buffer width,height
         };
         _size size() const;
 
@@ -65,9 +66,11 @@ namespace Omen {
 
 
         bool m_fullscreen;
+
+
     };
 
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_WINDOW_H

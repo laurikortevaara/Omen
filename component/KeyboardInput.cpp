@@ -6,16 +6,16 @@
 #include "../Window.h"
 #include "../Engine.h"
 
-using namespace Omen;
+using namespace omen;
 
-std::map<GLFWwindow *, Omen::KeyboardInput &> KeyboardInput::keyhit_callbacks;
+std::map<GLFWwindow *, omen::KeyboardInput &> KeyboardInput::keyhit_callbacks;
 
 KeyboardInput::KeyboardInput() : Component() {
     // KeyHit signal handler
     // Add a static C-function callback wrapper with pointer to this
     m_window = glfwGetCurrentContext();
 
-    keyhit_callbacks.insert(std::pair<GLFWwindow *, Omen::KeyboardInput &>(m_window, *this));
+    keyhit_callbacks.insert(std::pair<GLFWwindow *, omen::KeyboardInput &>(m_window, *this));
     glfwSetKeyCallback(m_window, [](GLFWwindow *win, int k, int s, int a, int m) -> void {
         if (keyhit_callbacks.find(win) != keyhit_callbacks.end())
             keyhit_callbacks.find(win)->second.keyHit(win, k, s, a, m);
@@ -32,6 +32,8 @@ void KeyboardInput::keyHit(GLFWwindow *window, int key, int scanCode, int action
     // First notify about generic key-hit event
     signal_key_hit.notify(key, scanCode, action, mods);
 
+    m_mods = mods;
+
     // First notify about specializaed key-press and -relese events
     switch (action) {
         case GLFW_PRESS:
@@ -45,5 +47,26 @@ void KeyboardInput::keyHit(GLFWwindow *window, int key, int scanCode, int action
     }
 }
 
+bool KeyboardInput::keyPressed(unsigned int key) const {
+    return glfwGetKey(m_window, key) == GLFW_PRESS;
+}
+
+/**
+ * GLFW_MOD_SHIFT
+ * GLFW_MOD_ALT
+ * GLFW_MOD_CTRL
+ */
+bool KeyboardInput::keyModifierPressed(unsigned int mod) const {
+    return m_mods&mod;
+}
+
 void KeyboardInput::update(double time, double deltaTime) {
+}
+
+void KeyboardInput::onAttach(ecs::Entity *e) {
+    m_entity = e;
+}
+
+void KeyboardInput::onDetach(ecs::Entity *e) {
+    m_entity = nullptr;
 }

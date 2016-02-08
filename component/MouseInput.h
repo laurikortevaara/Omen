@@ -14,13 +14,15 @@
 #include <glm/vec2.hpp>
 
 
-namespace Omen {
-    class MouseInput : public Omen::ecs::Component {
-        static std::map<GLFWwindow *, Omen::MouseInput &> mouseinput_callbacks;
-
+namespace omen {
+    class MouseInput : public omen::ecs::Component {
+        static std::map<GLFWwindow *, omen::MouseInput &> mouseinput_callbacks;
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
-        typedef Omen::Signal<std::function<void(double, double)> > CursorPos_t;
-        typedef Omen::Signal<std::function<void(int, int, int)> > ButtonPress_t;
+        typedef omen::Signal<std::function<void(double, double)> > CursorPos_t;
+        typedef omen::Signal<std::function<void(int, int, int)> > ButtonPress_t;
         CursorPos_t signal_cursorpos_changed;
         ButtonPress_t signal_mousebutton_pressed;
     public:
@@ -38,7 +40,7 @@ namespace Omen {
         GLFWwindow *m_window;
         glm::vec2  m_cursorPos;
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_MOUSEINPUT_H

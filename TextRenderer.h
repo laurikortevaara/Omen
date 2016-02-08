@@ -13,7 +13,7 @@
 
 #include "Shader.h"
 
-namespace Omen {
+namespace omen {
     class TextRenderer {
         Shader *m_font_shader;
         FT_Library m_freetype;
@@ -28,7 +28,7 @@ namespace Omen {
         GLuint m_texture;
         GLuint m_vbo;
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_TEXTRENDERER_H

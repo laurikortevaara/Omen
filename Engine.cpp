@@ -22,9 +22,10 @@
 #include "component/Picker.h"
 #include "component/CameraController.h"
 #include "component/Transformer.h"
+#include "system/GraphicsSystem.h"
 
 
-using namespace Omen;
+using namespace omen;
 
 // Singleton instance
 Engine *Engine::m_instance = nullptr;
@@ -39,9 +40,9 @@ Engine::Engine() :
         m_framecounter(0),
         m_sample_coverage(1),
         m_currentSelection(nullptr),
-        m_polygonMode(GL_FILL){
+        m_polygonMode(GL_FILL) {
 
-    std::string currentDir = Omen::getWorkingDir();
+    std::string currentDir = omen::getWorkingDir();
     if (currentDir.find("bin") == std::string::npos)
         chdir("bin");
 
@@ -57,23 +58,24 @@ Engine::Engine() :
 
         createFramebuffer();
 
-        Omen::MD3Loader loader;
+        omen::MD3Loader loader;
         loader.loadModel("models/sphere.md3");
-        std::vector<std::shared_ptr<Omen::Mesh>> meshes;
-        for(int i=0; i < 1; ++i )
-        {
+        std::vector<std::shared_ptr<omen::Mesh>> meshes;
+        for (int i = 0; i < 1; ++i) {
             loader.getMesh(meshes);
             m_currentSelection = nullptr;
             std::shared_ptr<Model> model = std::make_shared<Model>(meshes.front());
             m_currentSelection = model.get();
             model->m_mesh->m_amplitude = 0.0;
-            model->m_mesh->m_transform.pos() = {Omen::random(-10, 10), Omen::random(1, 5), Omen::random(-10, 10)};
-            model->m_mesh->m_transform.scale({Omen::random(1, 4), Omen::random(1, 4), Omen::random(1, 4)});
+            model->m_mesh->m_transform.pos() = {omen::random(-10, 10), omen::random(1, 5), omen::random(-10, 10)};
+            model->m_mesh->m_transform.scale({omen::random(1, 4), omen::random(1, 4), omen::random(1, 4)});
             m_scene->models().push_back(model);
             meshes.clear();
         }
 
         initPhysics();
+
+        //m_button = new Button("Button1");
     });
 }
 
@@ -96,7 +98,8 @@ void Engine::initPhysics() {
 
     float rest = 0.4;
     float friction = 1.05;
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, m_groundMotionState, m_groundShape, btVector3(0, 0, 0));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, m_groundMotionState, m_groundShape,
+                                                               btVector3(0, 0, 0));
     groundRigidBodyCI.m_restitution = rest;
     groundRigidBodyCI.m_friction = friction;
     m_groundRigidBody = new btRigidBody(groundRigidBodyCI);
@@ -125,13 +128,14 @@ void Engine::doPhysics(double dt) {
     btTransform trans;
     m_fallRigidBody->getMotionState()->getWorldTransform(trans);
     if (m_currentSelection != nullptr) {
-        m_currentSelection->m_mesh->m_transform.pos() = {trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()};
+        m_currentSelection->m_mesh->m_transform.pos() = {trans.getOrigin().x(), trans.getOrigin().y(),
+                                                         trans.getOrigin().z()};
     }
 }
 
 void Engine::initializeSystems() {
     // Initialize Core system
-    ecs::CoreSystem* coreSystem = new ecs::CoreSystem();
+    ecs::CoreSystem *coreSystem = new ecs::CoreSystem();
     m_systems.push_back(coreSystem);
 
     // Initialize input system
@@ -171,7 +175,7 @@ void Engine::initializeSystems() {
     });
 
     keyboardInput->signal_key_release.connect([this](int k, int s, int a, int m) {
-        if(k==GLFW_KEY_T)
+        if (k == GLFW_KEY_T)
             m_polygonMode = m_polygonMode == GL_FILL ? GL_LINE : GL_FILL;
     });
 
@@ -181,10 +185,14 @@ void Engine::initializeSystems() {
     });
 
 
-    CameraController* cameraController = new CameraController();
+    CameraController *cameraController = new CameraController();
     coreSystem->add(cameraController);
 
-    Omen::Transformer* transformer = new Transformer();
+    omen::Transformer *transformer = new Transformer();
+
+    ecs::GraphicsSystem *graphicsSystem = new ecs::GraphicsSystem();
+    m_systems.push_back(graphicsSystem);
+
 }
 
 
@@ -219,7 +227,7 @@ bool Engine::createFramebuffer() {
     // Depth texture. Slower than a depth buffer, but you can sample it later in your shader
     glGenTextures(1, &m_colorTexture);
     glBindTexture(GL_TEXTURE_2D, m_colorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_window->width(), m_window->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -287,7 +295,7 @@ void Engine::render() {
     renderScene();
     check_gl_error();
 
-    renderText();
+    //renderText();
     m_window->end_rendering();
 
     handle_task_queue();
@@ -309,8 +317,7 @@ std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int he
     return m_window;
 }
 
-void abort_(const char * s, ...)
-{
+void abort_(const char *s, ...) {
     va_list args;
     va_start(args, s);
     vfprintf(stderr, s, args);
@@ -320,15 +327,14 @@ void abort_(const char * s, ...)
 }
 
 
-void write_png_file(char* file_name, char* pixels, unsigned long width, unsigned long height)
-{
+void write_png_file(const char *file_name, char *pixels, unsigned long width, unsigned long height) {
     png_byte color_type = PNG_COLOR_TYPE_RGBA;
     png_byte bit_depth = 8;
 
     png_structp png_ptr;
     png_infop info_ptr;
     int number_of_passes;
-    png_bytep * row_pointers;
+    png_bytep *row_pointers;
 
 
     /* create file */
@@ -344,12 +350,12 @@ void write_png_file(char* file_name, char* pixels, unsigned long width, unsigned
         abort_("[write_png_file] png_create_write_struct failed");
 
     ///
-    row_pointers = static_cast<png_bytepp>(png_malloc(png_ptr,height*sizeof(png_bytep)));
-    for (unsigned long i=0; i<height; i++)
-        row_pointers[i]=static_cast<png_bytep>(png_malloc(png_ptr,width*4));
+    row_pointers = static_cast<png_bytepp>(png_malloc(png_ptr, height * sizeof(png_bytep)));
+    for (unsigned long i = 0; i < height; i++)
+        row_pointers[i] = static_cast<png_bytep>(png_malloc(png_ptr, width * 4));
 
-    for(int y=0; y < height; ++y){
-        row_pointers[y] = (png_bytep)(pixels + (height - y - 1) * width * 4);
+    for (int y = 0; y < height; ++y) {
+        row_pointers[y] = (png_bytep) (pixels + (height - y - 1) * width * 4);
     }
     ///
 
@@ -388,7 +394,7 @@ void write_png_file(char* file_name, char* pixels, unsigned long width, unsigned
     png_write_end(png_ptr, NULL);
 
     /* cleanup heap allocation */
-    for (int y=0; y<height; y++)
+    for (int y = 0; y < height; y++)
         png_free_ptr(row_pointers[y]);
 
     free(row_pointers);
@@ -397,29 +403,32 @@ void write_png_file(char* file_name, char* pixels, unsigned long width, unsigned
 }
 
 void Engine::keyHit(int key, int scanCode, int action, int mods) {
-    if(key==GLFW_KEY_W && action==GLFW_RELEASE && mods == GLFW_MOD_SHIFT){
+    if (mods == GLFW_MOD_SHIFT) {
+        if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-        renderScene();
+            //glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+            renderScene();
 
-        int w, h;
-        int miplevel = 0;
-        glBindTexture(GL_TEXTURE_2D, m_colorTexture);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &w);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &h);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        char* buf = new char[w*h*4];
+            int w, h;
+            int miplevel = 0;
+            glBindTexture(GL_TEXTURE_2D, m_colorTexture);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &w);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &h);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            w = m_window->frameBufferWidth();
+            h = m_window->frameBufferHeight();
+            char *buf = new char[w * h * 4];
+            glBindTexture(GL_TEXTURE_2D, 0);
 
-        glReadBuffer((GLenum)GL_COLOR_ATTACHMENT0);
-        glReadPixels(0,0,w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)buf);
+            //glReadBuffer((GLenum) GL_COLOR_ATTACHMENT0);
+            glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) buf);
 
-        write_png_file("test.png", buf, w,h );
-        delete[] buf;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            write_png_file("test.png", buf, w, h);
+            delete[] buf;
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
     }
-
-
-    if (action == GLFW_PRESS) {
+    else if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_Q)
             exit(0);
 
@@ -500,7 +509,7 @@ void Engine::handle_task_queue() {
     // Run tasks that are not pending
     for (auto &task : m_future_tasks) {
         if (!task.pending())
-            task.task.wait();
+            task.task.get();
     }
     // Erase tasks that are not pending
     auto i = m_future_tasks.begin();
@@ -542,7 +551,7 @@ void Engine::renderText() {
     glGetIntegerv(GL_SAMPLES, &samples);
 
 
-    Picker* p = findComponent<Picker>();
+    Picker *p = findComponent<Picker>();
     std::wostringstream os;
     std::vector<float> axes = m_joystick != nullptr ? m_joystick->getJoystickAxes() : std::vector<float>({0, 0, 0, 0});
     /*  os << "FPS: " << std::setprecision(3) << avg_fps << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 <<
@@ -561,18 +570,19 @@ void Engine::renderText() {
   << "\nPickRay: [" << p->ray().x << ", " << p->ray().y << ", " << p->ray().z << "]";
 
   */
-      os << "FPS: " << std::setprecision(3) << avg_fps; // << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 << " ms./frame]\n";
-      /*int i=1;
-      for(int y=0; y < 40; ++y ) {
-          for (int x = 0; x < 128; ++x){
-              if(std::isprint(i))
-                  os << wchar_t(i);
-              ++i;
-          }
-          os << "\n";
-      }*/
-      std::wstring text(os.str());
-      m_text->render_text(text.c_str(), 16.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
+    os << "FPS: " << std::setprecision(3) <<
+    avg_fps; // << " [" << std::setprecision(2) << (1.0 / avg_fps) * 1000.0 << " ms./frame]\n";
+    /*int i=1;
+    for(int y=0; y < 40; ++y ) {
+        for (int x = 0; x < 128; ++x){
+            if(std::isprint(i))
+                os << wchar_t(i);
+            ++i;
+        }
+        os << "\n";
+    }*/
+    std::wstring text(os.str());
+    m_text->render_text(text.c_str(), 16.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
 }
 
 GLenum Engine::getPolygonMode() {

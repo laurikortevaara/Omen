@@ -1,4 +1,4 @@
-Omen Game Engine
+omen Game Engine
 ================
 - A hobby project for learning the OpenGL rendering pipeline
 - Lauri Kortevaara (2015)

@@ -220,8 +220,8 @@ bool WavefrontLoader::loadMaterialLibrary(const std::string &filename) {
     return true;
 }
 
-using namespace Omen;
-std::unique_ptr<Omen::Mesh> WavefrontLoader::mesh::getMesh() {
+using namespace omen;
+std::unique_ptr<omen::Mesh> WavefrontLoader::mesh::getMesh() {
     GLfloat s = 1000;
     std::vector<GLsizei> indices;
     std::vector<glm::vec3> vertices;

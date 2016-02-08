@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 
-namespace Omen {
+namespace omen {
     class Texture {
 
         struct _texture_cache_item{
@@ -53,6 +53,6 @@ namespace Omen {
 
         void unbindSampler();
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_TEXTURE_H

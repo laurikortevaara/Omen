@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 
-namespace Omen {
+namespace omen {
 
     template <typename T, typename... Args>
     class Signal {

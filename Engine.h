@@ -17,9 +17,10 @@
 #include "Texture.h"
 #include "system/System.h"
 #include "TextRenderer.h"
+#include "ui/Button.h"
 
 
-namespace Omen {
+namespace omen {
 
     class Engine {
         /** Singleton interface **/
@@ -50,7 +51,7 @@ namespace Omen {
         Camera* camera() {return m_camera;};
 
         template <class type> type* findSystem(const std::string& system_name="") {
-            for(Omen::ecs::System* s : m_systems)
+            for(omen::ecs::System* s : m_systems)
 
                 if(dynamic_cast<type*>(s)!= nullptr)
                     return dynamic_cast<type*>(s);
@@ -58,7 +59,7 @@ namespace Omen {
         }
 
         template <class type> type* findComponent(const std::string& component_name="") {
-            for(Omen::ecs::System* s : m_systems){
+            for(omen::ecs::System* s : m_systems){
                 ecs::Component* c = s->findComponent<type>(component_name);
                 if(c != nullptr)
                     return dynamic_cast<type*>(c);
@@ -82,6 +83,7 @@ namespace Omen {
     private:
         std::shared_ptr<Window> m_window;
         Camera *m_camera;
+        ui::Button *m_button;
         std::unique_ptr<Scene> m_scene;
         std::vector<ecs::System*> m_systems;
         std::unique_ptr<TextRenderer> m_text;
@@ -114,7 +116,7 @@ namespace Omen {
         GLuint m_colorTexture;
         GLuint m_depthTexture;
 
-        Omen::Model* m_currentSelection;
+        omen::Model* m_currentSelection;
 
         // Bullet phycics
         btBroadphaseInterface*                  m_broadphase;
@@ -137,7 +139,7 @@ namespace Omen {
 
         bool createShadowFramebuffer();
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //GLEW_TEST_ENGINE_H

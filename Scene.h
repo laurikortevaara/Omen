@@ -10,9 +10,10 @@
 #include "Model.h"
 #include "Light.h"
 #include "Sky.h"
-#include "Renderable.h"
+#include "component/Renderable.h"
+#include "Entity.h"
 
-namespace Omen {
+namespace omen {
     class Scene {
     public:
         Scene();
@@ -29,14 +30,17 @@ namespace Omen {
         std::vector<std::shared_ptr<Light> >& lights() {return m_lights;}
 
     private:
+        std::vector<std::shared_ptr<ecs::Entity> > m_entities;
         std::vector<std::shared_ptr<Model> > m_models;
         std::vector<std::shared_ptr<Light> > m_lights;
-        std::vector<std::shared_ptr<Omen::Renderable> > m_renderables;
+        std::vector<std::shared_ptr<omen::ecs::Renderable> > m_renderables;
         Sky*    m_sky;
 
 
         std::shared_ptr<Model> loadModel(const std::string filename);
+
+        void render();
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_SCENE_H

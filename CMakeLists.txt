@@ -1,10 +1,10 @@
 ######################################################################
-# Omen Game engine project
+# omen Game engine project
 #
 # Lauri Kortevaara (2015)
 # lauri.kortevaara@gmail.com
 #
-# https://github.com/laurikortevaara/Omen
+# https://github.com/laurikortevaara/omen
 #
 ######################################################################
 cmake_minimum_required(VERSION 3.0)
@@ -154,7 +154,7 @@ endif (WINDOWS)
 ######################################################################
 # Define the source files and the executable
 ######################################################################
-set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/MouseInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h TextRenderer.cpp TextRenderer.h Material.cpp Material.h utils.h utils.cpp WavefrontLoader.cpp WavefrontLoader.h MD3Loader.cpp MD3Loader.h BoundingBox.cpp BoundingBox.h BoundingVolume.cpp BoundingVolume.h component/Picker.cpp component/Picker.h component/CameraController.cpp component/CameraController.h system/CoreSystem.cpp system/CoreSystem.h Light.cpp Light.h PointLight.cpp PointLight.h Sky.cpp Sky.h component/Transformer.cpp component/Transformer.h Renderable.cpp Renderable.h Ocean.cpp Ocean.h)
+set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/MouseInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h TextRenderer.cpp TextRenderer.h Material.cpp Material.h utils.h utils.cpp WavefrontLoader.cpp WavefrontLoader.h MD3Loader.cpp MD3Loader.h BoundingBox.cpp BoundingBox.h BoundingVolume.cpp BoundingVolume.h component/Picker.cpp component/Picker.h component/CameraController.cpp component/CameraController.h system/CoreSystem.cpp system/CoreSystem.h Light.cpp Light.h PointLight.cpp PointLight.h Sky.cpp Sky.h component/Transformer.cpp component/Transformer.h component/Renderable.cpp component/Renderable.h Ocean.cpp Ocean.h ui/Button.cpp ui/Button.h component/Sprite.cpp component/Sprite.h component/Clickable.cpp component/Clickable.h ui/Layout.cpp ui/Layout.h ui/View.cpp ui/View.h ui/FrameLayout.cpp ui/FrameLayout.h ui/LinearLayout.cpp ui/LinearLayout.h ui/TextView.cpp ui/TextView.h component/TextRenderer.cpp component/TextRenderer.h)
 add_executable(Omen ${SOURCE_FILES})
 
 ######################################################################

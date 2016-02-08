@@ -8,8 +8,9 @@
 #include "MouseInput.h"
 #include "../Engine.h"
 #include "Picker.h"
+#include "KeyboardInput.h"
 
-Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullptr) {
+omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullptr) {
 
     // Get the connected joystic
     JoystickInput *ji = Engine::instance()->findComponent<JoystickInput>();
@@ -24,7 +25,7 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-        picker->signal_object_picked.connect([&](Omen::Mesh* obj){
+        picker->signal_object_picked.connect([&](omen::Mesh* obj){
            this->setEnabled(obj== nullptr);
         });
 
@@ -57,29 +58,29 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
         // velo = m/s
         // acceleration = m/s^2
         Engine* e = Engine::instance();
-        Window* w = e->window();
+        KeyboardInput* ki = e->findComponent<KeyboardInput>();
 
-        if (m_camera != nullptr) {
+        if (m_camera != nullptr && !ki->keyModifierPressed(GLFW_MOD_SHIFT)) {
             m_camera->acceleration() = glm::vec3(0.35);
 
-            if (w->keyPressed(GLFW_KEY_W)) {
+            if (ki->keyPressed(GLFW_KEY_W)) {
                 m_camera->velocity().z += m_camera->acceleration().z * deltaTime;
             }
-            if (w->keyPressed(GLFW_KEY_S)) {
+            if (ki->keyPressed(GLFW_KEY_S)) {
                 m_camera->velocity().z -= m_camera->acceleration().z * deltaTime;
             }
 
-            if (w->keyPressed(GLFW_KEY_A)) {
+            if (ki->keyPressed(GLFW_KEY_A)) {
                 m_camera->velocity().x -= m_camera->acceleration().x * deltaTime;
             }
-            if (w->keyPressed(GLFW_KEY_D)) {
+            if (ki->keyPressed(GLFW_KEY_D)) {
                 m_camera->velocity().x += m_camera->acceleration().x * deltaTime;
             }
 
-            if (w->keyPressed(GLFW_KEY_E)) {
+            if (ki->keyPressed(GLFW_KEY_E)) {
                 m_camera->velocity().y += m_camera->acceleration().y * deltaTime;
             }
-            if (w->keyPressed(GLFW_KEY_C)) {
+            if (ki->keyPressed(GLFW_KEY_C)) {
                 m_camera->velocity().y -= m_camera->acceleration().y * deltaTime;
             }
 
@@ -104,6 +105,15 @@ Omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
     });
 }
 
-Omen::CameraController::~CameraController() {
+omen::CameraController::~CameraController() {
 
+}
+
+void omen::CameraController::onAttach(omen::ecs::Entity *e) {
+    m_entity = e;
+}
+
+
+void omen::CameraController::onDetach(omen::ecs::Entity *e) {
+    m_entity = nullptr;
 }

@@ -7,13 +7,13 @@
 
 #include "System.h"
 
-namespace Omen {
+namespace omen {
     namespace ecs {
         class CoreSystem : public ecs::System{
         public:
         private:
         };
     } // namepsace ecs
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_CORESYSTEM_H

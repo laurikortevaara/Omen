@@ -12,7 +12,7 @@
 #include <math.h>
 
 using namespace std;
-using namespace Omen;
+using namespace omen;
 
 
 bool MD3Loader::loadModel(const string &filepath) {
@@ -139,18 +139,21 @@ glm::vec3 rationalVec(glm::vec3 vec) {
 
 glm::vec3 MD3Loader::fromSpherical(U8 spherical_coord[2]) {
     glm::vec3 vec;
+
     float lat = spherical_coord[0] * (2 * M_PI) / 255.0f;
     float lng = spherical_coord[1] * (2 * M_PI) / 255.0f;
-    return rationalVec(glm::normalize(glm::vec3(cos(lng) * sin(lat), sin(lng) * sin(lat), cos(lat))));
+    glm::vec3 wnorm = rationalVec(glm::normalize(glm::vec3(cos(lng) * sin(lat), sin(lng) * sin(lat), cos(lat))));
+    std::cout << "Normal: " << wnorm.x << ", " << wnorm.y << ", " << wnorm.z << std::endl;
+    return wnorm;
 }
 
 
-using namespace Omen;
+using namespace omen;
 
-void MD3Loader::getMesh(std::vector<std::shared_ptr<Omen::Mesh>> &meshes) {
+void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
     GLfloat s = 1000;
     std::vector<GLsizei> indices;
-    std::vector<Omen::Mesh::Frame> frames;
+    std::vector<omen::Mesh::Frame> frames;
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texcoords;
@@ -166,7 +169,7 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<Omen::Mesh>> &meshes) {
         }
 
         for (auto frame : m->frames) {
-            Omen::Mesh::Frame f;
+            omen::Mesh::Frame f;
             for (auto face : m->faces) {
                 for (auto index : face.indices) {
                     f.m_vertices.push_back(frame.m_vertices.at(index.vertex_index));

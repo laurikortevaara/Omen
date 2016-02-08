@@ -5,12 +5,12 @@
 #ifndef OMEN_BOUNDINGVOLUME_H
 #define OMEN_BOUNDINGVOLUME_H
 
-namespace Omen {
+namespace omen {
 class BoundingVolume {
 
 };
 
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_BOUNDINGVOLUME_H

@@ -9,8 +9,9 @@
 #include "../Engine.h"
 #include "Transformer.h"
 #include "Picker.h"
+#include "KeyboardInput.h"
 
-using namespace Omen;
+using namespace omen;
 
 Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
@@ -27,7 +28,7 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-        picker->signal_object_picked.connect([&](Omen::Mesh* obj){
+        picker->signal_object_picked.connect([&](omen::Mesh* obj){
             setEnabled(obj!= nullptr);
             m_obj = obj;
             if(obj) {
@@ -66,32 +67,32 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
         // velo = m/s
         // acceleration = m/s^2
         Engine* e = Engine::instance();
-        Window* w = e->window();
+        KeyboardInput* ki = e->findComponent<KeyboardInput>();
 
         if (m_tr != nullptr) {
             deltaTime *= 100.0f;
-            if (w->keyPressed(GLFW_KEY_W)) {
+            if (ki->keyPressed(GLFW_KEY_W)) {
                 //m_obj->m_transform.pos().z += deltaTime;
                 m_obj->m_transform.translate(glm::vec3(0,0,deltaTime));
             }
-            if (w->keyPressed(GLFW_KEY_S)) {
+            if (ki->keyPressed(GLFW_KEY_S)) {
                 //m_obj->m_transform.pos().z -= deltaTime;
                 m_obj->m_transform.translate(glm::vec3(0,0,-deltaTime));
             }
 
-            if (w->keyPressed(GLFW_KEY_A)) {
+            if (ki->keyPressed(GLFW_KEY_A)) {
                 //m_obj->m_transform.pos().x -= deltaTime;
                 m_obj->m_transform.translate(glm::vec3(-deltaTime,0,0));
             }
-            if (w->keyPressed(GLFW_KEY_D)) {
+            if (ki->keyPressed(GLFW_KEY_D)) {
                 //m_obj->m_transform.pos().x += deltaTime;
                 m_obj->m_transform.translate(glm::vec3(deltaTime,0,0));
             }
 
-            if (w->keyPressed(GLFW_KEY_E)) {
+            if (ki->keyPressed(GLFW_KEY_E)) {
                 m_obj->m_transform.pos().y += deltaTime;
             }
-            if (w->keyPressed(GLFW_KEY_C)) {
+            if (ki->keyPressed(GLFW_KEY_C)) {
                 m_obj->m_transform.pos().y -= deltaTime;
             }
 
@@ -119,4 +120,12 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
 Transformer::~Transformer() {
 
+}
+
+void Transformer::onAttach(ecs::Entity *e) {
+    m_entity = e;
+}
+
+void Transformer::onDetach(ecs::Entity *e) {
+    m_entity = nullptr;
 }

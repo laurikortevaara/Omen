@@ -10,7 +10,7 @@
 #include <glm/vec4.hpp>
 #include "Texture.h"
 
-namespace Omen {
+namespace omen {
     class Material {
         glm::vec4 m_diffuse_color;
         glm::vec4 m_ambient_color;
@@ -50,7 +50,7 @@ namespace Omen {
 
         void setTwoSided(bool twoSided = true) { m_isTwoSided = twoSided; }
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_MATERIAL_H

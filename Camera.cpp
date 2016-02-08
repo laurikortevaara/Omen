@@ -15,7 +15,7 @@
 #include "MathUtils.h"
 #include "component/MouseInput.h"
 
-using namespace Omen;
+using namespace omen;
 
 /**
  *
@@ -30,8 +30,8 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
         m_bIsValid(false),
         m_joystick(nullptr) {
 
-    Omen::Engine *e = Omen::Engine::instance();
-    Omen::Window *w = e->window();
+    omen::Engine *e = omen::Engine::instance();
+    omen::Window *w = e->window();
 
     // Create View matrix
     float aspect = (float) w->width() / (float) w->height();
@@ -98,8 +98,8 @@ glm::mat4x4 &Camera::projection() {
 
 void Camera::updateViewProjection() {
 
-    Omen::Engine *e = Omen::Engine::instance();
-    Omen::Window *w = e->window();
+    omen::Engine *e = omen::Engine::instance();
+    omen::Window *w = e->window();
 
     float aspectRatio = (float) w->width() / (float) w->height();
     // Generates a really hard-to-read matrix, but a normal, standard 4x4 matrix nonetheless

@@ -5,9 +5,9 @@
 #ifndef OMEN_OCEAN_H
 #define OMEN_OCEAN_H
 
-#include "Renderable.h"
+#include "component/Renderable.h"
 
-namespace Omen {
+namespace omen {
 
     class Complex {
     public:
@@ -69,12 +69,12 @@ namespace Omen {
         glm::vec3 n;      // normal
     };
 
-    class Ocean : public Renderable {
+    class Ocean : public ecs::Renderable {
     public:
         Ocean(int N, float A, const glm::vec2& w, const float length);
 
         virtual ~Ocean();
-        Ocean(const Ocean& o){}
+        Ocean(const Ocean& o) : Renderable({0,0,0},0,0,0){}
         Ocean& operator=(const Ocean& o) {return *this;}
 
         virtual void render();
@@ -111,9 +111,13 @@ namespace Omen {
         Complex hTilde(float t, int n_prime, int m_prime);
 
         int indices_count;
+    protected:
+        virtual void initializeShader();
+        virtual void initializeTexture();
+    private:
     };
 
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_OCEAN_H

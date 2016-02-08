@@ -4,7 +4,7 @@
 
 #include "Material.h"
 
-using namespace Omen;
+using namespace omen;
 
 Material::Material() :
         m_texture(nullptr),

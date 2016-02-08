@@ -16,7 +16,7 @@
 #include "component/Transform.h"
 #include "BoundingBox.h"
 
-namespace Omen {
+namespace omen {
     class Mesh {
     public:
         class Frame {
@@ -39,7 +39,7 @@ namespace Omen {
 
         Mesh(const std::string &shader,
              Material *material,
-             std::vector<Omen::Mesh::Frame>& frames,
+             std::vector<omen::Mesh::Frame>& frames,
              std::vector<glm::vec2> &texcoords,
              std::vector<GLsizei>& indices);
 
@@ -47,8 +47,8 @@ namespace Omen {
 
         Transform m_transform;
 
-        Omen::BoundingBox& aabb();
-        Omen::BoundingBox m_boundingBox;
+        omen::BoundingBox& aabb();
+        omen::BoundingBox m_boundingBox;
 
         std::vector<std::shared_ptr<Triangle> > m_triangles;
 
@@ -143,6 +143,6 @@ namespace Omen {
 
         void renderBB();
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_MESH_H

@@ -4,7 +4,7 @@
 
 #include "GameObject.h"
 
-using namespace Omen;
+using namespace omen;
 
 GameObject::GameObject(const std::string &name) :
         Entity(name){

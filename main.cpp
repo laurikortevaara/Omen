@@ -9,9 +9,9 @@
 #include "component/KeyboardInput.h"
 #include "GL_error.h"
 
-using namespace Omen;
+using namespace omen;
 
-std::shared_ptr<Omen::Scene> gScene = nullptr;
+std::shared_ptr<omen::Scene> gScene = nullptr;
 
 /**
 * the main
@@ -19,14 +19,14 @@ std::shared_ptr<Omen::Scene> gScene = nullptr;
 int main(int argc, char *argv[]) {
     /* initialize random seed: */
     srand (time(NULL));
-    Omen::Engine *engine = Omen::Engine::instance();
-    std::shared_ptr<Omen::Window> window = engine->createWindow(1920, 1080);
+    omen::Engine *engine = omen::Engine::instance();
+    std::shared_ptr<omen::Window> window = engine->createWindow(1920, 1080);
     check_gl_error();
 
-    Omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
+    omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
     check_gl_error();
     if (inputSystem != nullptr) {
-        Omen::KeyboardInput *keyboardInput = dynamic_cast<Omen::KeyboardInput *>(inputSystem->findComponent<Omen::KeyboardInput>());
+        omen::KeyboardInput *keyboardInput = dynamic_cast<omen::KeyboardInput *>(inputSystem->findComponent<omen::KeyboardInput>());
 
 
         keyboardInput->signal_key_press.connect([&](int k, int s, int a, int m) {

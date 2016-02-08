@@ -5,7 +5,7 @@
 #include "System.h"
 #include "../Engine.h"
 
-using namespace Omen::ecs;
+using namespace omen::ecs;
 
 void System::update(double time, double deltaTime) {
     for(auto component : m_components)
@@ -14,7 +14,7 @@ void System::update(double time, double deltaTime) {
 
 System::System():
         m_isEnabled(false) {
-    Omen::Engine *e = Omen::Engine::instance();
+    omen::Engine *e = omen::Engine::instance();
     e->signal_engine_update.connect([this, e](double time, double deltaTime) {
         if(m_isEnabled)
             update(time, deltaTime);

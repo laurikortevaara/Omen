@@ -16,7 +16,7 @@
 #include "Material.h"
 
 
-using namespace Omen;
+using namespace omen;
 
 Shader::Shader(const std::string &shader_file) {
     readShaderFile(shader_file);

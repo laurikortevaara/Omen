@@ -9,7 +9,7 @@
 #include "../Engine.h"
 #include "../MathUtils.h"
 
-using namespace Omen;
+using namespace omen;
 
 JoystickInput::JoystickInput() : Component() {
     // KeyHit signal handler
@@ -85,4 +85,12 @@ void JoystickInput::removeJoystick(Joystick *joystick) {
         m_joysticks.erase(iter);
         joystick_disconnected.notify(joystick);
     }
+}
+
+void JoystickInput::onAttach(ecs::Entity *e) {
+    m_entity = e;
+}
+
+void JoystickInput::onDetach(ecs::Entity *e) {
+    m_entity = nullptr;
 }

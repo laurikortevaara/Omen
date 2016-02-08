@@ -8,7 +8,7 @@
 
 #include "Mesh.h"
 
-namespace Omen {
+namespace omen {
     class Model {
     public:
         // ctor with pre-created mesh
@@ -16,8 +16,8 @@ namespace Omen {
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
 
-        std::shared_ptr<Omen::Mesh> m_mesh;
+        std::shared_ptr<omen::Mesh> m_mesh;
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_MODEL_H

@@ -8,7 +8,7 @@
 #include "MouseInput.h"
 #include "KeyboardInput.h"
 
-using namespace Omen;
+using namespace omen;
 
 class Segment {
 public:
@@ -87,7 +87,7 @@ Picker::Picker() {
         //pick();
     });
 
-    Engine::instance()->findComponent<Omen::KeyboardInput>()->signal_key_release.connect([&](int key, int action, int mods, int t){
+    Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect([&](int key, int action, int mods, int t){
         if(key==GLFW_KEY_ESCAPE)
             signal_object_picked.notify(nullptr);
     });
@@ -128,4 +128,12 @@ void Picker::pick() {
 
 Picker::~Picker() {
 
+}
+
+void Picker::onAttach(ecs::Entity *e) {
+    m_entity = e;
+}
+
+void Picker::onDetach(ecs::Entity *e) {
+    m_entity = nullptr;
 }

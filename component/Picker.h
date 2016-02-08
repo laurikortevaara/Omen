@@ -13,11 +13,14 @@
 #include "../Mesh.h"
 #include <glm/vec3.hpp>
 
-namespace Omen {
+namespace omen {
 
     class Picker : public ecs::Component {
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
-        typedef Omen::Signal<std::function<void(Omen::Mesh*)> > ObjectPicked_t;
+        typedef omen::Signal<std::function<void(omen::Mesh*)> > ObjectPicked_t;
         ObjectPicked_t signal_object_picked;
 
     public:
@@ -33,7 +36,7 @@ namespace Omen {
         glm::vec3 ray_world;
     };
 
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_PICKER_H

@@ -4,5 +4,15 @@
 
 #include "Transform.h"
 
-void Omen::Transform::update(double time, double deltaTime) {
+using namespace omen;
+
+void Transform::update(double time, double deltaTime) {
+}
+
+void Transform::onAttach(omen::ecs::Entity *e) {
+
+}
+
+void Transform::onDetach(omen::ecs::Entity *e) {
+
 }

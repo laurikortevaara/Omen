@@ -11,7 +11,7 @@
 #include <iostream>
 
 
-using namespace Omen;
+using namespace omen;
 
 
 /**

@@ -8,13 +8,13 @@
 
 #include "System.h"
 
-namespace Omen {
+namespace omen {
     namespace ecs {
         class InputSystem : public ecs::System {
 
         };
-    } // namespace Omen;
-} // namespace Omen
+    } // namespace omen;
+} // namespace omen
 
 
 #endif //OMEN_INPUTSYSTEM_H

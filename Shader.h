@@ -11,7 +11,7 @@
 #include "Texture.h"
 #include "Material.h"
 
-namespace Omen {
+namespace omen {
     class Shader {
     public:
         Shader(const std::string &shader_file);
@@ -117,6 +117,6 @@ namespace Omen {
 
         bool createShader(GLenum shaderType, GLuint &shader_id, std::string shader_source);
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_SHADER_H

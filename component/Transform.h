@@ -10,12 +10,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Component.h"
 
-namespace Omen {
+namespace omen {
     class Transform : public ecs::Component {
         glm::mat4   m_tr;
         glm::vec3   m_scale;
         glm::vec3   m_rotation;
         glm::vec3   m_position;
+        glm::vec3   m_bounds_min;
+        glm::vec3   m_bounds_max;
+
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
         Transform() : m_scale(1), m_tr(1), m_rotation(0), m_position(0) {};
         Transform(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale):
@@ -46,7 +52,10 @@ namespace Omen {
         glm::mat4 translate(const glm::vec3 &translation) { m_position += translation; return tr(); }
         glm::mat4 rotate(float angle, const glm::vec3 &axis) { m_rotation.y = angle; return m_tr;}
         glm::mat4 scale(const glm::vec3 &scale) { m_tr = glm::scale(m_tr, scale); return m_tr; }
+
+        void setBounds(glm::vec3 min, glm::vec3 max) {m_bounds_max = max; m_bounds_min = min;}
+        void getBounds(glm::vec3& min, glm::vec3& max) {max = m_bounds_max ; min = m_bounds_min;}
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_TRANSFORM_H

@@ -9,8 +9,11 @@
 #include "Component.h"
 #include "../Camera.h"
 
-namespace Omen {
+namespace omen {
     class CameraController : public ecs::Component {
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
         CameraController();
         virtual ~CameraController();
@@ -21,7 +24,7 @@ namespace Omen {
         Joystick *m_joystick;
     };
 
-} // namespace Omen;
+} // namespace omen;
 
 
 #endif //OMEN_CAMERACONTROLLER_H

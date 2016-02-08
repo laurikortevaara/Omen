@@ -8,7 +8,7 @@
 #include "Engine.h"
 #include "component/KeyboardInput.h"
 
-using namespace Omen;
+using namespace omen;
 
 float uniformRandomVariable() {
     return (float)rand()/RAND_MAX;
@@ -131,6 +131,7 @@ Complex Ocean::hTilde(float t, int n_prime, int m_prime) {
 }
 
 Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
+        Renderable({0,0,0},0,0,0),
         m_innerTesselationLevel(nullptr),
         m_outerTesselationLevel(nullptr) {
 
@@ -202,8 +203,6 @@ Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(GLuint), m_indices.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
-
-    m_shader = new Shader("shaders/ocean.glsl");
 
     Engine::instance()->findComponent<KeyboardInput>()->signal_key_release.connect([this](int k, int s, int a, int m) {
         if (m != GLFW_MOD_SHIFT) {
@@ -287,31 +286,27 @@ Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
 }
 
 Ocean::~Ocean() {
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteBuffers(1, &m_ibo);
-    glDeleteVertexArrays(1, &m_vao);
-    delete m_shader;
 }
 
 void Ocean::render() {
     glDisable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, Engine::instance()->getPolygonMode());
-    m_shader->use();
-    //m_shader->setUniform4fv("Color", 1, &glm::vec4(0,0,0,1)[0] );
-    m_shader->setUniform1f("Time", (float) Engine::instance()->time());
-    m_shader->setUniform4fv("Color", 1, &glm::vec4(1)[0]);
-    m_shader->setUniformMatrix4fv("ViewMatrix", 1, &Engine::instance()->camera()->view()[0][0], false);
-    m_shader->setUniformMatrix3fv("NormalMatrix", 1, &glm::mat3(Engine::instance()->camera()->view())[0][0], false);
-    m_shader->setUniformMatrix4fv("Model", 1, &glm::mat4(1)[0][0], false);
-    m_shader->setUniformMatrix4fv("ModelViewProjection", 1,
+    shader()->use();
+    //shader()->setUniform4fv("Color", 1, &glm::vec4(0,0,0,1)[0] );
+    shader()->setUniform1f("Time", (float) Engine::instance()->time());
+    shader()->setUniform4fv("Color", 1, &glm::vec4(1)[0]);
+    shader()->setUniformMatrix4fv("ViewMatrix", 1, &Engine::instance()->camera()->view()[0][0], false);
+    shader()->setUniformMatrix3fv("NormalMatrix", 1, &glm::mat3(Engine::instance()->camera()->view())[0][0], false);
+    shader()->setUniformMatrix4fv("Model", 1, &glm::mat4(1)[0][0], false);
+    shader()->setUniformMatrix4fv("ModelViewProjection", 1,
                                   &(Engine::instance()->camera()->viewProjection())[0][0], false);
-    m_shader->setUniform1i("InnerTessellationLevel1", m_innerTessellationLevels[0]);
-    m_shader->setUniform1i("InnerTessellationLevel2", m_innerTessellationLevels[1]);
+    shader()->setUniform1i("InnerTessellationLevel1", m_innerTessellationLevels[0]);
+    shader()->setUniform1i("InnerTessellationLevel2", m_innerTessellationLevels[1]);
 
-    m_shader->setUniform1i("OuterTessellationLevel1", m_outerTessellationLevels[0]);
-    m_shader->setUniform1i("OuterTessellationLevel2", m_outerTessellationLevels[1]);
-    m_shader->setUniform1i("OuterTessellationLevel3", m_outerTessellationLevels[2]);
-    m_shader->setUniform1i("OuterTessellationLevel4", m_outerTessellationLevels[3]);
+    shader()->setUniform1i("OuterTessellationLevel1", m_outerTessellationLevels[0]);
+    shader()->setUniform1i("OuterTessellationLevel2", m_outerTessellationLevels[1]);
+    shader()->setUniform1i("OuterTessellationLevel3", m_outerTessellationLevels[2]);
+    shader()->setUniform1i("OuterTessellationLevel4", m_outerTessellationLevels[3]);
 
     glBindVertexArray(m_vao);
 
@@ -325,9 +320,9 @@ void Ocean::render() {
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertex_ocean) * Nplus1 * Nplus1, m_vertices.data());
-        GLint vertex = m_shader->getAttribLocation("position");
-        GLint normal = m_shader->getAttribLocation("normal");
-        GLint texture = m_shader->getAttribLocation("texcoord");
+        GLint vertex = shader()->getAttribLocation("position");
+        GLint normal = shader()->getAttribLocation("normal");
+        GLint texture = shader()->getAttribLocation("texcoord");
         glEnableVertexAttribArray((GLuint) vertex);
         glVertexAttribPointer((GLuint) vertex, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_ocean), 0);
         glEnableVertexAttribArray((GLuint) normal);
@@ -343,7 +338,7 @@ void Ocean::render() {
     //        for (int z = -10; z < 10; ++z) {
             glm::mat4 Model(1);
             //Model = glm::translate(Model, glm::vec3(100 * x, 0, 100 * z));
-            m_shader->setUniformMatrix4fv("Model", 1, &glm::scale(Model,glm::vec3(5.f,5.f,5.f))[0][0], false);
+            shader()->setUniformMatrix4fv("Model", 1, &glm::scale(Model,glm::vec3(5.f,5.f,5.f))[0][0], false);
 
             //glPatchParameteri(GL_PATCH_VERTICES, 3);
             //glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_SHORT, 0);
@@ -352,7 +347,7 @@ void Ocean::render() {
       //  }
 
     /*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    m_shader->setUniform4fv("Color", 1, &glm::vec4(0.5,0.7,0.8,1.0)[0] );
+    shader()->setUniform4fv("Color", 1, &glm::vec4(0.5,0.7,0.8,1.0)[0] );
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_SHORT, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
@@ -592,4 +587,12 @@ void FFT::fft(Complex *input, Complex *output, int stride, int offset) {
     }
 
     for (int i = 0; i < N; i++) output[i * stride + offset] = c[which][i];
+}
+
+void Ocean::initializeShader() {
+    setShader(new Shader("shaders/ocean.glsl"));
+}
+
+void Ocean::initializeTexture() {
+    setTexture(nullptr);
 }

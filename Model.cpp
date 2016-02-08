@@ -8,7 +8,7 @@
 #include "GL_error.h"
 #include <memory>
 
-using namespace Omen;
+using namespace omen;
 
 Model::Model(std::shared_ptr<Mesh> mesh) :
     m_mesh(mesh) //std::move(mesh))

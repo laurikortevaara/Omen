@@ -10,8 +10,11 @@
 #include "../Camera.h"
 #include "../Mesh.h"
 
-namespace Omen {
+namespace omen {
     class Transformer : public ecs::Component {
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
         Transformer();
         virtual ~Transformer();
@@ -23,7 +26,7 @@ namespace Omen {
         Mesh *m_obj;
     };
 
-} // namespace Omen;
+} // namespace omen;
 
 
 #endif //OMEN_TRANSFORMER_H

@@ -8,10 +8,15 @@
 
 #include "System.h"
 
-namespace Omen {
-    class GraphicsSystem : public ecs::System {
+namespace omen {
+    namespace ecs {
+        class GraphicsSystem : public ecs::System {
 
-    };
+        public:
+            void render();
+
+        };
+    }
 }
 
 #endif //OMEN_GRAPHICSSYSTEM_H

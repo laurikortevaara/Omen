@@ -9,7 +9,7 @@
 #include "component/Transform.h"
 #include "Light.h"
 
-namespace Omen {
+namespace omen {
     class PointLight : public Light {
     public:
         PointLight(const glm::vec3 &position,
@@ -18,7 +18,7 @@ namespace Omen {
 
         virtual LightType type() const {return POINT;}
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_POINTLIGHT_H

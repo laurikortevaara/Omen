@@ -10,15 +10,15 @@
 #include "BoundingVolume.h"
 #include "component/Transform.h"
 
-namespace Omen {
-    class BoundingBox : public Omen::BoundingVolume {
+namespace omen {
+    class BoundingBox : public omen::BoundingVolume {
     public:
         void set(glm::vec3 min, glm::vec3 max);
         glm::vec3 min() const {return m_min;}
         glm::vec3 max() const {return m_max;}
-        Omen::Transform& tr() {return m_transform;}
+        omen::Transform& tr() {return m_transform;}
     private:
-        Omen::Transform m_transform;
+        omen::Transform m_transform;
         glm::vec3   m_max;
         glm::vec3   m_min;
     };

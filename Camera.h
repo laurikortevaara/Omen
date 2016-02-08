@@ -9,7 +9,7 @@
 #include "GameObject.h"
 #include "component/JoystickInput.h"
 
-namespace Omen {
+namespace omen {
     class Camera : public GameObject {
 
         bool m_bIsValid;

@@ -9,9 +9,10 @@
 #include <vector>
 #include "../component/Component.h"
 
-namespace Omen {
+namespace omen {
     namespace ecs {
         class System {
+        protected:
             std::vector<Component *> m_components;
 
         public:

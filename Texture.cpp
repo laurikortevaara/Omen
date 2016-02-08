@@ -12,7 +12,7 @@
 #include "GL_error.h"
 #include "Engine.h"
 
-using namespace Omen;
+using namespace omen;
 
 std::map<std::string, Texture::_texture_cache_item> Texture::texture_cache;
 

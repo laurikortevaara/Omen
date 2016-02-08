@@ -13,7 +13,7 @@
 
 #endif
 
-namespace Omen {
+namespace omen {
     std::string getWorkingDir() {
         char cCurrentPath[FILENAME_MAX];
 

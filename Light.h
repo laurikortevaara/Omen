@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include "component/Transform.h"
 
-namespace Omen {
+namespace omen {
     class Light {
     protected:
         Light(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 color, float intensity) :
@@ -33,6 +33,6 @@ namespace Omen {
         glm::vec3 m_color;
         Transform m_transform;
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_LIGHT_H

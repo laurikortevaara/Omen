@@ -10,7 +10,7 @@
 #include <string>
 #include "Mesh.h"
 
-namespace Omen {
+namespace omen {
     class MD3Loader {
 
         typedef unsigned char U8;
@@ -210,12 +210,12 @@ namespace Omen {
         bool readHeader();
         void readSurfaces();
 
-        void getMesh(std::vector<std::shared_ptr<Omen::Mesh>>& meshes);
+        void getMesh(std::vector<std::shared_ptr<omen::Mesh>>& meshes);
 
         glm::vec3 getRealVertex(S16 vertices[3]);
         glm::vec3 fromSpherical(U8 spherical_coord[2]);
 
         void readFrames();
     };
-} // namespace Omen
+} // namespace omen
 #endif //OMEN_MD3LOADER_H

@@ -7,16 +7,16 @@
 #include "../Engine.h"
 #include <glm/glm.hpp>
 
-using namespace Omen;
+using namespace omen;
 
-std::map<GLFWwindow *, Omen::MouseInput &> MouseInput::mouseinput_callbacks;
+std::map<GLFWwindow *, omen::MouseInput &> MouseInput::mouseinput_callbacks;
 
 MouseInput::MouseInput() : Component() {
     // KeyHit signal handler
     // Add a static C-function callback wrapper with pointer to this
     m_window = glfwGetCurrentContext();
 
-    mouseinput_callbacks.insert(std::pair<GLFWwindow *, Omen::MouseInput &>(m_window, *this));
+    mouseinput_callbacks.insert(std::pair<GLFWwindow *, omen::MouseInput &>(m_window, *this));
 
     glfwSetCursorPosCallback(m_window, [](GLFWwindow *win, double x, double y) -> void {
         if (mouseinput_callbacks.find(win) != mouseinput_callbacks.end())
@@ -50,4 +50,12 @@ void MouseInput::update(double time, double deltaTime) {
 void MouseInput::mouseButtonPressed(GLFWwindow *window, int button, int action, int mods) {
     if (m_isEnabled)
         signal_mousebutton_pressed.notify(button, action, mods);
+}
+
+void MouseInput::onAttach(ecs::Entity *e) {
+    m_entity = e;
+}
+
+void MouseInput::onDetach(ecs::Entity *e) {
+    m_entity = nullptr;
 }

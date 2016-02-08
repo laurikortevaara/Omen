@@ -75,7 +75,7 @@ public:
         std::string name;
         std::vector<face> faces;
 
-        std::unique_ptr<Omen::Mesh> getMesh();
+        std::unique_ptr<omen::Mesh> getMesh();
     };
 
 public:

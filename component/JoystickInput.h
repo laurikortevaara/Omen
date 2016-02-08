@@ -14,7 +14,7 @@
 #include "Component.h"
 
 
-namespace Omen {
+namespace omen {
     class Joystick {
         int m_joystick_id; // from 0-15 as in GLFW3
         std::vector<float>  m_axes;
@@ -58,9 +58,12 @@ namespace Omen {
 
     };
 
-    class JoystickInput : public Omen::ecs::Component {
+    class JoystickInput : public omen::ecs::Component {
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
-        typedef Omen::Signal<std::function<void(Joystick*)> > JoystickInput_t;
+        typedef omen::Signal<std::function<void(Joystick*)> > JoystickInput_t;
         JoystickInput_t joystick_connected;
         JoystickInput_t joystick_disconnected;
         JoystickInput_t joystick_button_pressed;
@@ -80,7 +83,7 @@ namespace Omen {
         void removeJoystick(Joystick *joystick);
         std::vector<Joystick*> m_joysticks;
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_JOYSTICKINPUT_H

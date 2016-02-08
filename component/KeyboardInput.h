@@ -13,12 +13,14 @@
 #include "Component.h"
 
 
-namespace Omen {
-    class KeyboardInput : public Omen::ecs::Component {
-        static std::map<GLFWwindow *, Omen::KeyboardInput &> keyhit_callbacks;
-
+namespace omen {
+    class KeyboardInput : public omen::ecs::Component {
+        static std::map<GLFWwindow *, omen::KeyboardInput &> keyhit_callbacks;
+    protected:
+        virtual void onAttach(ecs::Entity* e);
+        virtual void onDetach(ecs::Entity* e);
     public:
-        typedef Omen::Signal<std::function<void(int /*key*/, int /*scanCode*/, int /*action*/, int /*mods*/)> > KeyHit_t;
+        typedef omen::Signal<std::function<void(int /*key*/, int /*scanCode*/, int /*action*/, int /*mods*/)> > KeyHit_t;
         KeyHit_t signal_key_hit;
         KeyHit_t signal_key_press;
         KeyHit_t signal_key_release;
@@ -30,10 +32,14 @@ namespace Omen {
 
         virtual void update(double time, double deltaTime);
 
+        bool keyPressed(unsigned int key) const;
+        bool keyModifierPressed(unsigned int mod) const;
+
     private:
         GLFWwindow *m_window;
+        unsigned short m_mods;
     };
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_KEYBOARDINPUT_H

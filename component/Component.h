@@ -5,11 +5,27 @@
 #ifndef OMEN_COMPONENT_H
 #define OMEN_COMPONENT_H
 
-namespace Omen {
+#include <functional>
+#include "../Signal.h"
+
+namespace omen {
     namespace ecs {
+        class Entity;
         class Component {
         protected:
+            Entity *m_entity;
             bool m_isEnabled;
+
+            virtual void onAttach(ecs::Entity* e) = 0;
+            virtual void onDetach(ecs::Entity* e) = 0;
+
+        public:
+            typedef omen::Signal<std::function<void(Entity*, Component*)> > ComponentAttached_t;
+            typedef omen::Signal<std::function<void(Entity*, Component*)> > ComponentDetached_t;
+
+            ComponentAttached_t signal_compnent_attached;
+            ComponentDetached_t signal_component_detached;
+
         public:
             Component() : m_isEnabled(true) { };
 
@@ -20,9 +36,12 @@ namespace Omen {
             bool enabled() const { return m_isEnabled; }
 
             void setEnabled(bool enabled) { m_isEnabled = enabled; }
+
+            void setEntity(omen::ecs::Entity *pEntity);
+            Entity* entity() const;
         };
     } // namespace ecs
-} // namespace Omen
+} // namespace omen
 
 
 #endif //OMEN_COMPONENT_H

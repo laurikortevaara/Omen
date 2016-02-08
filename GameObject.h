@@ -10,7 +10,7 @@
 #include "Entity.h"
 #include "component/Transform.h"
 
-namespace Omen {
+namespace omen {
     class GameObject : public ecs::Entity {
         Transform* m_tr;
         std::vector<ecs::Component *> m_components;
@@ -21,6 +21,6 @@ namespace Omen {
         void removeComponent(ecs::Component *component);
 
     };
-} // namespace Omen
+} // namespace omen
 
 #endif //OMEN_GAMEOBJECT_H

@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <time.h>
 
-using namespace Omen;
+using namespace omen;
 
 #define BUFFER_OFFSET(offset)  (0 + offset)
 
@@ -230,7 +230,7 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-        picker->signal_object_picked.connect([&](Omen::Mesh* obj){
+        picker->signal_object_picked.connect([&](omen::Mesh* obj){
            if(obj==this)
                bRenderBB=true;
             else
@@ -319,9 +319,9 @@ void Mesh::initialize() {
     m_shader = nullptr;
     m_material = nullptr;
     m_transform.pos() = glm::vec3(0);
-    m_amplitude = Omen::random(-10, 10) * 0.05;
-    m_phase = 3.14 * Omen::random(0, 100) / 100.0;
-    m_frequency = 0.5 + Omen::random(0, 100) / 100.0;
+    m_amplitude = omen::random(-10, 10) * 0.05;
+    m_phase = 3.14 * omen::random(0, 100) / 100.0;
+    m_frequency = 0.5 + omen::random(0, 100) / 100.0;
 
     Engine::instance()->findComponent<KeyboardInput>()->signal_key_release.connect(
             [&](int key, int scanCode, int action, int mods) {
@@ -372,7 +372,7 @@ std::string Mesh::getDefaultTexture() {
             tinydir_next(&dir);
         }
 */
-    texture_file = files.empty() ? DEFAULT_TEXTURE : files[Omen::random(0, files.size() - 1)];
+    texture_file = files.empty() ? DEFAULT_TEXTURE : files[omen::random(0, files.size() - 1)];
     return texture_file;
 }
 
@@ -601,18 +601,20 @@ void Mesh::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
     glPolygonOffset(GL_POLYGON_OFFSET_LINE, 0.0);
     render(m_shader, viewProjection, view);
 
-    /*mPolygonMode = GL_LINE;
+    mPolygonMode = GL_LINE;
     glPolygonOffset(GL_POLYGON_OFFSET_LINE, 0.1);
     glPolygonOffset(GL_POLYGON_OFFSET_FILL, 0.1);
     render(normalShader, viewProjection, view);
-*/
+
+    /*
     if (bRenderBB)
         renderBB();
-
+*/
 }
 
 void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::mat4 &view) {
     shader->use();
+    glEnable( GL_TEXTURE_2D);
     check_gl_error();
     {
         ////
@@ -767,6 +769,7 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
                 shader->setUniform1i("MetacapTextureEnabled", false);
             }
 
+            shader->setUniform1i("TextureEnabled", 1);
             glEnableVertexAttribArray(m_vertex_position_attrib);
             glEnableVertexAttribArray(m_vertex_normals_attrib);
             glEnableVertexAttribArray(m_vertex_texture_coord_attrib);
@@ -779,7 +782,7 @@ void Mesh::render(Shader *shader, const glm::mat4 &viewProjection, const glm::ma
     glBindVertexArray(0);
 }
 
-Omen::BoundingBox &Mesh::aabb() {
+omen::BoundingBox &Mesh::aabb() {
     m_boundingBox.tr() = m_transform;
     return m_boundingBox;
 }

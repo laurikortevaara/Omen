@@ -13,11 +13,11 @@
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
 
-using namespace Omen;
+using namespace omen;
 
 
-std::map<GLFWwindow *, Omen::Window &> Window::window_size_changed_callbacks;
-std::map<GLFWwindow *, Omen::Window &> Window::file_drop_callbacks;
+std::map<GLFWwindow *, omen::Window &> Window::window_size_changed_callbacks;
+std::map<GLFWwindow *, omen::Window &> Window::file_drop_callbacks;
 Window::WindowCreated Window::signal_window_created;
 
 Window::Window():m_fullscreen(false) {
@@ -30,12 +30,12 @@ void Window::init()
 }
 
 void Window::windowSizeChanged(GLFWwindow *window, int width, int height) {
-    // First notify about generic key-hit event
+    // notify about window size changed event
     signal_window_size_changed.notify(width,height);
 }
 
 void Window::fileDropped(GLFWwindow *window, int count, const char** filePaths) {
-    // First notify about generic key-hit event
+    // notify about file drop event
     std::vector<std::string> vFilePaths;
     for(int i=0; i < count; ++i)
         vFilePaths.push_back(filePaths[i]);
@@ -62,7 +62,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
 
         /* Create a windowed mode window and its OpenGL context */
-    m_window = glfwCreateWindow(width, height, "The Omen Game engine", m_fullscreen?glfwGetPrimaryMonitor():NULL, NULL);
+    m_window = glfwCreateWindow(width, height, "The omen Game engine", m_fullscreen?glfwGetPrimaryMonitor():NULL, NULL);
     if (m_window == nullptr) {
         glfwTerminate();
         throw std::runtime_error(std::string(__PRETTY_FUNCTION__) + std::string(": Unable to create window"));
@@ -90,6 +90,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
        if(file_drop_callbacks.find(win) != file_drop_callbacks.end())
            file_drop_callbacks.find(win)->second.fileDropped(win, count, paths);
     });
+
     check_gl_error();
 
     m_swapInterval = 0; // by default 60 FPS
@@ -135,10 +136,6 @@ void Window::end_rendering() {
     glfwPollEvents();
 }
 
-bool Window::keyPressed(unsigned int key) const {
-    return glfwGetKey(m_window, key) == GLFW_PRESS;
-}
-
 unsigned int Window::width() const {
     return size().width;
 }
@@ -147,9 +144,18 @@ unsigned int Window::height() const {
     return size().height;
 }
 
+unsigned int Window::frameBufferWidth() const {
+    return size().fb_width;
+}
+
+unsigned int Window::frameBufferHeight() const {
+    return size().fb_height;
+}
+
 Window::_size Window::size() const {
     _size size;
     glfwGetWindowSize(m_window, &size.width, &size.height);
+    glfwGetFramebufferSize(m_window, &size.fb_width, &size.fb_height);
     return size;
 }
 

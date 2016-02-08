@@ -6,7 +6,10 @@
 #include "GL_error.h"
 #include "Engine.h"
 
-Omen::Sky::Sky() {
+using namespace omen;
+
+Sky::Sky() :
+    Renderable({0,0,0},0,0,0){
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ibo);
@@ -30,14 +33,14 @@ Omen::Sky::Sky() {
 }
 
 
-Omen::Sky::~Sky() {
+Sky::~Sky() {
     glDeleteBuffers(1, &m_vbo);
     glDeleteBuffers(1, &m_ibo);
     glDeleteVertexArrays(1, &m_vao);
     delete m_shader;
 }
 
-void Omen::Sky::render() {
+void Sky::render() {
     m_shader->use();
     m_shader->setUniformMatrix4fv("ViewMatrix", 1, &glm::inverse(Engine::instance()->camera()->view())[0][0], false);
     glBindVertexArray(m_vao);
