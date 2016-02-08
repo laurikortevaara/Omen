@@ -11,7 +11,8 @@ using namespace ecs;
 
 Sprite::Sprite(const std::string& sprite,const glm::vec2& pos, float width, float height):
     Renderable({pos.x,pos.y,0}, width, height,0 ), m_sprite(sprite){
-
+	setShader(new Shader("shaders/sprite.glsl"));
+	setTexture(new Texture(sprite));
     if(m_width==-1){
         m_width = texture()->width();
     }

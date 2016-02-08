@@ -10,7 +10,7 @@ using namespace omen;
 using namespace ecs;
 
 Renderable::Renderable(glm::vec3 pos, float width, float height, float depth) :
-        m_width(width), m_height(height), m_pos(pos) {
+        m_texture(nullptr), m_width(width), m_height(height), m_pos(pos) {
     GraphicsSystem *gs = omen::Engine::instance()->findSystem<GraphicsSystem>();
     assert(gs != nullptr);
     gs->add(this);

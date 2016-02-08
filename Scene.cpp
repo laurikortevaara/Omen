@@ -35,7 +35,7 @@ Scene::Scene() {
     createGround();
 
 
-    ui::Button* button3 = new ui::Button(nullptr, "Button3", "textures/trans1.png", glm::vec2(0,0));
+    ui::Button* button3 = new ui::Button(nullptr, "Button3", "textures/test.png", glm::vec2(0,0));
     button3->signal_button_clicked.connect([&](ui::Button* b, glm::vec2 pos){
         ecs::Sprite* s = b->getComponent<ecs::Sprite>();
         s->setEnabled(!s->enabled());
@@ -135,7 +135,7 @@ void Scene::createGround() {
         m_lights.front()->tr().pos().z = (float) sin(time)*5;
     });
 
-    m_renderables.push_back( std::make_shared<Ocean>(64,0.0005f, glm::vec2(32.0f, 32.0f), 64) );
+    //m_renderables.push_back( std::make_shared<Ocean>(64,0.0005f, glm::vec2(32.0f, 32.0f), 64) );
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {

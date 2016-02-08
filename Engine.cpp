@@ -433,8 +433,11 @@ void write_png_file(const char *file_name, char *pixels, unsigned long width, un
     png_write_end(png_ptr, NULL);
 
     /* cleanup heap allocation */
-    for (int y = 0; y < height; y++)
-        png_free_ptr(row_pointers[y]);
+	for (int row = 0; row < height; row++) {
+		void* row_ptr = row_pointers[row];
+		free(row_ptr);
+	}
+        
 
     free(row_pointers);
 

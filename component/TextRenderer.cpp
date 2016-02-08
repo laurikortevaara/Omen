@@ -5,11 +5,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <GLFW/glfw3.h>
+#include "../Omen_OpenGL.h"
 #include "TextRenderer.h"
 #include "../GL_error.h"
 #include <glm/glm.hpp>
-#include <OpenGL/OpenGL.h>
 #include <iostream>
 
 using namespace omen;

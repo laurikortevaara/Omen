@@ -129,10 +129,18 @@ include_directories(thirdparty/bullet/src)
 ######################################################################
 # LIBPNG
 ######################################################################
+if (APPLE)
 find_package(Png REQUIRED)
 if(NOT PNG_FOUND)
     message(FATAL_ERROR "Png not found")
-endif ()
+endif (NOT PNG_FOUND)
+else(APPLE)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+  set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
+  set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+  set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
+  #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+endif(APPLE)
 
 include_directories(${BULLET_INCLUDE_DIRS})
 
@@ -172,7 +180,7 @@ if (APPLE)
         message(FATAL_ERROR "CoreVideo not found")
     endif ()
 
-    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES})
+    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES} ${PNG_LIBRARY})
 endif (APPLE)
 
 
@@ -209,9 +217,10 @@ set(BULLET_SOFTBODY_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/Bull
 
 find_package(Bullet REQUIRED)
 include_directories(${BULLET_INCLUDE_DIRS})
+set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+include_directories(${PNG_INCLUDE_DIR})
 
-
-SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES})
+SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY})
 
 message(STATUS "Libs:" ${LIBRARIES})
 
