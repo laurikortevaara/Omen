@@ -313,12 +313,13 @@ void Engine::render() {
 	m_framecounter++;
 	m_window->start_rendering();
 	check_gl_error();
-	//glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-	//renderScene();
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 	renderScene();
-	//check_gl_error();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//renderScene();
+	check_gl_error();
 
+	
 	//
 	// Render FPS counter as text
 	//
@@ -335,7 +336,7 @@ void Engine::render() {
 		m_avg_fps += fps;
 	m_avg_fps /= q_fps.size();
 
-	glClearColor(1, 0, 0, 1);
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	renderScene();
 	m_window->end_rendering();

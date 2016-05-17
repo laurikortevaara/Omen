@@ -59,15 +59,18 @@ void Sprite::render() {
 	shader()->use();
 	texture()->bind();
 
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	glm::mat4 model(1);
 	float fw = 2 * m_width / (float)Engine::instance()->window()->width();
 	float fh = 2 * m_height / (float)Engine::instance()->window()->height();
-	float fx = -1.0 + 2 * ((m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
-	float fy = 1.0 - 2 * ((m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
+	float fx = -1.0f + 2 * ((m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
+	float fy = 1.0f - 2 * ((m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);
@@ -82,16 +85,18 @@ void Sprite::render() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
 	glClear(GL_DEPTH_BUFFER_BIT);
+	//glClearColor(1.0, 0.0, 0.0, 1.0);
+	//glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Sprite::onAttach(ecs::Entity *e) {
 	m_entity = e;
 	Transform* tr = new Transform;
 	tr->pos() = glm::vec3(m_pos, 0);
-	int bminx = -(m_width / 2.0) + m_pivot.x;
-	int bmaxx = (m_width / 2.0) + m_pivot.x;
-	int bminy = -(m_height / 2.0) + m_pivot.y;
-	int bmaxy = (m_height / 2.0) + m_pivot.y;
+	omen::floatprec bminx = -(m_width / 2.0f) + m_pivot.x;
+	omen::floatprec bmaxx = (m_width / 2.0f) + m_pivot.x;
+	omen::floatprec bminy = -(m_height / 2.0f) + m_pivot.y;
+	omen::floatprec bmaxy = (m_height / 2.0f) + m_pivot.y;
 	tr->setBounds(glm::vec3(bminx, bminy, 0), glm::vec3(bmaxx, bmaxy, 0));
 	m_entity->addComponent(tr);
 }

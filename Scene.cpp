@@ -21,13 +21,13 @@ Scene::Scene() {
 	//m_sky = new Sky();
 	Engine* e = Engine::instance();
 	Window* w = e->window();
-	ui::Button* button = new ui::Button(nullptr, "Button1", "textures/bmw.png", glm::vec2(w->width() / 2.0, w->height() / 2.0), 100, 100);
+	ui::Button* button = new ui::Button(nullptr, "Button1", "textures/bubble.png", glm::vec2(w->width() / 2.0, w->height() / 2.0), 100, 100);
 	button->signal_button_clicked.connect([&](ui::Button* b, glm::vec2 pos) {
 		ecs::Sprite* s = b->getComponent<ecs::Sprite>();
 		s->setEnabled(!s->enabled());
 	});
 
-	ui::Button* button2 = new ui::Button(nullptr, "Button2", "textures/cat.jpg", glm::vec2(300, 300), 400, 400);
+	ui::Button* button2 = new ui::Button(nullptr, "Button2", "textures/bubble.png", glm::vec2(300, 300), 400, 400);
 	button2->signal_button_clicked.connect([&](ui::Button* b, glm::vec2 pos) {
 		ecs::Sprite* s = b->getComponent<ecs::Sprite>();
 		s->setEnabled(!s->enabled());

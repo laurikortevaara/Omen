@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 	/* initialize random seed: */
 	srand(unsigned int(time(nullptr)));
 	omen::Engine *engine = omen::Engine::instance();
-	std::shared_ptr<omen::Window> window = engine->createWindow(500, 500);
+	std::shared_ptr<omen::Window> window = engine->createWindow(1280, 1280);
 	check_gl_error();
 
 	omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
