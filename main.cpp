@@ -20,38 +20,38 @@ std::shared_ptr<omen::Scene> gScene = nullptr;
 int main(int argc, char *argv[]) {
 	int* i = new int[5];
 	delete[] i;
-    /* initialize random seed: */
-    srand (time(NULL));
-    omen::Engine *engine = omen::Engine::instance();
-    std::shared_ptr<omen::Window> window = engine->createWindow(1920, 1080);
-    check_gl_error();
+	/* initialize random seed: */
+	srand(unsigned int(time(nullptr)));
+	omen::Engine *engine = omen::Engine::instance();
+	std::shared_ptr<omen::Window> window = engine->createWindow(500, 500);
+	check_gl_error();
 
-    omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
-    check_gl_error();
-    if (inputSystem != nullptr) {
-        omen::KeyboardInput *keyboardInput = dynamic_cast<omen::KeyboardInput *>(inputSystem->findComponent<omen::KeyboardInput>());
-
-
-        keyboardInput->signal_key_press.connect([&](int k, int s, int a, int m) {
-            // TODO
-        });
-
-        keyboardInput->signal_key_release.connect([&](int k, int s, int a, int m) {
-            // TODO
-        });
-    }
+	omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
+	check_gl_error();
+	if (inputSystem != nullptr) {
+		omen::KeyboardInput *keyboardInput = dynamic_cast<omen::KeyboardInput *>(inputSystem->findComponent<omen::KeyboardInput>());
 
 
-    //gScene = std::make_shared<Scene>(Scene());
+		keyboardInput->signal_key_press.connect([&](int k, int s, int a, int m) {
+			// TODO
+		});
 
-    /* Loop until the user closes the window */
-    while (!window->shouldClose()) {
-        check_gl_error();
-        engine->update();
-        check_gl_error();
-        engine->render();
-    }
+		keyboardInput->signal_key_release.connect([&](int k, int s, int a, int m) {
+			// TODO
+		});
+	}
 
-    glfwTerminate();
-    return 0;
+
+	//gScene = std::make_shared<Scene>(Scene());
+
+	/* Loop until the user closes the window */
+	while (!window->shouldClose()) {
+		check_gl_error();
+		engine->update();
+		check_gl_error();
+		engine->render();
+	}
+
+	glfwTerminate();
+	return 0;
 }

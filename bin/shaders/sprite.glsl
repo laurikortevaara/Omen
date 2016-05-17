@@ -44,7 +44,7 @@ void main() {
 
     out_color = texture(Texture, tcoord);
     if(!Enabled)
-        out_color = out_color*vec4(0.3);
+        out_color = out_color*vec4(0.3);	
 }
 
 

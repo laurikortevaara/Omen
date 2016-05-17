@@ -23,6 +23,8 @@
 
 namespace omen {
 
+	typedef float floatprec;
+
     class Engine {
         /** Singleton interface **/
         static Engine* m_instance;
@@ -37,7 +39,7 @@ namespace omen {
         GLenum getPolygonMode();
 
     public:
-        typedef Signal< std::function<void (double time, double delta_time)> > Update;
+        typedef Signal< std::function<void (omen::floatprec time, omen::floatprec delta_time)> > Update;
         Update signal_engine_update;
 
         /** Public class interface **/
@@ -45,7 +47,7 @@ namespace omen {
 
         std::shared_ptr<Window> createWindow(unsigned int width, unsigned int height);
 
-        double time();
+		omen::floatprec time();
         void update();
         void render();
         Window* window() {return m_window.get();};
@@ -71,13 +73,13 @@ namespace omen {
 
         class t_future_task {
         public:
-			t_future_task(std::function<void()>& f, std::chrono::duration<double> timeout, bool repeat)
+			t_future_task(std::function<void()>& f, std::chrono::duration<omen::floatprec> timeout, bool repeat)
 			: fun(f), delay(timeout), repeating(repeat){
 
 			}
 			static std::mutex task_mutex;
             std::chrono::time_point<std::chrono::system_clock> task_created;
-            std::chrono::duration<double> delay;
+            std::chrono::duration<omen::floatprec> delay;
 			bool repeating;
             std::shared_future<void> task;
 			std::function<void()> fun;
@@ -90,12 +92,12 @@ namespace omen {
 				task_created = std::chrono::system_clock::now(); 
 			}
 			bool pending() const {
-				std::chrono::duration<double> diff = std::chrono::system_clock::now() - task_created;
+				std::chrono::duration<omen::floatprec> diff = std::chrono::system_clock::now() - task_created;
 				return  diff.count() < delay.count();
 			}
         } ;
         std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
-        void post(std::function<void()>& task, double delay = 0.0, bool repeating = false );
+        void post(std::function<void()>& task, omen::floatprec delay = 0.0, bool repeating = false );
 
 
     private:
@@ -109,9 +111,9 @@ namespace omen {
 
         void keyHit(int key, int scanCode, int action, int mods);
 
-        double m_time;
-        double m_timeDelta;
-		double m_avg_fps;
+		omen::floatprec m_time;
+		omen::floatprec m_timeDelta;
+		omen::floatprec m_avg_fps;
 
 
 
@@ -123,7 +125,7 @@ namespace omen {
 
         Joystick *m_joystick;
 
-        void doPhysics(double dt);
+        void doPhysics(omen::floatprec dt);
 
         void handle_task_queue();
 
