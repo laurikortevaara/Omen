@@ -43,8 +43,9 @@ GLuint read_png_file(char* file_name, int* w, int* h)
 	char header[8];    // 8 is the maximum size that can be checked
 
 					   /* open file and test for it being a png */
-	FILE *fp = fopen(file_name, "rb");
-	if (!fp)
+	FILE *fp = nullptr;
+	errno_t ferror = fopen_s(&fp, file_name, "rb");
+	if (!fp || ferror != 0)
 		return 0;// ("[read_png_file] File %s could not be opened for reading", file_name);
 	fread(header, 1, 8, fp);
 	if (png_sig_cmp((png_byte*)header, 0, 8))
@@ -94,7 +95,7 @@ GLuint read_png_file(char* file_name, int* w, int* h)
 		png_byte* row = row_pointers[y];
 		for (x = 0; x < width; x++) {
 			png_byte* ptr = &(row[x * 4]);
-			memcpy(imagebuf+(y*width*4 + x*4), ptr, 4);
+			memcpy(imagebuf + (y*width * 4 + x * 4), ptr, 4);
 		}
 	}
 	// Generate the OpenGL texture object
@@ -119,8 +120,9 @@ GLuint png_texture_load(const char * file_name, int * width, int * height)
 {
 	png_byte header[8];
 
-	FILE *fp = fopen(file_name, "rb");
-	if (fp == 0)
+	FILE *fp = nullptr;
+	errno_t ferror = fopen_s(&fp, file_name, "rb");
+	if (fp == 0 || ferror != 0)
 	{
 		perror(file_name);
 		return 0;

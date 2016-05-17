@@ -17,7 +17,7 @@ namespace omen {
     std::string getWorkingDir() {
         char cCurrentPath[FILENAME_MAX];
 
-        getcwd(cCurrentPath, FILENAME_MAX);
+        _getcwd(cCurrentPath, FILENAME_MAX);
         if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))) {
             return "";
         }

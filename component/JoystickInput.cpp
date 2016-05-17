@@ -44,12 +44,12 @@ Joystick::Joystick(int joystickId) :
 }
 
 bool Joystick::isPresent(int id) {
-    return glfwJoystickPresent(id);
+    return glfwJoystickPresent(id)!=0;
 }
 
 
 bool Joystick::isPresent() {
-    return glfwJoystickPresent(m_joystick_id);
+    return glfwJoystickPresent(m_joystick_id)!=0;
 }
 
 std::vector<float> &Joystick::getJoystickAxes() {
@@ -59,7 +59,8 @@ std::vector<float> &Joystick::getJoystickAxes() {
     int axi = 0;
 
     for(int i=0; i < num_axes; ++i){
-        float x = axs[i]; x = threshold_abs(axs[i],0.075);
+        float x = axs[i]; 
+		x = threshold_abs(axs[i],0.075f);
         m_axes.push_back(x);
     }
 

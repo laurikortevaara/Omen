@@ -47,19 +47,19 @@ bool WavefrontLoader::loadObj(const std::string &filename) {
             // Material Library file
             if (s.find("mtllib") == 0) {
                 char mtllib[256];
-                sscanf(s.c_str(), "mtllib %s", mtllib);
+                sscanf_s(s.c_str(), "mtllib %255s", mtllib, (unsigned)_countof(mtllib));
                 loadMaterialLibrary(currentFolder + mtllib);
             }
             else if(s.find("o ") == 0){
                 char name[256];
-                sscanf(s.c_str(), "o %s", name);
+                sscanf_s(s.c_str(), "o %255s", name, (unsigned)_countof(name));
                 current_mesh = new mesh;
                 current_mesh->name.assign(name);
                 meshes.push_back(current_mesh);
             }
             else if (s.find("usemtl") == 0) { // Use the defined material
                 char material[256];
-                sscanf(s.c_str(), "usemtl %s", material);
+                sscanf_s(s.c_str(), "usemtl %255s", material, (unsigned)_countof(material));
                 currentMaterialName.reserve(strlen(material));
                 currentMaterialName.assign(material);
                 if(current_mesh!= nullptr)
@@ -69,22 +69,22 @@ bool WavefrontLoader::loadObj(const std::string &filename) {
                 // List of vertices
             if (s.find("v ") == 0) {
                 float x, y, z;
-                sscanf(s.c_str(), "v %f %f %f", &x, &y, &z);
+                sscanf_s(s.c_str(), "v %f %f %f", &x, &y, &z);
                 m_vertices.push_back({x, y, z});
             }
             else if (s.find("vt ") == 0) { // List of vertex texture coordinates
                 float x, y;
-                sscanf(s.c_str(), "vt %f %f", &x, &y);
+                sscanf_s(s.c_str(), "vt %f %f", &x, &y);
                 m_texcoords.push_back({x, y});
             }
             else if (s.find("vn ") == 0) {// List of vertex normals
                 float x, y, z;
-                sscanf(s.c_str(), "vn %f %f %f", &x, &y, &z);
+                sscanf_s(s.c_str(), "vn %f %f %f", &x, &y, &z);
                 m_normals.push_back({x, y, z});
             }
             else if (s.find("vp ") == 0) {// Parameter space vertices, e.g. free form geometry statement
                 float x, y, z;
-                sscanf(s.c_str(), "vp %f %f %f", &x, &y, &z);
+                sscanf_s(s.c_str(), "vp %f %f %f", &x, &y, &z);
                 m_parameter_coords.push_back({x, y, z});
             }
             else if (s.find("f ") == 0) { // Polygonal face element
@@ -103,18 +103,18 @@ bool WavefrontLoader::loadObj(const std::string &filename) {
                     vi = ti = ni = -1;
                     switch (n) {
                         case 0: // Only vertex index
-                            sscanf(str_face.c_str(), "%i", &vi);
+                            sscanf_s(str_face.c_str(), "%i", &vi);
                             break;
                         case 1: // Vertex index + texture index
-                            sscanf(str_face.c_str(), "%i/%i", &vi, &ti);
+                            sscanf_s(str_face.c_str(), "%i/%i", &vi, &ti);
                             break;
                         case 2: // Vertex index + texture index + normal index or
                             // Vertex index + // + normal index
                             if (str_face.find("//") == std::string::npos) {
-                                sscanf(str_face.c_str(), "%i/%i/%i", &vi, &ti, &ni);
+                                sscanf_s(str_face.c_str(), "%i/%i/%i", &vi, &ti, &ni);
                             }
                             else {
-                                sscanf(str_face.c_str(), "%i//%i", &vi, &ni);
+                                sscanf_s(str_face.c_str(), "%i//%i", &vi, &ni);
                             }
                             break;
                     }
@@ -125,7 +125,7 @@ bool WavefrontLoader::loadObj(const std::string &filename) {
             }
             else if (s.find("s ") == 0) { // Define the smooth shading parameter
                 char smooth[256];
-                sscanf(s.c_str(), "s %s", smooth);
+                sscanf_s(s.c_str(), "s %255s", smooth, (unsigned)_countof(smooth));
             }
         }
     }
@@ -159,7 +159,7 @@ bool WavefrontLoader::loadMaterialLibrary(const std::string &filename) {
             // Material Library file
             if (s.find("newmtl") == 0) {
                 char material[256];
-                sscanf(s.c_str(), "newmtl %s", material);
+                sscanf_s(s.c_str(), "newmtl %255s", material, (unsigned)_countof(material));
 
                 currentMaterial = new _material;
                 memset(currentMaterial, 0, sizeof(_material));
@@ -169,52 +169,52 @@ bool WavefrontLoader::loadMaterialLibrary(const std::string &filename) {
             }
             else if (s.find("Ns ") == 0) {
                 float Ns;
-                sscanf(s.c_str(), "Ns %f", &Ns);
+                sscanf_s(s.c_str(), "Ns %f", &Ns);
                 currentMaterial->Ns = Ns;
             }
             else if (s.find("Ka ") == 0) {
                 float r,g,b;
-                sscanf(s.c_str(), "Ka %f %f %f", &r, &g, &b);
+                sscanf_s(s.c_str(), "Ka %f %f %f", &r, &g, &b);
                 currentMaterial->Ka = {r,g,b};
             }
             else if (s.find("Kd ") == 0) {
                 float r,g,b;
-                sscanf(s.c_str(), "Kd %f %f %f", &r, &g, &b);
+                sscanf_s(s.c_str(), "Kd %f %f %f", &r, &g, &b);
                 currentMaterial->Kd = {r,g,b};
             }
             else if (s.find("Ks ") == 0) {
                 float r,g,b;
-                sscanf(s.c_str(), "Ks %f %f %f", &r, &g, &b);
+                sscanf_s(s.c_str(), "Ks %f %f %f", &r, &g, &b);
                 currentMaterial->Ks = {r,g,b};
             }
             else if (s.find("Ka ") == 0) {
                 float r,g,b;
-                sscanf(s.c_str(), "Ka %f %f %f", &r, &g, &b);
+                sscanf_s(s.c_str(), "Ka %f %f %f", &r, &g, &b);
                 currentMaterial->Ka = {r,g,b};
             }
             else if (s.find("Ni ") == 0) {
                 float Ni;
-                sscanf(s.c_str(), "Ni %f", &Ni);
+                sscanf_s(s.c_str(), "Ni %f", &Ni);
                 currentMaterial->Ni = Ni;
             }
             else if (s.find("d ") == 0) {
                 float d;
-                sscanf(s.c_str(), "d %f", &d);
+                sscanf_s(s.c_str(), "d %f", &d);
                 currentMaterial->d = d;
             }
             else if (s.find("map_Kd ") == 0) {
                 char map_Kd[256];
-                sscanf(s.c_str(), "map_Kd %s", map_Kd);
+                sscanf_s(s.c_str(), "map_Kd %255s", map_Kd, (unsigned)_countof(map_Kd));
                 currentMaterial->map_Kd.assign(map_Kd);
             }
             else if (s.find("map_Ka ") == 0) {
                 char map_Ka[256];
-                sscanf(s.c_str(), "map_Ka %s", map_Ka);
+                sscanf_s(s.c_str(), "map_Ka %255s", map_Ka, (unsigned)_countof(map_Ka));
                 currentMaterial->map_Ka.assign(map_Ka);
             }
             else if (s.find("map_Ks ") == 0) {
                 char map_Ks[256];
-                sscanf(s.c_str(), "map_Ks %s", map_Ks);
+                sscanf_s(s.c_str(), "map_Ks %255s", map_Ks, (unsigned)_countof(map_Ks));
                 currentMaterial->map_Ka.assign(map_Ks);
             }
 
