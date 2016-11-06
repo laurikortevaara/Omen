@@ -58,7 +58,7 @@ bool KeyboardInput::keyPressed(unsigned int key) const {
  * GLFW_MOD_CTRL
  */
 bool KeyboardInput::keyModifierPressed(unsigned int mod) const {
-    return (m_mods&mod>0);
+    return (m_mods & (mod>0));
 }
 
 void KeyboardInput::update(double time, double deltaTime) {

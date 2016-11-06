@@ -11,6 +11,7 @@
 #include "../Signal.h"
 #include "Component.h"
 #include <glm/vec2.hpp>
+#include "../Engine.h"
 
 struct GLFWwindow;
 
@@ -21,7 +22,7 @@ namespace omen {
         virtual void onAttach(ecs::Entity* e);
         virtual void onDetach(ecs::Entity* e);
     public:
-        typedef omen::Signal<std::function<void(double, double)> > CursorPos_t;
+        typedef omen::Signal<std::function<void(omen::floatprec, omen::floatprec)> > CursorPos_t;
         typedef omen::Signal<std::function<void(int, int, int)> > ButtonPress_t;
         CursorPos_t signal_cursorpos_changed;
         ButtonPress_t signal_mousebutton_pressed;
@@ -29,7 +30,7 @@ namespace omen {
         MouseInput();
         virtual ~MouseInput();
 
-        void cursorPosChanged(GLFWwindow *window, double x, double y);
+        void cursorPosChanged(GLFWwindow *window, omen::floatprec x, omen::floatprec y);
         void mouseButtonPressed(GLFWwindow *window, int button, int action, int mods );
 
         virtual void update(double time, double deltaTime);

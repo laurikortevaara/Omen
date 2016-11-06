@@ -28,6 +28,7 @@
 #include "component/CameraController.h"
 #include "component/Transformer.h"
 #include "component/Sprite.h"
+#include "component/TextRenderer.h"
 #include "system/GraphicsSystem.h"
 
 
@@ -76,7 +77,7 @@ Engine::Engine() :
 		m_camera = new Camera("Camera1", { 0, 5, 10 }, { 0, 0, 0 }, 45.0f);
 		findComponent<CameraController>()->setCamera(m_camera);
 		m_scene = std::make_unique<Scene>();
-		m_text = std::make_unique<TextRenderer>();
+		m_text = std::make_unique<ecs::TextRenderer>();
 
 		createFramebuffer();
 
@@ -152,10 +153,10 @@ void Engine::doPhysics(omen::floatprec dt) {
 
 	btTransform trans;
 	m_fallRigidBody->getMotionState()->getWorldTransform(trans);
-	if (m_currentSelection != nullptr) {
-		m_currentSelection->m_mesh->m_transform.pos() = { trans.getOrigin().x(), trans.getOrigin().y(),
-														 trans.getOrigin().z() };
-	}
+	//if (m_currentSelection != nullptr) {
+	//m_currentSelection->m_mesh->m_transform.pos() = { trans.getOrigin().x(), trans.getOrigin().y(),
+	//													 trans.getOrigin().z() };
+	//}
 }
 
 void Engine::initializeSystems() {
@@ -245,6 +246,7 @@ std::string stringify(float f) {
 }
 
 bool Engine::createFramebuffer() {
+	return true;
 	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
 	glGenFramebuffers(1, &m_frame_buffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
@@ -314,10 +316,10 @@ void Engine::render() {
 	m_framecounter++;
 	m_window->start_rendering();
 	check_gl_error();
-	glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-	renderScene();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 	//renderScene();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	renderScene();
 	check_gl_error();
 
 	

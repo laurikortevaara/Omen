@@ -15,7 +15,10 @@ namespace omen {
         Model(std::shared_ptr<Mesh> mesh= nullptr);
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
-
+		std::shared_ptr<Mesh> mesh() {
+			return m_mesh;
+		}
+	private:
         std::shared_ptr<omen::Mesh> m_mesh;
     };
 } // namespace omen

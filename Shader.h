@@ -5,6 +5,8 @@
 #ifndef OMEN_SHADER_H
 #define OMEN_SHADER_H
 
+#include <memory>
+
 #include "Texture.h"
 #include "Material.h"
 
@@ -104,7 +106,7 @@ namespace omen {
         void setUniformMatrix4dv(const std::string &uniform, int count, double *values, bool bTranspose);
 
 
-        void setMaterial(Material *material);
+        void setMaterial(std::shared_ptr<Material> material);
 
         void setTexture(int textureIndex, const std::string& textureName, Texture *texture);
 

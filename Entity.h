@@ -8,45 +8,43 @@
 #include <string>
 #include <stdint.h>
 #include <vector>
+#include <memory>
+
+#include "Object.h"
 
 namespace omen {
     namespace ecs {
         class Component;
-        class Entity {
-            Entity* m_parent;
-            std::vector<Entity*> m_children;
-            std::vector<Component*> m_components;
-            static uint64_t id_counter;
-        protected:
-            uint64_t m_id;
-            std::string m_name;
+		class Entity : public omen::Object {
 
-            Entity(const std::string &name);
+			Entity* m_parent;
+			std::vector<std::shared_ptr<Entity>> m_children;
+			std::vector<std::shared_ptr<Component>> m_components;
 
-            uint64_t id() const { return m_id; }
+		protected:
+			Entity(const std::string &name);
+			Entity* parent() { return m_parent; }
 
-            Entity* parent() {return m_parent;}
-            std::vector<Entity*>& children() {return m_children;}
-            bool addChild(Entity* e);
-            bool removeChild(Entity* e);
+			virtual ~Entity() {};
 
-            bool removeComponent(Component* c);
+            std::vector<std::shared_ptr<Entity>>& children() {return m_children;}
+            bool addChild(std::shared_ptr<Entity> e);
+            bool removeChild(std::shared_ptr<Entity> e);
+
+            bool removeComponent(std::shared_ptr<Component> c);
 
         public:
             template<class type>
-            type *getComponent(const std::string &component_name = "") {
+            std::shared_ptr<type> getComponent(const std::string &component_name = "") {
                 for (auto c : m_components)
-                    if (dynamic_cast<type *>(c) != nullptr)
-                        return dynamic_cast<type *>(c);
+                    if (std::dynamic_pointer_cast<type>(c) != nullptr)
+                        return std::dynamic_pointer_cast<type>(c);
                 return nullptr;
             }
 
-            bool addComponent(Component* c);
+            bool addComponent(std::shared_ptr<Component> c);
         };
     } // namespace ecs
 } // namespace omen
-
-
-
 
 #endif //OMEN_ENTITY_H

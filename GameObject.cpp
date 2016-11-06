@@ -6,6 +6,7 @@
 #include <algorithm>
 
 using namespace omen;
+using namespace ecs;
 
 GameObject::GameObject(const std::string &name) :
         Entity(name){

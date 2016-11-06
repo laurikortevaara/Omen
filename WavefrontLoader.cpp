@@ -240,7 +240,7 @@ std::unique_ptr<omen::Mesh> WavefrontLoader::mesh::getMesh() {
         }
     }
 
-    Material* material = new Material();
+    std::shared_ptr<Material> material = std::make_shared<Material>();
     for(auto matdef : WavefrontLoader::materials) {
         if(matdef->name==this->material){
             material->setDiffuseColor(glm::vec4(matdef->Kd,1));
@@ -252,6 +252,6 @@ std::unique_ptr<omen::Mesh> WavefrontLoader::mesh::getMesh() {
     }
 
     std::string shader_name = "shaders/pass_through.glsl";
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(shader_name, material, vertices, normals, texcoords, indices);
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
     return mesh;
 }

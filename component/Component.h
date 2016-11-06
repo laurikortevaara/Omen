@@ -7,11 +7,12 @@
 
 #include <functional>
 #include "../Signal.h"
+#include <memory>
 
 namespace omen {
     namespace ecs {
         class Entity;
-        class Component {
+        class Component : public std::enable_shared_from_this<Component> {
         protected:
             Entity *m_entity = nullptr;
             bool m_isEnabled = false;

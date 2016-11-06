@@ -11,16 +11,20 @@
 #include "component/Transform.h"
 
 namespace omen {
-    class GameObject : public ecs::Entity {
-        Transform* m_tr;
-        std::vector<ecs::Component *> m_components;
-    public:
-        GameObject(const std::string &name);
+	namespace ecs {
+		class GameObject : public ecs::Entity {
+			Transform* m_tr;
+			std::vector<ecs::Component *> m_components;
+		public:
+			GameObject(const std::string &name);
 
-        void addCompnent(ecs::Component *component);
-        void removeComponent(ecs::Component *component);
+			void addCompnent(ecs::Component *component);
+			void removeComponent(ecs::Component *component);
 
-    };
+			Transform* transform() const { return m_tr; }
+
+		};
+	}
 } // namespace omen
 
 #endif //OMEN_GAMEOBJECT_H

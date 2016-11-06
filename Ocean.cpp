@@ -60,8 +60,8 @@ static float _dot(const glm::vec3 &a, const glm::vec3 &b) {
 float Ocean::phillips(int n_prime, int m_prime) {
     glm::vec2 k(M_PI * (2 * n_prime - N) / length,
               M_PI * (2 * m_prime - N) / length);
-    float k_length  = k.length();
-    if (k_length < 0.000001) return 0.0;
+    float k_length  = static_cast<omen::floatprec>(k.length());
+    if (k_length < 0.000001f) return 0.0f;
 
     float k_length2 = k_length  * k_length;
     float k_length4 = k_length2 * k_length2;
@@ -72,11 +72,11 @@ float Ocean::phillips(int n_prime, int m_prime) {
     float k_dot_w   = _dot(glm::normalize(kn), glm::normalize(wn));
     float k_dot_w2  = k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w;
 
-    float w_length  = w.length();
+    float w_length  = static_cast<omen::floatprec>(w.length());
     float L         = w_length * w_length / g;
     float L2        = L * L;
 
-    float damping   = 0.001;
+    float damping   = 0.001f;
     float l2        = L2 * damping * damping;
 
     return A * exp(-1.0f / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
@@ -97,7 +97,7 @@ complex_vector_normal Ocean::h_D_and_n(glm::vec2 x, float t) {
             kx = (float) (2.0f * M_PI * (n_prime - N / 2.0f) / length);
             k = glm::vec2(kx, kz);
 
-            k_length = k.length();
+            k_length = static_cast<omen::floatprec>(k.length());
             k_dot_x = _dot(k, x);
 
             c = Complex((float) cos(k_dot_x), (float) sin(k_dot_x));
@@ -151,7 +151,7 @@ Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
         m_innerTesselationLevel(nullptr),
         m_outerTesselationLevel(nullptr) {
 
-    this->g = 9.81;
+    this->g = 9.81f;
     this->A = _A;
     this->N = _N;
     this->w = _w;
@@ -432,9 +432,9 @@ void Ocean::evaluateWavesFFT(float t) {
     int index, index1;
 
     for (int m_prime = 0; m_prime < N; m_prime++) {
-        kz = M_PI * (2.0f * m_prime - N) / length;
+        kz = static_cast<omen::floatprec>(M_PI * (2 * m_prime - N) / length);
         for (int n_prime = 0; n_prime < N; n_prime++) {
-            kx = M_PI * (2 * n_prime - N) / length;
+            kx = static_cast<omen::floatprec>(M_PI * (2 * n_prime - N) / length);
             len = sqrt(kx * kx + kz * kz);
             index = m_prime * N + n_prime;
 
@@ -466,7 +466,7 @@ void Ocean::evaluateWavesFFT(float t) {
         fft->fft(h_tilde_dz.data(), h_tilde_dz.data(), N, n_prime);
     }
 
-    int sign;
+    float sign;
     float signs[] = {1.0f, -1.0f};
     glm::vec3 n;
     for (int m_prime = 0; m_prime < N; m_prime++) {
@@ -532,17 +532,17 @@ void Ocean::evaluateWavesFFT(float t) {
     }
 }
 
-FFT::FFT(unsigned int N) : N(N), reversed(0), T(0), pi2(2 * M_PI) {
+FFT::FFT(unsigned int N) : N(N), reversed(0), T(0), pi2(2 * static_cast<omen::floatprec>(M_PI)) {
     c[0] = c[1] = 0;
 
-    log_2_N = log(N) / log(2);
+    log_2_N = static_cast<int>(log(N) / log(2));
 
     reversed = new unsigned int[N];     // prep bit reversals
-    for (int i = 0; i < N; i++) reversed[i] = reverse(i);
+    for (unsigned int i = 0; i < N; i++) reversed[i] = reverse(i);
 
     int pow2 = 1;
     T = new Complex *[log_2_N];      // prep T
-    for (int i = 0; i < log_2_N; i++) {
+    for (unsigned int i = 0; i < log_2_N; i++) {
         T[i] = new Complex[pow2];
         for (int j = 0; j < pow2; j++) T[i][j] = t(j, pow2 * 2);
         pow2 *= 2;
@@ -557,7 +557,7 @@ FFT::~FFT() {
     if (c[0]) delete[] c[0];
     if (c[1]) delete[] c[1];
     if (T) {
-        for (int i = 0; i < log_2_N; i++) if (T[i]) delete[] T[i];
+        for (unsigned int i = 0; i < log_2_N; i++) if (T[i]) delete[] T[i];
         delete[] T;
     }
     if (reversed) delete[] reversed;
@@ -565,7 +565,7 @@ FFT::~FFT() {
 
 unsigned int FFT::reverse(unsigned int i) {
     unsigned int res = 0;
-    for (int j = 0; j < log_2_N; j++) {
+    for (unsigned int j = 0; j < log_2_N; j++) {
         res = (res << 1) + (i & 1);
         i >>= 1;
     }
@@ -577,13 +577,13 @@ Complex FFT::t(unsigned int x, unsigned int N) {
 }
 
 void FFT::fft(Complex *input, Complex *output, int stride, int offset) {
-    for (int i = 0; i < N; i++) c[which][i] = input[reversed[i] * stride + offset];
+    for (unsigned int i = 0; i < N; i++) c[which][i] = input[reversed[i] * stride + offset];
 
     int loops = N >> 1;
     int size = 1 << 1;
     int size_over_2 = 1;
     int w_ = 0;
-    for (int i = 1; i <= log_2_N; i++) {
+    for (unsigned int i = 1; i <= log_2_N; i++) {
         which ^= 1;
         for (int j = 0; j < loops; j++) {
             for (int k = 0; k < size_over_2; k++) {
@@ -602,7 +602,7 @@ void FFT::fft(Complex *input, Complex *output, int stride, int offset) {
         w_++;
     }
 
-    for (int i = 0; i < N; i++) output[i * stride + offset] = c[which][i];
+    for (unsigned int i = 0; i < N; i++) output[i * stride + offset] = c[which][i];
 }
 
 void Ocean::initializeShader() {

@@ -24,7 +24,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 
 	Picker* picker = Engine::instance()->findComponent<Picker>();
 	if (picker)
-		picker->signal_object_picked.connect([&](omen::Mesh* obj) {
+		picker->signal_object_picked.connect([&](std::shared_ptr<ecs::Entity> obj) {
 		this->setEnabled(obj == nullptr);
 	});
 
@@ -60,7 +60,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 		KeyboardInput* ki = e->findComponent<KeyboardInput>();
 
 		if (m_camera != nullptr && !ki->keyModifierPressed(GLFW_MOD_SHIFT)) {
-			m_camera->acceleration() = glm::vec3(0.35);
+			m_camera->acceleration() = glm::vec3(0.35f);
 
 			if (ki->keyPressed(GLFW_KEY_W)) {
 				m_camera->velocity().z += m_camera->acceleration().z * deltaTime;

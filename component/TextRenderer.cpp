@@ -15,6 +15,7 @@ using namespace omen;
 using namespace ecs;
 
 void TextRenderer::render() {
+	return;
     initializeFreeType();
     glGenTextures(1, &m_texture_id);
     glActiveTexture(GL_TEXTURE0);
@@ -74,12 +75,12 @@ void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, flo
 
     for (p = text; *p; p++) {
         if(*p=='\n'){
-            y-=sx*fontSize+10.0*sx;
+            y-=static_cast<omen::floatprec>(sx*fontSize+10.0*sx);
             x = x_orig;
             continue;
         }
 
-        FT_Set_Pixel_Sizes(m_fontFace, 0, fontSize);
+        FT_Set_Pixel_Sizes(m_fontFace, 0, static_cast<FT_UInt>(fontSize));
         shader()->setUniform4fv("FontColor", 1, &color[0]);
 
         if (FT_Load_Char(m_fontFace, *p, FT_LOAD_RENDER))
@@ -119,7 +120,7 @@ void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, flo
 }
 
 void TextRenderer::initializeShader() {
-    setShader(new Shader("shaders/font_shader.glsl"));
+    setShader(std::make_shared<Shader>("shaders/font_shader.glsl"));
 }
 
 void TextRenderer::initializeTexture() {

@@ -20,7 +20,7 @@ MouseInput::MouseInput() : Component() {
 
     glfwSetCursorPosCallback(m_window, [](GLFWwindow *win, double x, double y) -> void {
         if (mouseinput_callbacks.find(win) != mouseinput_callbacks.end())
-            mouseinput_callbacks.find(win)->second.cursorPosChanged(win, x, y);
+            mouseinput_callbacks.find(win)->second.cursorPosChanged(win, static_cast<omen::floatprec>(x), static_cast<omen::floatprec>(y));
     });
 
     glfwSetMouseButtonCallback(m_window, [](GLFWwindow *win, int button, int action, int mods) -> void {
@@ -37,7 +37,7 @@ MouseInput::~MouseInput() {
         mouseinput_callbacks.erase(mouseinput_callbacks.find(m_window));
 }
 
-void MouseInput::cursorPosChanged(GLFWwindow *window, double x, double y) {
+void MouseInput::cursorPosChanged(GLFWwindow *window, omen::floatprec x, omen::floatprec y) {
     m_cursorPos = {x, y};
     // First notify about generic key-hit event
     if (m_isEnabled)

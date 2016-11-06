@@ -3,14 +3,14 @@
 //
 
 #include "GraphicsSystem.h"
-#include "../component/Renderable.h"
+#include "../component/Renderer.h"
 
 using namespace omen;
 using namespace ecs;
 
 void GraphicsSystem::render() {
     for(auto c : m_components){
-        Renderable* r = static_cast<Renderable*>(c);
+        Renderer* r = static_cast<Renderer*>(c);
 		if(r != nullptr)
 			r->render();
     }

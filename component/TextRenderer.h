@@ -5,25 +5,30 @@
 #ifndef OMEN_TEXTRENDERER_H
 #define OMEN_TEXTRENDERER_H
 
-#include <freetype/freetype.h>
-#include "Renderable.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#include "Renderer.h"
 
 namespace omen {
     namespace ecs {
-        class TextRenderer : public Renderable {
+        class TextRenderer : public Renderer {
         public:
             virtual void render();
+
+			void render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color);
+
         protected:
         protected:
             virtual void initializeShader();
             virtual void initializeTexture();
+
         private:
             FT_Library m_freetype;
             FT_Face m_fontFace;
 
             bool initializeFreeType();
-
-            void render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color);
+			            
             std::string m_text;
             GLuint m_texture_id;
         };

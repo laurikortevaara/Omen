@@ -9,6 +9,7 @@
 #include "Transformer.h"
 #include "Picker.h"
 #include "KeyboardInput.h"
+#include "../GameObject.h"
 
 using namespace omen;
 
@@ -27,14 +28,16 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-        picker->signal_object_picked.connect([&](omen::Mesh* obj){
-            setEnabled(obj!= nullptr);
-            m_obj = obj;
-            if(obj) {
-                m_tr = &obj->m_transform;
-            }
-            else
-                m_tr = nullptr;
+		picker->signal_object_picked.connect([&](std::shared_ptr<ecs::Entity> obj) {
+		if (std::dynamic_pointer_cast<ecs::GameObject>(obj)) {
+			setEnabled(obj != nullptr);
+			m_obj = std::dynamic_pointer_cast<ecs::GameObject>(obj);
+			if (obj) {
+				m_tr = m_obj->transform();
+			}
+			else
+				m_tr = nullptr;
+		}
         });
 
     // Get the Mouse coordinates
@@ -71,28 +74,28 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
         if (m_tr != nullptr) {
             deltaTime *= 100.0f;
             if (ki->keyPressed(GLFW_KEY_W)) {
-                //m_obj->m_transform.pos().z += deltaTime;
-                m_obj->m_transform.translate(glm::vec3(0,0,deltaTime));
+                //m_obj->transform()->pos().z += deltaTime;
+                m_obj->transform()->translate(glm::vec3(0,0,deltaTime));
             }
             if (ki->keyPressed(GLFW_KEY_S)) {
-                //m_obj->m_transform.pos().z -= deltaTime;
-                m_obj->m_transform.translate(glm::vec3(0,0,-deltaTime));
+                //m_obj->transform()->pos().z -= deltaTime;
+                m_obj->transform()->translate(glm::vec3(0,0,-deltaTime));
             }
 
             if (ki->keyPressed(GLFW_KEY_A)) {
-                //m_obj->m_transform.pos().x -= deltaTime;
-                m_obj->m_transform.translate(glm::vec3(-deltaTime,0,0));
+                //m_obj->transform()->pos().x -= deltaTime;
+                m_obj->transform()->translate(glm::vec3(-deltaTime,0,0));
             }
             if (ki->keyPressed(GLFW_KEY_D)) {
-                //m_obj->m_transform.pos().x += deltaTime;
-                m_obj->m_transform.translate(glm::vec3(deltaTime,0,0));
+                //m_obj->transform()->pos().x += deltaTime;
+                m_obj->transform()->translate(glm::vec3(deltaTime,0,0));
             }
 
             if (ki->keyPressed(GLFW_KEY_E)) {
-                m_obj->m_transform.pos().y += deltaTime;
+                m_obj->transform()->pos().y += static_cast<omen::floatprec>(deltaTime);
             }
             if (ki->keyPressed(GLFW_KEY_C)) {
-                m_obj->m_transform.pos().y -= deltaTime;
+                m_obj->transform()->pos().y -= static_cast<omen::floatprec>(deltaTime);
             }
 
             if (m_joystick != nullptr) {

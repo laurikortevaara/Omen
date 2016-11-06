@@ -17,13 +17,16 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "system/System.h"
-#include "TextRenderer.h"
 #include "ui/Button.h"
 
 
 namespace omen {
 
 	typedef float floatprec;
+
+	namespace ecs {
+		class TextRenderer;
+	}
 
     class Engine {
         /** Singleton interface **/
@@ -106,7 +109,7 @@ namespace omen {
         ui::Button *m_button;
         std::unique_ptr<Scene> m_scene;
         std::vector<ecs::System*> m_systems;
-        std::unique_ptr<TextRenderer> m_text;
+        std::unique_ptr<ecs::TextRenderer> m_text;
 
 
         void keyHit(int key, int scanCode, int action, int mods);

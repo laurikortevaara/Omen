@@ -7,6 +7,7 @@
 #include "../Engine.h"
 #include "MouseInput.h"
 #include "KeyboardInput.h"
+#include "MeshController.h"
 
 using namespace omen;
 
@@ -111,17 +112,20 @@ void Picker::pick() {
 
     Scene *scene = Engine::instance()->scene();
     float min_intersect =  std::numeric_limits<float>::max();
-    Mesh* pSelected = nullptr;
-    for (auto model : scene->models()) {
-        float intersect;
-        BoundingBox b = model->m_mesh->aabb();
-        if (ray.segmentAABBoxIntersect(b, {v0, (v1 - v0) * 100.0f}, intersect)){
-            signal_object_picked.notify(model->m_mesh.get());
-            if(intersect<min_intersect){
-                min_intersect = intersect;
-                pSelected = model->m_mesh.get();
-            }
-        }
+    std::shared_ptr<ecs::Entity> pSelected = nullptr;
+    for (auto model : scene->entities()) {
+		if (model->getComponent<ecs::MeshController>()) {
+			std::shared_ptr<Mesh> mesh = model->getComponent<ecs::MeshController>()->mesh();
+			float intersect;
+			BoundingBox b = mesh->boundingBox();
+			if (ray.segmentAABBoxIntersect(b, { v0, (v1 - v0) * 100.0f }, intersect)) {
+				signal_object_picked.notify(model);
+				if (intersect < min_intersect) {
+					min_intersect = intersect;
+					pSelected = model;
+				}
+			}
+		}
     }
     signal_object_picked.notify(pSelected);
 }

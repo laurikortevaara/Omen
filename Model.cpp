@@ -31,6 +31,6 @@ Model::Model(std::shared_ptr<Mesh> mesh) :
 }
 
 void Model::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
-    m_mesh->render(viewProjection, view);
+    //m_mesh->render(viewProjection, view);
 }
 

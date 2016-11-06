@@ -10,8 +10,9 @@
 #include "Model.h"
 #include "Light.h"
 #include "Sky.h"
-#include "component/Renderable.h"
+#include "Renderable.h"
 #include "Entity.h"
+#include "GameObject.h"
 
 namespace omen {
     class Scene {
@@ -23,19 +24,17 @@ namespace omen {
     public:
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
-
-        void createGround();
-
-        std::vector<std::shared_ptr<Model> >& models() {return m_models;}
         std::vector<std::shared_ptr<Light> >& lights() {return m_lights;}
+
+		const std::vector<std::shared_ptr<ecs::Entity>>& entities() { return m_entities; }
+
+		void addEntity(std::shared_ptr<ecs::Entity> entity);
 
     private:
         std::vector<std::shared_ptr<ecs::Entity> > m_entities;
-        std::vector<std::shared_ptr<Model> > m_models;
         std::vector<std::shared_ptr<Light> > m_lights;
-        std::vector<std::shared_ptr<omen::ecs::Renderable> > m_renderables;
+        std::vector<std::shared_ptr<omen::Renderable> > m_renderables;
         Sky*    m_sky;
-
 
         std::shared_ptr<Model> loadModel(const std::string filename);
 

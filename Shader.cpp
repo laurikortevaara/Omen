@@ -21,6 +21,7 @@
 #include <fstream>
 #include <sstream>
 #include <assert.h>
+#include <memory>
 
 #include "GL_error.h"
 #include "Shader.h"
@@ -387,7 +388,7 @@ void Shader::setTexture(int textureIndex, const std::string &textureName, Textur
 	glBindTexture(GL_TEXTURE_2D, texture->id());
 }
 
-void Shader::setMaterial(Material *material) {
+void Shader::setMaterial(std::shared_ptr<Material> material) {
 	/*if(material->texture()!= nullptr)
 		setTexture(0, "Texture", material->texture());*/
 	use();

@@ -10,7 +10,7 @@
 #include "component/JoystickInput.h"
 
 namespace omen {
-    class Camera : public GameObject {
+    class Camera : public ecs::GameObject {
 
         bool m_bIsValid;
         float m_fov;

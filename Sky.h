@@ -8,10 +8,10 @@
 #include "Omen_OpenGL.h"
 #include <vector>
 #include "Shader.h"
-#include "component/Renderable.h"
+#include "Renderable.h"
 
 namespace omen {
-    class Sky : public ecs::Renderable {
+    class Sky : public Renderable {
     public:
         Sky();
         virtual ~Sky();

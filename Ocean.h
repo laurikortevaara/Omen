@@ -5,7 +5,7 @@
 #ifndef OMEN_OCEAN_H
 #define OMEN_OCEAN_H
 
-#include "component/Renderable.h"
+#include "Renderable.h"
 
 namespace omen {
 
@@ -69,7 +69,7 @@ namespace omen {
         glm::vec3 n;      // normal
     };
 
-    class Ocean : public ecs::Renderable {
+    class Ocean : public Renderable {
     public:
         Ocean(int N, float A, const glm::vec2& w, const float length);
 

@@ -27,7 +27,7 @@ using namespace omen;
 /**
  * CTOR
  */
-TextRenderer::TextRenderer() : m_vao(0) {
+_TextRenderer::_TextRenderer() : m_vao(0) {
 	initializeFreeType();
 	m_font_shader = new Shader("shaders/font_shader.glsl");
 	glGenTextures(1, &m_texture);
@@ -48,7 +48,7 @@ TextRenderer::TextRenderer() : m_vao(0) {
 /**
  * Render given text with given fontsize, position, scale, and color
  */
-void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
+void _TextRenderer::render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color) {
 	m_font_shader->use();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -75,7 +75,7 @@ void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, flo
 			continue;
 		}
 
-		FT_Set_Pixel_Sizes(m_fontFace, 0, fontSize);
+		FT_Set_Pixel_Sizes(m_fontFace, 0, static_cast<FT_UInt>(fontSize));
 		m_font_shader->setUniform4fv("FontColor", 1, &color[0]);
 
 		if (FT_Load_Char(m_fontFace, *p, FT_LOAD_RENDER))
@@ -118,7 +118,7 @@ void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, flo
  * initialize FreeType
  * - load font file
  */
-bool TextRenderer::initializeFreeType() {
+bool _TextRenderer::initializeFreeType() {
 	if (FT_Init_FreeType(&m_freetype)) {
 		std::cerr << "Could not init freetype library" << std::endl;
 		return false;

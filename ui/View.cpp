@@ -69,8 +69,8 @@ void View::measureSize() {
     if(m_parentView== nullptr){
         Engine* e = Engine::instance();
         Window* w = e->window();
-        maxWidth = w->width();
-        maxHeight = w->height();
+        maxWidth = static_cast<omen::floatprec>(w->width());
+        maxHeight = static_cast<omen::floatprec>(w->height());
     }
     else {
         maxWidth = m_parentView->width();

@@ -74,7 +74,7 @@ void Sprite::render() {
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);
-	shader()->setUniform1i("Enabled", enabled());
+	//shader()->setUniform1i("Enabled", enabled());
 	glBindVertexArray(m_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glEnableVertexAttribArray(0);
@@ -89,7 +89,7 @@ void Sprite::render() {
 	//glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Sprite::onAttach(ecs::Entity *e) {
+/*void Sprite::onAttach(ecs::Entity *e) {
 	m_entity = e;
 	Transform* tr = new Transform;
 	tr->pos() = glm::vec3(m_pos, 0);
@@ -104,7 +104,7 @@ void Sprite::onAttach(ecs::Entity *e) {
 void Sprite::onDetach(ecs::Entity *e) {
 	m_entity = nullptr;
 }
-
+*/
 void Sprite::initializeTexture() {
 	setTexture(new Texture(m_sprite));
 }

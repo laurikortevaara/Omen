@@ -20,7 +20,7 @@ using namespace omen;
 bool MD3Loader::loadModel(const string &filepath) {
 	ifstream ifs(filepath, ios::ate | ios::binary | ios::in);
 	if (ifs.is_open()) {
-		m_bufferSize = ifs.tellg();
+		m_bufferSize = static_cast<size_t>(ifs.tellg());
 
 		// Read the whole file into a buffer
 		m_buffer = new U8[m_bufferSize];
@@ -129,7 +129,7 @@ glm::vec3 rationalVec(glm::vec3 vec) {
 	float x_sign = v.x / fabs(v.x);
 	float y_sign = v.y / fabs(v.y);
 	float z_sign = v.z / fabs(v.z);
-	float threshold = 0.05;
+	float threshold = 0.05f;
 	if (1.0 - fabs(v.x) < threshold) v.x = 1.0f * x_sign;
 	if (1.0 - fabs(v.y) < threshold) v.y = 1.0f * y_sign;
 	if (1.0 - fabs(v.z) < threshold) v.z = 1.0f * z_sign;
@@ -142,8 +142,8 @@ glm::vec3 rationalVec(glm::vec3 vec) {
 glm::vec3 MD3Loader::fromSpherical(U8 spherical_coord[2]) {
 	glm::vec3 vec;
 
-	float lat = spherical_coord[0] * (2 * M_PI) / 255.0f;
-	float lng = spherical_coord[1] * (2 * M_PI) / 255.0f;
+	float lat = static_cast<float>(spherical_coord[0] * (2.0f * M_PI) / 255.0f);
+	float lng = static_cast<float>(spherical_coord[1] * (2.0f * M_PI) / 255.0f);
 	glm::vec3 wnorm = rationalVec(glm::normalize(glm::vec3(cos(lng) * sin(lat), sin(lng) * sin(lat), cos(lat))));
 	std::cout << "Normal: " << wnorm.x << ", " << wnorm.y << ", " << wnorm.z << std::endl;
 	return wnorm;
@@ -155,7 +155,7 @@ using namespace omen;
 void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
 	GLfloat s = 1000;
 	std::vector<GLsizei> indices;
-	std::vector<omen::Mesh::Frame> frames;
+	//std::vector<omen::Mesh::Frame> frames;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> texcoords;
@@ -171,18 +171,18 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
 		}
 
 		for (auto frame : m->frames) {
-			omen::Mesh::Frame f;
+			//omen::Mesh::Frame f;
 			for (auto face : m->faces) {
 				for (auto index : face.indices) {
-					f.m_vertices.push_back(frame.m_vertices.at(index.vertex_index));
-					if (!frame.m_normals.empty())f.m_normals.push_back(frame.m_normals.at(index.normal_index));
+					//f.m_vertices.push_back(frame.m_vertices.at(index.vertex_index));
+					//if (!frame.m_normals.empty())f.m_normals.push_back(frame.m_normals.at(index.normal_index));
 				}
 			}
-			frames.push_back(f);
+			//frames.push_back(f);
 		}
 
 
-		Material *material = new Material();
+		std::shared_ptr<Material> material = std::make_shared<Material>();
 
 		/*material->setDiffuseColor(glm::vec4(0.75, 0.75, 0.75, 1));
 		material->setAmbientColor(glm::vec4(0.75, 0.75, 0.75, 1));
@@ -191,7 +191,7 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
 		//material->setMatcapTexture(new Texture("textures/generator1.jpg"));
 
 		std::string shader_name = "shaders/pass_through.glsl";
-		mesh = std::make_shared<Mesh>(shader_name, material, frames, texcoords, indices);
+		//mesh = std::make_shared<Mesh>(shader_name, material, frames, texcoords, indices);
 		meshes.push_back(std::move(mesh));
 	}
 }

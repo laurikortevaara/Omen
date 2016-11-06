@@ -9,6 +9,7 @@
 #include "Component.h"
 #include "../Camera.h"
 #include "../Mesh.h"
+#include "../GameObject.h"
 
 namespace omen {
     class Transformer : public ecs::Component {
@@ -23,7 +24,7 @@ namespace omen {
     private:
         Transform* m_tr;
         Joystick *m_joystick;
-        Mesh *m_obj;
+        std::shared_ptr<ecs::GameObject> m_obj;
     };
 
 } // namespace omen;

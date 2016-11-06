@@ -14,7 +14,7 @@ Button::Button(View* parentView, const std::string &name,const std::string &spri
         View(parentView, name),
         Clickable(this)
 {
-    addComponent(new ecs::Sprite(sprite,pos, width, height));
+    //addComponent(new ecs::Sprite(sprite,pos, width, height));
     ecs::Clickable::signal_entity_clicked.connect([&](ecs::Entity* e, glm::vec2 pos){
         if(e==this){
             signal_button_clicked.notify(this,pos);
