@@ -21,7 +21,7 @@ namespace omen {
 
             virtual ~System() { };
 
-            void add(Component *component) { m_components.push_back(component); };
+            virtual void add(Component *component) { m_components.push_back(component); };
 
             void remove(Component *component) {
                 std::vector<Component *>::iterator c = std::find(m_components.begin(), m_components.end(), component);

@@ -18,6 +18,10 @@ namespace omen {
 
         virtual void render();
 
+	protected:
+		virtual void initializeShader() {};
+		virtual void initializeTexture() {};
+
     private:
         std::vector<GLshort> m_indices;
         GLuint m_vao;

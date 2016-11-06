@@ -27,6 +27,7 @@
 #include "component/Picker.h"
 #include "component/CameraController.h"
 #include "component/Transformer.h"
+#include "component/Sprite.h"
 #include "system/GraphicsSystem.h"
 
 
@@ -339,6 +340,8 @@ void Engine::render() {
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	renderScene();
+	//ecs::Sprite s("textures/checker.jpg", glm::vec2(0,0));
+	//s.render();
 	m_window->end_rendering();
 
 	handle_task_queue();

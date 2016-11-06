@@ -30,6 +30,8 @@ namespace omen {
 
         Mesh();
 
+		void init();
+
         Mesh(const std::string &shader,
              Material *material,
              std::vector<glm::vec3> &vertices,

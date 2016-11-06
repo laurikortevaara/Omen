@@ -42,6 +42,20 @@ static Shader *normalShader = nullptr;
 std::map<std::string, Shader *> Mesh::shaders;
 const std::string DEFAULT_TEXTURE = "textures/skull.png";
 
+Mesh::Mesh() : m_shader(nullptr) {
+
+}
+
+void Mesh::init() {
+	std::cout << "Mesh::Mesh()" << std::endl;
+	Material *m = new Material();
+	m->setTexture(new Texture(getDefaultTexture()));
+
+	std::string shader_name = "shaders/pass_through.glsl";
+
+	create(shader_name, m, m_frames[0].m_vertices, m_frames[0].m_normals, m_texture_coords, m_vertex_indices);
+}
+
 /**
  * Mesh CTOR
  */
@@ -179,8 +193,10 @@ void Mesh::create(const std::string &shader,
 	std::cout << "Size of vertices: " << vertices.size() << std::endl;
 	std::cout << "Size of normals: " << normals.size() << std::endl;
 	std::cout << "Size of texcoord: " << texcoords.size() << std::endl;
+		
+	if (m_frames.empty())
+		m_frames.push_back(Frame());
 
-	m_frames.push_back(Frame());
 	for (auto v : vertices) m_frames[0].m_vertices.push_back(v);
 	for (auto n : normals) m_frames[0].m_normals.push_back(n);
 	for (auto t : texcoords) m_texture_coords.push_back(t);
@@ -197,6 +213,7 @@ void Mesh::create(const std::string &shader,
 Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,
 	std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices) {
 	bRenderBB = true;
+	m_frames.push_back(Frame());
 	std::cout <<
 		"Mesh::Mesh(onst std::string &shader, Material *material, std::vector<Mesh::Frame> &frames,std::vector<glm::vec2> &texcoords, std::vector<GLsizei> &indices)" <<
 		std::endl;
@@ -250,19 +267,6 @@ Mesh::Mesh(const std::string &shader, Material *material, std::vector<Mesh::Fram
 		else
 			bRenderBB = false;
 	});
-}
-
-
-/**
- * Default CTOR with test content
- */
-Mesh::Mesh() {
-	std::cout << "Mesh::Mesh()" << std::endl;
-	Material *m = new Material();
-	m->setTexture(new Texture(getDefaultTexture()));
-
-	std::string shader_name = "shaders/pass_through.glsl";
-	create(shader_name, m, m_frames[0].m_vertices, m_frames[0].m_normals, m_texture_coords, m_vertex_indices);
 }
 
 void Mesh::genBuffers() {

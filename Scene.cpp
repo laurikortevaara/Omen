@@ -13,14 +13,18 @@
 #include "PointLight.h"
 #include "Ocean.h"
 #include "system/GraphicsSystem.h"
+#include "MeshProvider.h"
 
 using namespace omen;
 
 Scene::Scene() {
 
-	//m_sky = new Sky();
+	m_sky = new Sky();
 	Engine* e = Engine::instance();
 	Window* w = e->window();
+	
+	
+	/*
 	ui::Button* button = new ui::Button(nullptr, "Button1", "textures/bubble.png", glm::vec2(w->width() / 2.0, w->height() / 2.0), 100, 100);
 	button->signal_button_clicked.connect([&](ui::Button* b, glm::vec2 pos) {
 		ecs::Sprite* s = b->getComponent<ecs::Sprite>();
@@ -40,6 +44,13 @@ Scene::Scene() {
 		ecs::Sprite* s = b->getComponent<ecs::Sprite>();
 		s->setEnabled(!s->enabled());
 	});
+	*/
+
+	std::shared_ptr<Mesh> mesh = MeshProvider::createPlane();
+	std::unique_ptr<Model> model = std::make_unique<Model>();
+	model->m_mesh = mesh;
+	m_models.push_back(std::move(model));
+
 	createGround();
 	/*
 	{
@@ -61,7 +72,7 @@ Scene::Scene() {
 		loadModel(files.front());
 	});
 
-	//std::shared_ptr<Model> m = loadModel("models/cube.md3");
+	//std::shared_ptr<Model> m = loadModel("models/test.obj");
 	//m->m_mesh->m_transform.pos() = glm::vec3(3,0.2,0);
 
 
@@ -141,11 +152,11 @@ void Scene::createGround() {
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
 	check_gl_error();
 
-	//m_sky->render();
-	/*for (const auto &model : m_models)
+	m_sky->render();
+	for (const auto &model : m_models)
 		model->render(viewProjection, view);
 	for( const auto &r : m_renderables)
-		r->render();*/
+		r->render();
 
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 	gs->render();

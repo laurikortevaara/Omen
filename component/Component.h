@@ -13,8 +13,8 @@ namespace omen {
         class Entity;
         class Component {
         protected:
-            Entity *m_entity;
-            bool m_isEnabled;
+            Entity *m_entity = nullptr;
+            bool m_isEnabled = false;
 
             virtual void onAttach(ecs::Entity* e) = 0;
             virtual void onDetach(ecs::Entity* e) = 0;

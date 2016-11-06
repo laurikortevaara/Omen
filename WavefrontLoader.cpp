@@ -13,6 +13,7 @@
 #include <string.h>
 #include <memory>
 
+using namespace omen;
 
 std::vector<glm::vec3> WavefrontLoader::m_vertices;
 std::vector<glm::vec3> WavefrontLoader::m_parameter_coords;
