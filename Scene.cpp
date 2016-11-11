@@ -15,6 +15,8 @@
 #include "Ocean.h"
 #include "system/GraphicsSystem.h"
 #include "MeshProvider.h"
+#include "GameObject.h"
+#include "component/MeshRenderer.h"
 
 using namespace omen;
 
@@ -33,6 +35,17 @@ Scene::Scene() {
 
 		});
 	}
+
+	std::shared_ptr<MeshProvider> provider = std::make_shared<MeshProvider>();
+	std::shared_ptr<Mesh> mesh = provider->createPlane();
+	
+	std::shared_ptr<omen::ecs::GameObject> obj = std::make_shared<omen::ecs::GameObject>("obj");
+	std::shared_ptr<omen::ecs::MeshController> mc = std::make_shared<omen::ecs::MeshController>();
+	std::shared_ptr<omen::ecs::MeshRenderer> mr = std::make_shared<omen::ecs::MeshRenderer>();
+	obj->addCompnent(mc.get());
+	obj->addCompnent(mr.get());
+	mc->setMesh(mesh);
+	addEntity(obj);
 }
 
 std::shared_ptr<Model> Scene::loadModel(const std::string filename) {
