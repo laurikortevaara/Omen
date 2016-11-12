@@ -12,14 +12,14 @@ namespace omen {
     class Model {
     public:
         // ctor with pre-created mesh
-        Model(std::shared_ptr<Mesh> mesh= nullptr);
+        Model(std::unique_ptr<Mesh> mesh= nullptr);
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
-		std::shared_ptr<Mesh> mesh() {
-			return m_mesh;
+		Mesh* mesh() {
+			return m_mesh.get();
 		}
 	private:
-        std::shared_ptr<omen::Mesh> m_mesh;
+        std::unique_ptr<omen::Mesh> m_mesh;
     };
 } // namespace omen
 

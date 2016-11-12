@@ -20,13 +20,13 @@
 
 using namespace omen;
 
-Model::Model(std::shared_ptr<Mesh> mesh) :
-    m_mesh(mesh) //std::move(mesh))
+Model::Model(std::unique_ptr<Mesh> mesh) :
+    m_mesh(std::move(mesh))
 {
-    std::cout << "Model::Model(Mesh*) == " << mesh << std::endl;
+    std::cout << "Model::Model(Mesh*) == " << mesh.get() << std::endl;
     check_gl_error();
     if(m_mesh == nullptr)
-        m_mesh = std::shared_ptr<Mesh>();
+        m_mesh = std::unique_ptr<Mesh>();
     check_gl_error();
 }
 

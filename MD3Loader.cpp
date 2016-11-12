@@ -152,7 +152,7 @@ glm::vec3 MD3Loader::fromSpherical(U8 spherical_coord[2]) {
 
 using namespace omen;
 
-void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
+void MD3Loader::getMesh(std::vector<std::unique_ptr<omen::Mesh>> &meshes) {
 	GLfloat s = 1000;
 	std::vector<GLsizei> indices;
 	//std::vector<omen::Mesh::Frame> frames;
@@ -161,7 +161,7 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
 	std::vector<glm::vec2> texcoords;
 
 	for (auto m : m_meshes) {
-		std::shared_ptr<Mesh> mesh = nullptr;
+		std::unique_ptr<Mesh> mesh = nullptr;
 
 		for (auto face : m->faces) {
 			for (auto index : face.indices) {
@@ -182,7 +182,7 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
 		}
 
 
-		std::shared_ptr<Material> material = std::make_shared<Material>();
+		std::unique_ptr<Material> material = std::make_unique<Material>();
 
 		/*material->setDiffuseColor(glm::vec4(0.75, 0.75, 0.75, 1));
 		material->setAmbientColor(glm::vec4(0.75, 0.75, 0.75, 1));
@@ -191,7 +191,7 @@ void MD3Loader::getMesh(std::vector<std::shared_ptr<omen::Mesh>> &meshes) {
 		//material->setMatcapTexture(new Texture("textures/generator1.jpg"));
 
 		std::string shader_name = "shaders/pass_through.glsl";
-		//mesh = std::make_shared<Mesh>(shader_name, material, frames, texcoords, indices);
+		//mesh = std::make_unique<Mesh>(shader_name, material, frames, texcoords, indices);
 		meshes.push_back(std::move(mesh));
 	}
 }

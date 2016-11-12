@@ -25,7 +25,7 @@ class VertexBufferObject {
 public:
     VertexBufferObject();
     void initialize();
-    void setMesh(std::vector< std::shared_ptr<Triangle> > triangles);
+    void setMesh(std::vector< std::unique_ptr<Triangle> > triangles);
 
     void activate();
     void deactivate();

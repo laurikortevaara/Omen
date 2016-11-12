@@ -120,7 +120,7 @@ void TextRenderer::render_text(const wchar_t *text, float fontSize, float x, flo
 }
 
 void TextRenderer::initializeShader() {
-    setShader(std::make_shared<Shader>("shaders/font_shader.glsl"));
+    setShader(std::make_unique<Shader>("shaders/font_shader.glsl"));
 }
 
 void TextRenderer::initializeTexture() {

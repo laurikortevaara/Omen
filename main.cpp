@@ -12,7 +12,7 @@
 
 using namespace omen;
 
-std::shared_ptr<omen::Scene> gScene = nullptr;
+std::unique_ptr<omen::Scene> gScene = nullptr;
 
 /**
 * the main
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 	/* initialize random seed: */
 	srand(unsigned int(time(nullptr)));
 	omen::Engine *engine = omen::Engine::instance();
-	std::shared_ptr<omen::Window> window = engine->createWindow(1280, 1280);
+	const std::unique_ptr<omen::Window>& window = engine->createWindow(1280, 1280);
 	check_gl_error();
 
 	omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	//gScene = std::make_shared<Scene>(Scene());
+	//gScene = std::make_unique<Scene>(Scene());
 
 	/* Loop until the user closes the window */
 	while (!window->shouldClose()) {

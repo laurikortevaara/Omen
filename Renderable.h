@@ -13,11 +13,11 @@ namespace omen {
     class Renderable : public omen::Object {
     public:
         virtual void render() = 0;
-
+		virtual ~Renderable();
     protected:
         Renderable(glm::vec3 pos, float width, float height, float depth = 0.0f);
 
-        virtual ~Renderable();
+
 
         void setShader(Shader* shader) {m_shader = shader;}
         void setTexture(Texture* texture) {m_texture = texture;}

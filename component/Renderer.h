@@ -13,23 +13,26 @@ namespace omen {
 		public:
 			virtual void render() = 0;
 
-			Renderer& setShader(std::shared_ptr<Shader> shader) { m_shader = shader; return *this; }
-			std::shared_ptr<Shader> shader() const { return m_shader; }
+			Renderer& setShader(std::unique_ptr<Shader> shader) { m_shader = std::move(shader); return *this; }
+			Shader* shader() const { return m_shader.get(); }
 
-			Renderer& setTexture(std::shared_ptr<Texture> texture) { m_texture = texture; return *this; }
-			std::shared_ptr<Texture> texture() const { return m_texture; }
+			Renderer& setTexture(std::unique_ptr<Texture> texture) { m_texture = std::move(texture); return *this; }
+			Texture* texture() const { return m_texture.get(); }
 		public:
 		protected:
-			Renderer() : Component() {
+			Renderer() : m_vao(0),
+				m_vbo(0),
+				Component() {
 				GraphicsSystem *gs = omen::Engine::instance()->findSystem<GraphicsSystem>();
 				assert(gs != nullptr);
 				gs->add(this);
+				int a = 1;
 			};
 		protected:
 			GLuint m_vao;
 			GLuint m_vbo;
-			std::shared_ptr<Shader> m_shader;
-			std::shared_ptr<Texture> m_texture;
+			std::unique_ptr<Shader> m_shader;
+			std::unique_ptr<Texture> m_texture;
 		private:
 		};
 	}

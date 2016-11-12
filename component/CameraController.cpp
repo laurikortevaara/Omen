@@ -2,6 +2,7 @@
 // Created by Lauri Kortevaara(Intopalo) on 10/01/16.
 //
 
+#include "../component/Component.h"
 #include "CameraController.h"
 #include "../system/InputSystem.h"
 #include "MouseInput.h"
@@ -24,7 +25,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 
 	Picker* picker = Engine::instance()->findComponent<Picker>();
 	if (picker)
-		picker->signal_object_picked.connect([&](std::shared_ptr<ecs::Entity> obj) {
+		picker->signal_object_picked.connect([&](ecs::Entity* obj) {
 		this->setEnabled(obj == nullptr);
 	});
 

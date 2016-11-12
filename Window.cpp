@@ -128,7 +128,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
 	//glfwSetCursor(m_window, nullptr);
 	check_gl_error();
 	// Notify about window being created
-	signal_window_created.notify(shared_from_this());
+	signal_window_created.notify(this);
 	check_gl_error();
 
 	Engine* e = Engine::instance();

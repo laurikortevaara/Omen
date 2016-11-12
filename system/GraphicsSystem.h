@@ -13,7 +13,7 @@ namespace omen {
         class GraphicsSystem : public ecs::System {
 
         public:
-			virtual void add(Component *component) { m_components.push_back(component); };
+			virtual void add(Component *component);
             void render();
 
         };

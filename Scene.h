@@ -24,19 +24,19 @@ namespace omen {
     public:
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
-        std::vector<std::shared_ptr<Light> >& lights() {return m_lights;}
+        std::vector<std::unique_ptr<Light> >& lights() {return m_lights;}
 
-		const std::vector<std::shared_ptr<ecs::Entity>>& entities() { return m_entities; }
+		const std::vector<std::unique_ptr<ecs::Entity>>& entities() { return m_entities; }
 
-		void addEntity(std::shared_ptr<ecs::Entity> entity);
+		void addEntity(std::unique_ptr<ecs::Entity> entity);
 
     private:
-        std::vector<std::shared_ptr<ecs::Entity> > m_entities;
-        std::vector<std::shared_ptr<Light> > m_lights;
-        std::vector<std::shared_ptr<omen::Renderable> > m_renderables;
+        std::vector<std::unique_ptr<ecs::Entity> > m_entities;
+        std::vector<std::unique_ptr<Light> > m_lights;
+        std::vector<std::unique_ptr<omen::Renderable> > m_renderables;
         Sky*    m_sky;
 
-        std::shared_ptr<Model> loadModel(const std::string filename);
+        std::unique_ptr<Model> loadModel(const std::string filename);
 
         void render();
     };

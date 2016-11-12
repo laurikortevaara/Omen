@@ -69,9 +69,7 @@ Engine::Engine() :
 	if (currentDir.find("bin") == std::string::npos)
 		_chdir("bin");
 
-	Window::signal_window_created.connect([this](std::shared_ptr<Window> window) {
-		m_window = window;
-
+	Window::signal_window_created.connect([this](Window* window) {
 		initializeSystems();
 
 		m_camera = new Camera("Camera1", { 0, 5, 10 }, { 0, 0, 0 }, 45.0f);
@@ -83,11 +81,11 @@ Engine::Engine() :
 
 		/* omen::MD3Loader loader;
 		 loader.loadModel("models/sphere.md3");
-		 std::vector<std::shared_ptr<omen::Mesh>> meshes;
+		 std::vector<std::unique_ptr<omen::Mesh>> meshes;
 		 for (int i = 0; i < 1; ++i) {
 			 loader.getMesh(meshes);
 			 m_currentSelection = nullptr;
-			 std::shared_ptr<Model> model = std::make_shared<Model>(meshes.front());
+			 std::unique_ptr<Model> model = std::make_unique<Model>(meshes.front());
 			 m_currentSelection = model.get();
 			 model->m_mesh->m_amplitude = 0.0;
 			 model->m_mesh->m_transform.pos() = {omen::random(-10, 10), omen::random(1, 5), omen::random(-10, 10)};
@@ -350,8 +348,8 @@ void Engine::render() {
 }
 
 
-std::shared_ptr<Window> Engine::createWindow(unsigned int width, unsigned int height) {
-	m_window = std::make_shared<Window>();
+const std::unique_ptr<Window>& Engine::createWindow(unsigned int width, unsigned int height) {
+	m_window = std::make_unique<Window>();
 	m_window->createWindow(width, height);
 	check_gl_error();
 	glFrontFace(GL_CCW);

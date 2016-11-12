@@ -28,10 +28,10 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-		picker->signal_object_picked.connect([&](std::shared_ptr<ecs::Entity> obj) {
-		if (std::dynamic_pointer_cast<ecs::GameObject>(obj)) {
+		picker->signal_object_picked.connect([&](ecs::Entity* obj) {
+		if (obj) {
 			setEnabled(obj != nullptr);
-			m_obj = std::dynamic_pointer_cast<ecs::GameObject>(obj);
+			m_obj = dynamic_cast<omen::ecs::GameObject*>(obj);
 			if (obj) {
 				m_tr = m_obj->transform();
 			}

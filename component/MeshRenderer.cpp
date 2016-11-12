@@ -8,15 +8,15 @@ float points[] = {
 	0.5f, -0.5f,  -1.0f
 };
 
-std::shared_ptr<omen::Shader> pShader = nullptr;
+std::unique_ptr<omen::Shader> pShader = nullptr;
 
 omen::ecs::MeshRenderer::MeshRenderer() : Renderer()
 {
-	pShader = std::make_shared<omen::Shader>("shaders/pass_through.glsl");
+	pShader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
 }
 
-void omen::ecs::MeshRenderer::onAttach(std::shared_ptr<Entity> e) {
-	std::shared_ptr<ecs::MeshController> meshController = e->getComponent<ecs::MeshController>();
+void omen::ecs::MeshRenderer::onAttach(std::unique_ptr<Entity> e) {
+	const ecs::MeshController* meshController = nullptr; // e->getComponent<ecs::MeshController>();
 	if (meshController) {
 		// Create VAO
 		glGenVertexArrays(1, &m_vao);
@@ -33,7 +33,7 @@ void omen::ecs::MeshRenderer::onAttach(std::shared_ptr<Entity> e) {
 	}
 }
 
-void omen::ecs::MeshRenderer::onDetach(std::shared_ptr<Entity> e) {
+void omen::ecs::MeshRenderer::onDetach(std::unique_ptr<Entity> e) {
 
 }
 

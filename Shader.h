@@ -106,7 +106,7 @@ namespace omen {
         void setUniformMatrix4dv(const std::string &uniform, int count, double *values, bool bTranspose);
 
 
-        void setMaterial(std::shared_ptr<Material> material);
+        void setMaterial(std::unique_ptr<Material> material);
 
         void setTexture(int textureIndex, const std::string& textureName, Texture *texture);
 

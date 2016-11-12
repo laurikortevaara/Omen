@@ -11,15 +11,15 @@ namespace omen {
 			virtual void onDetach(ecs::Entity* entity);
 		public:
 			MeshController() : ecs::Component(), m_mesh(nullptr) {};
-			MeshController& setMesh(std::shared_ptr<Mesh> mesh) {
-				m_mesh = mesh;
+			MeshController& setMesh(std::unique_ptr<Mesh> mesh) {
+				m_mesh = std::move(mesh);
 				return *this;
 			}
 
-			const std::shared_ptr<Mesh>& mesh() { return m_mesh; }
+			const std::unique_ptr<Mesh>& mesh() const { return m_mesh; }
 		protected:
 		private:
-			std::shared_ptr<Mesh> m_mesh;
+			std::unique_ptr<Mesh> m_mesh;
 
 		};
 	}

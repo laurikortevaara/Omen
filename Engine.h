@@ -48,7 +48,7 @@ namespace omen {
         /** Public class interface **/
     public:
 
-        std::shared_ptr<Window> createWindow(unsigned int width, unsigned int height);
+        const std::unique_ptr<Window>& createWindow(unsigned int width, unsigned int height);
 
 		omen::floatprec time();
         void update();
@@ -104,7 +104,7 @@ namespace omen {
 
 
     private:
-        std::shared_ptr<Window> m_window;
+        std::unique_ptr<Window> m_window;
         Camera *m_camera;
         ui::Button *m_button;
         std::unique_ptr<Scene> m_scene;

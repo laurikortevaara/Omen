@@ -11,12 +11,12 @@
 using namespace omen::ecs;
 
 Clickable::Clickable(Entity* e) {
-    e->addComponent(shared_from_this());
+    //e->addComponent(this);
     Engine::instance()->findComponent<MouseInput>()->
             signal_mousebutton_pressed.connect([&](int button, int action, int mods) -> void {
         if (action != GLFW_PRESS)
             return;
-        std::shared_ptr<Transform> tr = entity()->getComponent<Transform>();
+		Transform* tr = nullptr; // const_cast<Transform*>(entity()->getComponent<Transform>());
         if(tr!=nullptr){
             glm::vec3 bmin, bmax;
             tr->getBounds(bmin,bmax);

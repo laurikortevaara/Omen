@@ -44,9 +44,9 @@ void VertexBufferObject::initialize() {
     check_gl_error();
 }
 
-void VertexBufferObject::setMesh(std::vector<std::shared_ptr<Triangle> > triangles) {
+void VertexBufferObject::setMesh(std::vector<std::unique_ptr<Triangle> > triangles) {
     std::vector<GLfloat> verts;
-    for(auto t : triangles) {
+    for(auto& t : triangles) {
         verts.push_back(t->m_p1.x);
         verts.push_back(t->m_p1.y);
         verts.push_back(t->m_p1.z);

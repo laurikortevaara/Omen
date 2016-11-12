@@ -4,22 +4,26 @@
 
 #include "GameObject.h"
 #include <algorithm>
+#include "component/Transform.h"
 
 using namespace omen;
 using namespace ecs;
 
 GameObject::GameObject(const std::string &name) :
         Entity(name){
-    m_tr = new Transform();
-    addCompnent(m_tr);
+    std::unique_ptr<Transform> tr = std::make_unique<Transform>();
+	m_tr = tr.get();
+    addCompnent(std::move(tr));
 }
 
-void GameObject::addCompnent(ecs::Component *component) {
-    m_components.push_back(component);
+void GameObject::addCompnent(std::unique_ptr<omen::ecs::Component> component) {
+    m_components.push_back(std::move(component));
 }
 
 void GameObject::removeComponent(ecs::Component *component) {
-    std::vector<ecs::Component *>::iterator iter = std::find(m_components.begin(), m_components.end(), component);
+    std::vector< std::unique_ptr<ecs::Component> >::iterator iter = 
+		std::find_if(m_components.begin(), m_components.end(), 
+			[component](std::unique_ptr<ecs::Component> const& a)->bool { return a.get() == component; });
     if (iter != m_components.end())
         m_components.erase(iter);
 }

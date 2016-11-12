@@ -8,9 +8,14 @@
 using namespace omen;
 using namespace ecs;
 
+void GraphicsSystem::add(Component* component)
+{
+	m_components.push_back(component); 
+}
+
 void GraphicsSystem::render() {
     for(auto c : m_components){
-        Renderer* r = static_cast<Renderer*>(c);
+        Renderer* r = dynamic_cast<Renderer*>(c);
 		if(r != nullptr)
 			r->render();
     }

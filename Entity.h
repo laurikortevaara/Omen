@@ -18,31 +18,31 @@ namespace omen {
 		class Entity : public omen::Object {
 
 			Entity* m_parent;
-			std::vector<std::shared_ptr<Entity>> m_children;
-			std::vector<std::shared_ptr<Component>> m_components;
+			std::vector<std::unique_ptr<Entity>> m_children;
+			std::vector<std::unique_ptr<Component>> m_components;
 
 		protected:
 			Entity(const std::string &name);
 			Entity* parent() { return m_parent; }
 
-			virtual ~Entity() {};
+            const std::vector<std::unique_ptr<Entity>>& children() {return m_children;}
+            bool addChild(std::unique_ptr<Entity> e);
+            bool removeChild(std::unique_ptr<Entity> e);
 
-            std::vector<std::shared_ptr<Entity>>& children() {return m_children;}
-            bool addChild(std::shared_ptr<Entity> e);
-            bool removeChild(std::shared_ptr<Entity> e);
-
-            bool removeComponent(std::shared_ptr<Component> c);
+            bool removeComponent(std::unique_ptr<Component> c);
 
         public:
             template<class type>
-            std::shared_ptr<type> getComponent(const std::string &component_name = "") {
-                for (auto c : m_components)
-                    if (std::dynamic_pointer_cast<type>(c) != nullptr)
-                        return std::dynamic_pointer_cast<type>(c);
-                return nullptr;
-            }
+			type* getComponent(const std::string &component_name = "") {
+				for (auto& c : m_components)
+					if (c.get() != nullptr)
+						return dynamic_cast<type*>(c.get());
+				return nullptr;
+			}
 
-            bool addComponent(std::shared_ptr<Component> c);
+            bool addComponent(std::unique_ptr<Component> c);
+
+			virtual ~Entity() {};
         };
     } // namespace ecs
 } // namespace omen

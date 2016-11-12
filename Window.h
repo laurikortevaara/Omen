@@ -23,7 +23,7 @@ namespace omen {
         typedef Signal< std::function<void (int width, int height)> > WindowSizeChanged;
         WindowSizeChanged signal_window_size_changed;
 
-        typedef Signal< std::function<void (std::shared_ptr<Window>) > > WindowCreated;
+        typedef Signal< std::function<void (Window*) > > WindowCreated;
         static WindowCreated signal_window_created;
 
         typedef Signal< std::function<void (std::vector<std::string> filePaths) > > FileDropped;

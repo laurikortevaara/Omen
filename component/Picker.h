@@ -20,7 +20,7 @@ namespace omen {
         virtual void onAttach(ecs::Entity* e);
         virtual void onDetach(ecs::Entity* e);
     public:
-        typedef omen::Signal<std::function<void(std::shared_ptr<ecs::Entity>)> > ObjectPicked_t;
+        typedef omen::Signal<std::function<void(ecs::Entity*)> > ObjectPicked_t;
         ObjectPicked_t signal_object_picked;
 
     public:

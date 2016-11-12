@@ -6,13 +6,13 @@ namespace omen {
 	namespace ecs {
 		class MeshRenderer : public Renderer {
 		protected:
-			virtual void onAttach(std::shared_ptr<ecs::Entity> e);
-			virtual void onDetach(std::shared_ptr<ecs::Entity> e);
+			virtual void onAttach(std::unique_ptr<ecs::Entity> e);
+			virtual void onDetach(std::unique_ptr<ecs::Entity> e);
 		public:
 			MeshRenderer();
 			
 			MeshRenderer& setMaterial(const Material& material) {
-				m_material = std::make_shared<Material>(material);
+				m_material = std::make_unique<Material>(material);
 				return *this;
 			}
 
@@ -20,7 +20,7 @@ namespace omen {
 			
 		protected:
 		private:
-			std::shared_ptr<Material> m_material;
+			std::unique_ptr<Material> m_material;
 		};
 
 	}

@@ -112,17 +112,18 @@ void Picker::pick() {
 
     Scene *scene = Engine::instance()->scene();
     float min_intersect =  std::numeric_limits<float>::max();
-    std::shared_ptr<ecs::Entity> pSelected = nullptr;
-    for (auto model : scene->entities()) {
-		if (model->getComponent<ecs::MeshController>()) {
-			std::shared_ptr<Mesh> mesh = model->getComponent<ecs::MeshController>()->mesh();
+    ecs::Entity* pSelected = nullptr;
+    for (const auto& model : scene->entities()) {
+		if (true) {//model->getComponent<ecs::MeshController>()) {
+			omen::ecs::MeshController* ctr = model->getComponent<ecs::MeshController>();
+			const std::unique_ptr<Mesh>& mesh = ctr->mesh();
 			float intersect;
 			BoundingBox b = mesh->boundingBox();
 			if (ray.segmentAABBoxIntersect(b, { v0, (v1 - v0) * 100.0f }, intersect)) {
-				signal_object_picked.notify(model);
+				signal_object_picked.notify(model.get());
 				if (intersect < min_intersect) {
 					min_intersect = intersect;
-					pSelected = model;
+					pSelected = model.get();
 				}
 			}
 		}

@@ -26,7 +26,8 @@ namespace omen {
         Transform() : m_scale(1), m_tr(1), m_rotation(0), m_position(0) {};
         Transform(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale):
                 m_position(position),m_rotation(rotation), m_scale(scale){}
-        glm::vec3& pos()  { return m_position; }
+        glm::vec3& pos() { return m_position; }
+
 
         explicit Transform(const Transform& tr) {
             m_tr = tr.m_tr;
@@ -54,7 +55,7 @@ namespace omen {
         glm::mat4 scale(const glm::vec3 &scale) { m_tr = glm::scale(m_tr, scale); return m_tr; }
 
         void setBounds(glm::vec3 min, glm::vec3 max) {m_bounds_max = max; m_bounds_min = min;}
-        void getBounds(glm::vec3& min, glm::vec3& max) {max = m_bounds_max ; min = m_bounds_min;}
+        void getBounds(glm::vec3& min, glm::vec3& max)const {max = m_bounds_max ; min = m_bounds_min;}
     };
 } // namespace omen
 

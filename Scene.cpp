@@ -36,37 +36,41 @@ Scene::Scene() {
 		});
 	}
 
-	std::shared_ptr<MeshProvider> provider = std::make_shared<MeshProvider>();
-	std::shared_ptr<Mesh> mesh = provider->createPlane();
+	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
+	std::unique_ptr<Mesh> mesh = provider->createPlane();
 	
-	std::shared_ptr<omen::ecs::GameObject> obj = std::make_shared<omen::ecs::GameObject>("obj");
-	std::shared_ptr<omen::ecs::MeshController> mc = std::make_shared<omen::ecs::MeshController>();
-	std::shared_ptr<omen::ecs::MeshRenderer> mr = std::make_shared<omen::ecs::MeshRenderer>();
-	obj->addCompnent(mc.get());
-	obj->addCompnent(mr.get());
-	mc->setMesh(mesh);
-	addEntity(obj);
+	omen::ecs::GraphicsSystem *gs = omen::Engine::instance()->findSystem<omen::ecs::GraphicsSystem>();
+	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
+	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+	mc->setMesh(std::move(mesh));
+
+	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
+
+	obj->addCompnent(std::move(mc));
+	obj->addCompnent(std::move(mr));
+
+	addEntity(std::move(obj));
 }
 
-std::shared_ptr<Model> Scene::loadModel(const std::string filename) {
+std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 	omen::MD3Loader loader;
 	loader.loadModel(filename);
-	std::vector<std::shared_ptr<omen::Mesh>> meshes;
+	std::vector<std::unique_ptr<omen::Mesh>> meshes;
 	loader.getMesh(meshes);
 	int i = 0;
-	std::shared_ptr<Model> model;
+	std::unique_ptr<Model> model;
 	for (auto& mesh : meshes) {
-		model = std::make_shared<Model>(mesh);
+		model = std::make_unique<Model>(std::move(mesh));
 		
 		std::string name = filename;
 		name += "_";
 		name += i;
-		std::shared_ptr<ecs::GameObject> obj = std::make_shared<ecs::GameObject>(name);
-		std::shared_ptr<ecs::MeshController> meshController = std::make_shared<ecs::MeshController>();
-		meshController->setMesh(model->mesh());
-		obj->addComponent(meshController);
+		std::unique_ptr<ecs::GameObject> obj = std::make_unique<ecs::GameObject>(name);
+		std::unique_ptr<ecs::MeshController> meshController = std::make_unique<ecs::MeshController>();
+		//meshController->setMesh(model->mesh());
+		//obj->addComponent(meshController);
 
-		addEntity(obj);
+		//addEntity(obj);
 		
 		i++;
 	}
@@ -82,7 +86,7 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
 	gs->render();
 }
 
-void omen::Scene::addEntity(std::shared_ptr<ecs::Entity> entity)
+void omen::Scene::addEntity(std::unique_ptr<ecs::Entity> entity)
 {
-	m_entities.push_back(entity);
+	m_entities.push_back(std::move(entity));
 }

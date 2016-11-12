@@ -24,7 +24,7 @@ namespace omen {
     private:
         Transform* m_tr;
         Joystick *m_joystick;
-        std::shared_ptr<ecs::GameObject> m_obj;
+        ecs::GameObject* m_obj;
     };
 
 } // namespace omen;

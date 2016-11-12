@@ -388,7 +388,7 @@ void Shader::setTexture(int textureIndex, const std::string &textureName, Textur
 	glBindTexture(GL_TEXTURE_2D, texture->id());
 }
 
-void Shader::setMaterial(std::shared_ptr<Material> material) {
+void Shader::setMaterial(std::unique_ptr<Material> material) {
 	/*if(material->texture()!= nullptr)
 		setTexture(0, "Texture", material->texture());*/
 	use();

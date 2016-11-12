@@ -240,7 +240,7 @@ std::unique_ptr<omen::Mesh> WavefrontLoader::mesh::getMesh() {
         }
     }
 
-    std::shared_ptr<Material> material = std::make_shared<Material>();
+    std::unique_ptr<Material> material = std::make_unique<Material>();
     for(auto matdef : WavefrontLoader::materials) {
         if(matdef->name==this->material){
             material->setDiffuseColor(glm::vec4(matdef->Kd,1));
