@@ -35,8 +35,11 @@ namespace omen {
             template<class type>
 			type* getComponent(const std::string &component_name = "") {
 				for (auto& c : m_components)
-					if (c.get() != nullptr)
-						return dynamic_cast<type*>(c.get());
+					if (c.get() != nullptr) {
+						type* ptr = dynamic_cast<type*>(c.get());
+						if(ptr != nullptr)
+							return ptr;
+					}
 				return nullptr;
 			}
 

@@ -8,8 +8,8 @@ namespace omen {
 	namespace ecs {
 		class Renderer : public Component {
 		protected:
-			virtual void onAttach(ecs::Entity* e);
-			virtual void onDetach(ecs::Entity* e);
+			virtual void onAttach(ecs::Entity* e) = 0;
+			virtual void onDetach(ecs::Entity* e) = 0;
 		public:
 			virtual void render() = 0;
 

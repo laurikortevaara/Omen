@@ -17,7 +17,7 @@ GameObject::GameObject(const std::string &name) :
 }
 
 void GameObject::addCompnent(std::unique_ptr<omen::ecs::Component> component) {
-    m_components.push_back(std::move(component));
+	Entity::addComponent(std::move(component));
 }
 
 void GameObject::removeComponent(ecs::Component *component) {

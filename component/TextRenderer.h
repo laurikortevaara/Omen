@@ -13,6 +13,9 @@
 namespace omen {
     namespace ecs {
         class TextRenderer : public Renderer {
+		protected:
+			virtual void onAttach(ecs::Entity* e) {};
+			virtual void onDetach(ecs::Entity* e) {};
         public:
             virtual void render();
 

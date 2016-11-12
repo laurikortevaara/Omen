@@ -6,8 +6,9 @@ namespace omen {
 	namespace ecs {
 		class MeshRenderer : public Renderer {
 		protected:
-			virtual void onAttach(std::unique_ptr<ecs::Entity> e);
-			virtual void onDetach(std::unique_ptr<ecs::Entity> e);
+		protected:
+			virtual void onAttach(ecs::Entity* e);
+			virtual void onDetach(ecs::Entity* e);
 		public:
 			MeshRenderer();
 			

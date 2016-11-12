@@ -12,6 +12,7 @@
 
 namespace omen {
 	namespace ecs {
+
 		class GameObject : public ecs::Entity {
 			Transform* m_tr;
 			std::vector< std::unique_ptr<ecs::Component> > m_components;

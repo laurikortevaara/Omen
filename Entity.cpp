@@ -34,8 +34,8 @@ bool Entity::removeChild(std::unique_ptr<Entity> e) {
 
 bool Entity::addComponent(std::unique_ptr<Component> c) {
     if(std::find(m_components.begin(), m_components.end(), c)==m_components.end()){
-        m_components.push_back(std::move(c));
 		c->setEntity(this);
+		m_components.push_back(std::move(c));
         return true;
     }
     else
