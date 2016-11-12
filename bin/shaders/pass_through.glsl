@@ -24,7 +24,8 @@ void main() {
     //dataOut.texcoord = texcoord;
     //dataOut.normal = normal;
 
-    gl_Position = vec4(position,1); //ModelViewProjection * Model * position;
+    //gl_Position = ModelViewProjection * Model * position;
+	gl_Position = ModelViewProjection * vec4(position,1);
 }
 #endif
 

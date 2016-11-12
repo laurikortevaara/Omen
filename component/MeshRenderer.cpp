@@ -50,10 +50,13 @@ void omen::ecs::MeshRenderer::onDetach(Entity* e) {
 
 void omen::ecs::MeshRenderer::render()
 {
+	glDisable(GL_CULL_FACE);
 	check_gl_error();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		
 	pShader->use();
+	glm::mat4x4 modelviewproj = Engine::instance()->camera()->viewProjection();
+	pShader->setUniformMatrix4fv("ModelViewProjection", 1, (float*)&modelviewproj, false);
 	check_gl_error();
 	glBindVertexArray(m_vao);
 	check_gl_error();
