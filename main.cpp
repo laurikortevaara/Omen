@@ -9,6 +9,7 @@
 #include "component/KeyboardInput.h"
 #include "GL_error.h"
 #include <time.h>
+#include <mmsystem.h>
 
 using namespace omen;
 
@@ -18,6 +19,7 @@ std::unique_ptr<omen::Scene> gScene = nullptr;
 * the main
 **/
 int main(int argc, char *argv[]) {
+	
 	int* i = new int[5];
 	delete[] i;
 	/* initialize random seed: */

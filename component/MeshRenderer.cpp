@@ -51,6 +51,7 @@ void omen::ecs::MeshRenderer::onDetach(Entity* e) {
 void omen::ecs::MeshRenderer::render()
 {
 	glDisable(GL_CULL_FACE);
+	glClearColor(0.3, 0.2, 0.1, 1.0);
 	check_gl_error();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		
@@ -62,6 +63,7 @@ void omen::ecs::MeshRenderer::render()
 	check_gl_error();
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
+	glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
 	check_gl_error();
 }

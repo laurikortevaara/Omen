@@ -22,6 +22,7 @@
 #include "MD3Loader.h"
 #include "system/CoreSystem.h"
 #include "system/InputSystem.h"
+#include "AudioSystem.h"
 #include "component/KeyboardInput.h"
 #include "component/MouseInput.h"
 #include "component/Picker.h"
@@ -161,6 +162,11 @@ void Engine::initializeSystems() {
 	// Initialize Core system
 	ecs::CoreSystem *coreSystem = new ecs::CoreSystem();
 	m_systems.push_back(coreSystem);
+
+	// Initialize audio system
+	ecs::AudioSystem *audioSystem = new ecs::AudioSystem();
+	audioSystem->playAudio();
+	m_systems.push_back(audioSystem);
 
 	// Initialize input system
 	ecs::InputSystem *inputSystem = new ecs::InputSystem();
