@@ -55,6 +55,8 @@ namespace omen {
         };
         _size size() const;
 
+		GLFWwindow* window() const { return m_window; }
+
     private:
         void init();
 

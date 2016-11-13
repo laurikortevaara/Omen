@@ -1,6 +1,7 @@
 /**
  * Uniforms
  */
+uniform sampler2D tex;
 uniform mat4      ModelViewProjection;
 uniform mat4      Model;
 
@@ -14,14 +15,14 @@ layout(location=1) in vec2 texcoord;
 layout(location=2) in vec4 normal;
 
 out Data{
-    vec4 position;
+    vec3 position;
     vec2 texcoord;
-    flat vec4 normal;
+    //flat vec4 normal;
 } dataOut;
 
 void main() {
-    //dataOut.position = position;
-    //dataOut.texcoord = texcoord;
+    dataOut.position = position;
+    dataOut.texcoord = texcoord;
     //dataOut.normal = normal;
 
     //gl_Position = ModelViewProjection * Model * position;
@@ -35,19 +36,24 @@ void main() {
  *
  */
 in Data {
-    vec4 position;
-        vec2 texcoord;
-        flat vec4 normal;
+    vec3 position;
+    vec2 texcoord;
+    //flat vec4 normal;
 } dataIn;
 
 out vec4 out_color;
 
 void main() {
-    //vec4 vpos = dataIn.position;
-    //vec2 tcoord = dataIn.texcoord;
+    vec3 vpos = dataIn.position;
+    vec2 tcoord = dataIn.texcoord;
     //vec4 normal = dataIn.normal;
 
-    out_color = vec4(1,1,1,1); //vec4(normal.x, normal.y, normal.z, 1);
+    out_color = texture(tex, tcoord); //vec4(1,1,1,1); //vec4(normal.x, normal.y, normal.z, 1);
+	float alphaThreshold = 0.98;
+	if(out_color.r >= alphaThreshold && out_color.g >= alphaThreshold && out_color.b >= alphaThreshold) {
+		float a = sqrt(out_color.r*out_color.r + out_color.b*out_color.b + out_color.g*out_color.g);
+		out_color.a = a/alphaThreshold;
+		}
 }
 
 

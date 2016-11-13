@@ -31,6 +31,7 @@ namespace omen {
 		protected:
 			GLuint m_vao;
 			GLuint m_vbo;
+			GLuint m_vbo_texture;
 			std::unique_ptr<Shader> m_shader;
 			std::unique_ptr<Texture> m_texture;
 		private:

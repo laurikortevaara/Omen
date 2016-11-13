@@ -2,8 +2,13 @@
 
 #include "Renderer.h"
 
+class Sprite;
+class Texture;
+
 namespace omen {
+	class Material;
 	namespace ecs {
+
 		class MeshRenderer : public Renderer {
 		protected:
 		protected:
@@ -22,6 +27,8 @@ namespace omen {
 		protected:
 		private:
 			std::unique_ptr<Material> m_material;
+			Texture* m_texture;
+			Sprite * m_sprite;
 		};
 
 	}
