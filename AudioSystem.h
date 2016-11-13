@@ -9,17 +9,33 @@
 #include "system/System.h"
 #include <thread>
 
+struct IGraphBuilder;
+struct IMediaControl;
+struct IMediaEvent;
+struct IBasicAudio;
+
 namespace omen {
 	namespace ecs {
 		class AudioSystem : public ecs::System {
 
 		public:
+			AudioSystem();
+
 			virtual void add(Component *component);
 			void playAudio();
+
+			long getVolume();
+			long setVolume(long volume);
 
 		protected:
 		private:
 			std::thread* m_audioThread;
+
+			IGraphBuilder *pGraph;
+			IMediaControl *pControl;
+			IMediaEvent   *pEvent;
+			IBasicAudio   *basicAudio;
+
 		};
 	}
 }

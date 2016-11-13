@@ -5,24 +5,47 @@
 #include "AudioSystem.h"
 #include <dshow.h>
 #include <cstdio>
+#include <atlcomcli.h>
+
 // For IID_IGraphBuilder, IID_IMediaControl, IID_IMediaEvent
 #pragma comment(lib, "strmiids.lib") 
 
-const wchar_t* filePath = L"C:/Users/Kortevaara/Downloads/Black Sails OST - Theme from Black Sails.mp3";
+const wchar_t* filePath = L"C:/Users/Kortevaara/Downloads/Forest and Nature Sounds 10 Hours.mp3";
 
 using namespace omen;
 using namespace ecs;
 
-void AudioSystem::add(Component* component)
+AudioSystem::AudioSystem() :
+	System(),
+	pGraph(nullptr),
+	pControl(nullptr),
+	pEvent(nullptr),
+	basicAudio(nullptr)
+{
+
+}
+
+void AudioSystem::add(Component* component) 
 {
 	m_components.push_back(component);
 }
 
+long AudioSystem::setVolume(long pVolume)
+{
+	CComQIPtr<IBasicAudio> pAudio(pGraph);
+	return pAudio ? pAudio->put_Volume(pVolume) : E_NOINTERFACE;
+}
+
+long AudioSystem::getVolume()
+{
+	long volume = 0;
+	CComQIPtr<IBasicAudio> pAudio(pGraph);
+	HRESULT res = pAudio ? pAudio->get_Volume(&volume) : E_NOINTERFACE;
+	return volume;
+}
+
 void AudioSystem::playAudio() {
-	m_audioThread = new std::thread([] {
-	IGraphBuilder *pGraph = NULL;
-	IMediaControl *pControl = NULL;
-	IMediaEvent   *pEvent = NULL;
+	m_audioThread = new std::thread([&] {
 
 	// Initialize the COM library.
 	HRESULT hr = ::CoInitialize(NULL);
@@ -43,6 +66,7 @@ void AudioSystem::playAudio() {
 
 	hr = pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
 	hr = pGraph->QueryInterface(IID_IMediaEvent, (void **)&pEvent);
+	hr = pGraph->QueryInterface(IID_IBasicAudio, (void **)&basicAudio);
 
 	// Build the graph.
 	hr = pGraph->RenderFile(filePath, NULL);
@@ -53,6 +77,9 @@ void AudioSystem::playAudio() {
 		if (SUCCEEDED(hr))
 		{
 			// Wait for completion.
+			long volume = getVolume();
+			setVolume(10000);
+
 			long evCode;
 			pEvent->WaitForCompletion(INFINITE, &evCode);
 
