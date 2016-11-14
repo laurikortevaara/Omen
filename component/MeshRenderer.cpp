@@ -117,7 +117,7 @@ void omen::ecs::MeshRenderer::render()
 		glm::vec3 viewPos = Engine::instance()->camera()->position();
 		pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos) );
 		glm::mat4 model;
-		GLfloat angle = 20.0f * Engine::instance()->time()*0.1;
+		GLfloat angle = 20.0f * Engine::instance()->time()*0.1f;
 		model = glm::rotate(model, angle, glm::vec3(0, 1, 0));
 		pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
 

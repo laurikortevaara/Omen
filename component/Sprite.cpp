@@ -52,8 +52,7 @@ Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, float width, flo
 }
 
 
-Sprite::~Sprite() {
-}
+Sprite::~Sprite() = default;
 
 void Sprite::render() {
 	shader()->use();

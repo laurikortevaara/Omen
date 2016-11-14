@@ -19,10 +19,12 @@ namespace omen {
 
             EntityClicked_t signal_entity_clicked;
         public:
-            Clickable(Entity* e);
+            Clickable();
             virtual ~Clickable();
         private:
+			glm::vec2 m_deltaPos;
             glm::vec2 m_cursorPos;
+			bool m_is_pressed;
         };
     }
 }

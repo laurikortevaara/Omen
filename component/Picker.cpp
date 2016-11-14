@@ -8,6 +8,9 @@
 #include "MouseInput.h"
 #include "KeyboardInput.h"
 #include "MeshController.h"
+#include "../ui/Button.h"
+#include "../ui/View.h"
+#include <memory>
 
 using namespace omen;
 
@@ -113,22 +116,32 @@ void Picker::pick() {
     Scene *scene = Engine::instance()->scene();
     float min_intersect =  std::numeric_limits<float>::max();
     ecs::Entity* pSelected = nullptr;
-    for (const auto& model : scene->entities()) {
-		if (true) {//model->getComponent<ecs::MeshController>()) {
-			omen::ecs::MeshController* ctr = model->getComponent<ecs::MeshController>();
+    for (const auto& entity : scene->entities()) {
+		if (entity->getComponent<ecs::MeshController>()!=nullptr) {
+			omen::ecs::MeshController* ctr = entity->getComponent<ecs::MeshController>();
 			const std::unique_ptr<Mesh>& mesh = ctr->mesh();
 			float intersect;
 			BoundingBox b = mesh->boundingBox();
 			if (ray.segmentAABBoxIntersect(b, { v0, (v1 - v0) * 100.0f }, intersect)) {
-				signal_object_picked.notify(model.get());
+				signal_object_picked.notify(entity.get());
 				if (intersect < min_intersect) {
 					min_intersect = intersect;
-					pSelected = model.get();
+					pSelected = entity.get();
 				}
 			}
 		}
+		else if(dynamic_cast< omen::ui::View* >(entity.get())) {
+			omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity.get());
+			glm::vec2 pos = v->pos();
+			glm::vec2 size = v->size();
+			if (mi->cursorPos().x >= pos.x && mi->cursorPos().x <= (pos.x + size.x) &&
+				mi->cursorPos().y >= pos.y && mi->cursorPos().y <= (pos.y + size.y)) {
+				pSelected = entity.get();
+			}
+		}
     }
-    signal_object_picked.notify(pSelected);
+	if(pSelected!=nullptr && dynamic_cast<omen::ecs::GameObject*>(pSelected)!=nullptr)
+		signal_object_picked.notify(pSelected);
 }
 
 Picker::~Picker() {

@@ -24,14 +24,17 @@ namespace omen {
     public:
         typedef omen::Signal<std::function<void(omen::floatprec, omen::floatprec)> > CursorPos_t;
         typedef omen::Signal<std::function<void(int, int, int)> > ButtonPress_t;
+		typedef omen::Signal<std::function<void(int, int, int)> > ButtonRelease_t;
         CursorPos_t signal_cursorpos_changed;
         ButtonPress_t signal_mousebutton_pressed;
+		ButtonRelease_t signal_mousebutton_released;
     public:
         MouseInput();
         virtual ~MouseInput();
 
         void cursorPosChanged(GLFWwindow *window, omen::floatprec x, omen::floatprec y);
         void mouseButtonPressed(GLFWwindow *window, int button, int action, int mods );
+		void mouseButtonReleased(GLFWwindow *window, int button, int action, int mods);
 
         virtual void update(double time, double deltaTime);
 

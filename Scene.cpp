@@ -17,6 +17,7 @@
 #include "MeshProvider.h"
 #include "GameObject.h"
 #include "component/MeshRenderer.h"
+#include "ui/Button.h"
 
 using namespace omen;
 
@@ -50,6 +51,9 @@ Scene::Scene() {
 	obj->addCompnent(std::move(mr));
 
 	addEntity(std::move(obj));
+
+	std::unique_ptr<ui::Button> button = std::make_unique<ui::Button>(nullptr, "Skull", "textures/test.png", glm::vec2(100, 100), 100, 100);
+	addEntity(std::move(button));
 }
 
 std::unique_ptr<Model> Scene::loadModel(const std::string filename) {

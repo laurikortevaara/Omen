@@ -49,8 +49,10 @@ namespace omen {
             float z();
 
             glm::vec2 pos();
+			void setPos(const glm::vec2& pos) { m_x = pos.x; m_y = pos.y; }
 
             glm::vec2 size();
+			void setSize(const glm::vec2& size) { m_width = size.x; m_height = size.y; }
 
             void addChildView(View *pView);
 

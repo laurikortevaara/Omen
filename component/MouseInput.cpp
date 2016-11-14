@@ -25,7 +25,10 @@ MouseInput::MouseInput() : Component() {
 
     glfwSetMouseButtonCallback(m_window, [](GLFWwindow *win, int button, int action, int mods) -> void {
         if (mouseinput_callbacks.find(win) != mouseinput_callbacks.end())
-            mouseinput_callbacks.find(win)->second.mouseButtonPressed(win, button, action, mods);
+            if(action==GLFW_PRESS)
+				mouseinput_callbacks.find(win)->second.mouseButtonPressed(win, button, action, mods);
+			if(action==GLFW_RELEASE)
+				mouseinput_callbacks.find(win)->second.mouseButtonReleased(win, button, action, mods);
     });
 
     // Hide te cursor and disable it's movement, kinda like capturing the mouse
@@ -50,6 +53,11 @@ void MouseInput::update(double time, double deltaTime) {
 void MouseInput::mouseButtonPressed(GLFWwindow *window, int button, int action, int mods) {
     if (m_isEnabled)
         signal_mousebutton_pressed.notify(button, action, mods);
+}
+
+void MouseInput::mouseButtonReleased(GLFWwindow *window, int button, int action, int mods) {
+	if (m_isEnabled)
+		signal_mousebutton_released.notify(button, action, mods);
 }
 
 void MouseInput::onAttach(ecs::Entity *e) {

@@ -14,6 +14,9 @@ namespace omen {
     public:
         virtual void render() = 0;
 		virtual ~Renderable();
+
+		void setPos(const glm::vec2& pos) { m_pos = pos; }
+		glm::vec2 pos() const { return m_pos; }
     protected:
         Renderable(glm::vec3 pos, float width, float height, float depth = 0.0f);
 		
