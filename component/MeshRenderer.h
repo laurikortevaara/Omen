@@ -24,9 +24,12 @@ namespace omen {
 
 			virtual void render();
 			
+			void setShininess(float value) { m_shininess = value; }
 		protected:
+			void connectSlider(Entity* e);
 		private:
 			std::unique_ptr<Material> m_material;
+			float m_shininess;
 			Texture* m_texture;
 			Sprite * m_sprite;
 		};

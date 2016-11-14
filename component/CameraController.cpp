@@ -51,18 +51,23 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 	}
 
 	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
+		Engine* e = Engine::instance();
+		KeyboardInput* ki = e->findComponent<KeyboardInput>();
+
+		if (ki->keyPressed(GLFW_KEY_P)) {
+			setEnabled(!enabled());
+		}
+
 		if (!enabled())
 			return;
 
 		// velocity = velocity + accelleration
 		// velo = m/s
 		// acceleration = m/s^2
-		Engine* e = Engine::instance();
-		KeyboardInput* ki = e->findComponent<KeyboardInput>();
-
 		if (m_camera != nullptr && !ki->keyModifierPressed(GLFW_MOD_SHIFT)) {
 			m_camera->acceleration() = glm::vec3(0.35f);
 
+			
 			if (ki->keyPressed(GLFW_KEY_W)) {
 				m_camera->velocity().z += m_camera->acceleration().z * deltaTime;
 			}

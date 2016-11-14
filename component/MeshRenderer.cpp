@@ -14,13 +14,33 @@ float points[] = {
 
 std::unique_ptr<omen::Shader> pShader = nullptr;
 
-omen::ecs::MeshRenderer::MeshRenderer() : Renderer()
+omen::ecs::MeshRenderer::MeshRenderer() : Renderer(), m_shininess(512)
 {
 	pShader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
 }
 
+void omen::ecs::MeshRenderer::connectSlider(Entity* e) {
+	Clickable* c = e->getComponent<Clickable>();
+	c->signal_slider_dragged.connect([&](float value)->void {
+		setShininess(value);
+	});
+}
+
 void omen::ecs::MeshRenderer::onAttach(Entity* e) {
 	const ecs::MeshController* meshController = e->getComponent<ecs::MeshController>();
+
+	Entity* sliderKnot = Engine::instance()->scene()->findEntity("SliderKnot");
+	if (sliderKnot) {
+		connectSlider(sliderKnot);
+	}
+	else {
+		Engine::instance()->scene()->signal_entity_added.connect([&](Entity* e) -> void {
+			if (e->name() == "SliderKnot")
+				connectSlider(e);
+		});
+	}
+	
+
 	// Create Texture
 	m_texture = new Texture("textures/sirius.jpg");
 	m_sprite = new Sprite("textures/skull.png", glm::vec2(0,0), 100, 100);
@@ -120,7 +140,9 @@ void omen::ecs::MeshRenderer::render()
 		GLfloat angle = 20.0f * Engine::instance()->time()*0.1f;
 		model = glm::rotate(model, angle, glm::vec3(0, 1, 0));
 		pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
-
+		
+		pShader->setUniform1f("Shininess", m_shininess);
+		
 		m_texture->bind();
 		//m_texture->bindSampler();
 

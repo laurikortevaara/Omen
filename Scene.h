@@ -22,6 +22,10 @@ namespace omen {
         virtual ~Scene();
 
     public:
+		typedef omen::Signal<std::function<void(omen::ecs::Entity* e)> > EntityAdded_t;
+		EntityAdded_t signal_entity_added;
+
+		void initialize();
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
         std::vector<std::unique_ptr<Light> >& lights() {return m_lights;}
@@ -29,6 +33,7 @@ namespace omen {
 		const std::vector<std::unique_ptr<ecs::Entity>>& entities() { return m_entities; }
 
 		void addEntity(std::unique_ptr<ecs::Entity> entity);
+		ecs::Entity* findEntity(const std::string& name);
 
     private:
         std::vector<std::unique_ptr<ecs::Entity> > m_entities;

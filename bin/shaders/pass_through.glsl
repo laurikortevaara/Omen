@@ -5,6 +5,7 @@ uniform sampler2D tex;
 uniform mat4      ModelViewProjection;
 uniform mat4      Model;
 uniform vec3	  ViewPos;
+uniform float	  Shininess;
 
 /**
  * Vertex Shader
@@ -60,7 +61,7 @@ void main() {
 	vec3 viewDir = normalize(ViewPos - fragPos);
 	vec3 reflectDir = reflect(-lightDir, normal);  
 
-	float specularStrength = 0.5;
+	float specularStrength = Shininess*50;
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512);
 	vec3 specular = specularStrength * spec * vec3(1);  
 	

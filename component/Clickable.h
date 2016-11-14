@@ -16,8 +16,10 @@ namespace omen {
             virtual void onDetach(ecs::Entity* e);
         public:
             typedef omen::Signal<std::function<void(Entity*, glm::vec2)> > EntityClicked_t;
-
             EntityClicked_t signal_entity_clicked;
+
+			typedef omen::Signal<std::function<void(float value)> > SliderDragged_t;
+			SliderDragged_t signal_slider_dragged;
         public:
             Clickable();
             virtual ~Clickable();

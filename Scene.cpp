@@ -36,24 +36,6 @@ Scene::Scene() {
 
 		});
 	}
-
-	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
-	std::unique_ptr<Mesh> mesh = provider->createPlane();
-	
-	omen::ecs::GraphicsSystem *gs = omen::Engine::instance()->findSystem<omen::ecs::GraphicsSystem>();
-	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
-	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
-	mc->setMesh(std::move(mesh));
-
-	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
-
-	obj->addCompnent(std::move(mc));
-	obj->addCompnent(std::move(mr));
-
-	addEntity(std::move(obj));
-
-	std::unique_ptr<ui::Button> button = std::make_unique<ui::Button>(nullptr, "Skull", "textures/test.png", glm::vec2(100, 100), 100, 100);
-	addEntity(std::move(button));
 }
 
 std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
@@ -84,6 +66,31 @@ std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 Scene::~Scene() {
 }
 
+void omen::Scene::initialize()
+{
+	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
+	std::unique_ptr<Mesh> mesh = provider->createPlane();
+
+	omen::ecs::GraphicsSystem *gs = omen::Engine::instance()->findSystem<omen::ecs::GraphicsSystem>();
+	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
+	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+	mc->setMesh(std::move(mesh));
+
+	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
+
+	obj->addCompnent(std::move(mc));
+	obj->addCompnent(std::move(mr));
+
+	addEntity(std::move(obj));
+
+	std::unique_ptr<ui::Button> groove = std::make_unique<ui::Button>(nullptr, "SliderGroove", "textures/slider_groove.png", glm::vec2(100, 101));
+	addEntity(std::move(groove));
+	std::unique_ptr<ui::Button> fill = std::make_unique<ui::Button>(nullptr, "SliderFill", "textures/slider_fill.png", glm::vec2(105, 103));
+	addEntity(std::move(fill));
+	std::unique_ptr<ui::Button> knot = std::make_unique<ui::Button>(nullptr, "SliderKnot", "textures/slider_knot.png", glm::vec2(130, 97), 18, 19);
+	addEntity(std::move(knot));
+}
+
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
 	check_gl_error();
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
@@ -92,5 +99,16 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
 
 void omen::Scene::addEntity(std::unique_ptr<ecs::Entity> entity)
 {
+	ecs::Entity* eptr = entity.get();
 	m_entities.push_back(std::move(entity));
+	signal_entity_added.notify(eptr);
+}
+
+ecs::Entity* Scene::findEntity(const std::string& name)
+{
+	for (const auto& e : entities()) {
+		if (e->name() == name)
+			return e.get();
+	}
+	return nullptr;
 }

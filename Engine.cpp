@@ -76,6 +76,7 @@ Engine::Engine() :
 		m_camera = new Camera("Camera1", { 0, 5, 10 }, { 0, 0, 0 }, 45.0f);
 		findComponent<CameraController>()->setCamera(m_camera);
 		m_scene = std::make_unique<Scene>();
+		m_scene->initialize();
 		m_text = std::make_unique<ecs::TextRenderer>();
 
 		createFramebuffer();
