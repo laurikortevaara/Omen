@@ -19,8 +19,10 @@ namespace omen {
         class Slider : public View {
         public:
             typedef omen::Signal<std::function<void(Slider *, glm::vec2)> > SliderClicked_t;
-
 			SliderClicked_t signal_slider_clicked;
+
+			typedef omen::Signal<std::function<void(Slider *, float)> > SliderDragged_t;
+			SliderDragged_t signal_slider_dragged;
         public:
             Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, int width = -1,
                    int height = -1);

@@ -645,7 +645,7 @@ void Engine::renderText() {
 			os << "\n";
 		}*/
 	std::wstring text(os.str());
-	m_text->render_text(text.c_str(), 16.0, -1 + 8 * sx, 1 - 14 * sy, sx, sy, glm::vec4(1, 1, 1, 1));
+	m_text->renderText(text, -1 + 8 * sx, 1 - 14 * sy, sx, glm::vec4(1, 1, 1, 1));
 }
 
 GLenum Engine::getPolygonMode() {

@@ -17,10 +17,12 @@ namespace omen {
 			virtual void onAttach(ecs::Entity* e) {};
 			virtual void onDetach(ecs::Entity* e) {};
         public:
+			TextRenderer();
             virtual void render();
+			void renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color);
 
-			void render_text(const wchar_t *text, float fontSize, float x, float y, float sx, float sy, glm::vec4 color);
-
+			const std::wstring& text() const { return m_text; }
+			void setText(const std::wstring& text) { m_text = text; }
         protected:
         protected:
             virtual void initializeShader();
@@ -32,7 +34,7 @@ namespace omen {
 
             bool initializeFreeType();
 			            
-            std::string m_text;
+            std::wstring m_text;
             GLuint m_texture_id;
         };
     } // namespace ecs

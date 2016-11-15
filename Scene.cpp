@@ -19,6 +19,7 @@
 #include "component/MeshRenderer.h"
 #include "ui/Button.h"
 #include "ui/Slider.h"
+#include "ui/TextView.h"
 
 using namespace omen;
 
@@ -85,11 +86,20 @@ void omen::Scene::initialize()
 	addEntity(std::move(obj));
 
 	for (int i = 0; i < 20; ++i){
-		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+i, "textures/slider_groove.png", glm::vec2(100, 100+i*25), 100+ omen::random(0, 900),10);
+		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i), "textures/slider_groove.png", glm::vec2(100, 100+i*25), 100+ omen::random(0, 900),10);
 		addEntity(std::move(slider));
 	}
 
-	
+	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView");
+	tv->setText(L"Textii :D");
+	ui::TextView* ptr = tv.get();
+	ui::Slider* e = dynamic_cast<ui::Slider*>(findEntity("Slider1"));
+	if(e!=nullptr) e->signal_slider_dragged.connect([ptr](ui::Slider* slider, float value) -> void {
+		std::wstring str = L"Slider Dragged:";
+		str += omen::to_wstring_with_precision(value, 2);
+		ptr->setText(str);
+	});
+	addEntity(std::move(tv));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {

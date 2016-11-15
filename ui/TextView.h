@@ -12,11 +12,14 @@ namespace omen {
         class TextView : public View {
 
         public:
-            TextView(View *parentView, const std::string& name) : View(parentView, name) { }
-
+			TextView(View *parentView, const std::string& name);
+			const std::wstring& text() const { return m_text; }
+			void setText(const std::wstring& text);
         protected:
+			virtual void updateLayout() {};
+			virtual void onMeasure(float maxwidth, float maxheight) {};
         private:
-            std::string m_text;
+            std::wstring m_text;
         };
 
     } // namespace ui
