@@ -18,6 +18,7 @@ std::unique_ptr<Mesh> MeshProvider::createPlane()
 	material->setDiffuseColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	std::vector<glm::vec3> vertices = { {-1,0,-1},{ 1,0,1 },{ -1,0,1 },{ -1,0,-1 },{  1,0,-1 }, { 1,0,1 } };
+
 	std::vector<glm::vec2> uv = { {0,0},{ 1,1 },{ 0,1 },{ 0,0 },{ 1,0 },{ 1,1 } };
 	std::vector<glm::vec3> normals = { { 0,1,0 },{ 0,1,0 },{ 0,1,0 },{ 0,1,0 },{ 0,1,0 },{ 0,1,0 } };
 	/*float max = 100;

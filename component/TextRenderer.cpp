@@ -33,18 +33,25 @@ TextRenderer::TextRenderer() :
 }
 
 void TextRenderer::render() {
-	renderText(m_text, 0, 0, 1, glm::vec4(1));
+	renderText(m_text, 10, 1, 0.25, glm::vec4(1));
 }
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)
 {
 	// Activate corresponding render state	
 	m_shader->use();
-	
+
+	float width = Engine::instance()->window()->width();
+	float height = Engine::instance()->window()->height();
+
 	glm::mat4 model;
-	model = glm::scale(model, glm::vec3(0.0005));
+	model = glm::scale(model, glm::vec3(1));
+	model = glm::translate(model, glm::vec3(0, height-Characters['X'].Size.y, 0.0f));
 	m_shader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
 	m_shader->setUniform4fv("TextColor", 1, &color[0]);
+
+	glm::mat4 projection = glm::ortho(0.0f, width, 0.0f, height);
+	m_shader->setUniformMatrix4fv("Projection", 1, glm::value_ptr(projection), false);
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(m_vao);

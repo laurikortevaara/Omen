@@ -68,12 +68,10 @@ std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 Scene::~Scene() {
 }
 
-void omen::Scene::initialize()
-{
+std::unique_ptr<ecs::GameObject> createObject() {
 	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
-	std::unique_ptr<Mesh> mesh = provider->createPlane();
 
-	omen::ecs::GraphicsSystem *gs = omen::Engine::instance()->findSystem<omen::ecs::GraphicsSystem>();
+	std::unique_ptr<Mesh> mesh = provider->createPlane();
 	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
 	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
 	mc->setMesh(std::move(mesh));
@@ -83,10 +81,18 @@ void omen::Scene::initialize()
 	obj->addCompnent(std::move(mc));
 	obj->addCompnent(std::move(mr));
 
-	addEntity(std::move(obj));
+	return obj;
+}
+void omen::Scene::initialize()
+{
+	for (int i = 0; i < 1; ++i){
+		std::unique_ptr<ecs::GameObject> obj = createObject();
+		obj->transform()->pos().x += i*2.1f;
+		addEntity(std::move(obj));
+	}
 
-	for (int i = 0; i < 20; ++i){
-		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i), "textures/slider_groove.png", glm::vec2(100, 100+i*25), 100+ omen::random(0, 900),10);
+	for (int i = 0; i < 4; ++i){
+		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i), "textures/slider_groove.png", glm::vec2(10, 100+i*20), 100,10);
 		addEntity(std::move(slider));
 	}
 
@@ -125,4 +131,4 @@ ecs::Entity* Scene::findEntity(const std::string& name)
 			return c;
 	}
 	return nullptr;
-}
+}	

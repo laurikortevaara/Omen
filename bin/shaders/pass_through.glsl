@@ -6,6 +6,7 @@ uniform mat4      ModelViewProjection;
 uniform mat4      Model;
 uniform vec3	  ViewPos;
 uniform float	  Shininess;
+uniform vec3	  LightDir;
 
 /**
  * Vertex Shader
@@ -56,7 +57,7 @@ void main() {
     out_color = texture(tex, tcoord); //vec4(1,1,1,1); //vec4(normal.x, normal.y, normal.z, 1);
 	out_color = vec4(1);
 
-	vec3 lightDir = normalize(vec3(0,1,0) - fragPos);
+	vec3 lightDir = normalize(LightDir - fragPos);
 
 	vec3 viewDir = normalize(ViewPos - fragPos);
 	vec3 reflectDir = reflect(-lightDir, normal);  

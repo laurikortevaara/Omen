@@ -7,6 +7,8 @@ class Texture;
 
 namespace omen {
 	class Material;
+	namespace ui { class Slider; }
+	
 	namespace ecs {
 
 		class MeshRenderer : public Renderer {
@@ -26,12 +28,13 @@ namespace omen {
 			
 			void setShininess(float value) { m_shininess = value; }
 		protected:
-			void connectSlider(Entity* e);
+			void connectSlider(ui::Slider* slider);
 		private:
 			std::unique_ptr<Material> m_material;
 			float m_shininess;
 			Texture* m_texture;
 			Sprite * m_sprite;
+			glm::vec3 m_lightDir;
 		};
 
 	}

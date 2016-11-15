@@ -36,7 +36,8 @@ Slider::Slider(View* parentView, const std::string &name,const std::string &spri
 	//else
 	//	sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, width, height);
 
-	glm::vec2 knotPos = { 0.0, 0.0 };
+	glm::vec2 knotPos = pos;
+	knotPos.y -= 4;
 	std::unique_ptr<omen::ui::ImageView> knot = std::make_unique<omen::ui::ImageView>(this, "Knot", "textures/slider_knot.png", knotPos);
 	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>();
 	dragKnot->signal_dragged.connect([this](float value) -> void {

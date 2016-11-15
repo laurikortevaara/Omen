@@ -5,7 +5,8 @@
 #include "../Engine.h"
 #include "../GL_error.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "Draggable.h"
+#include "../ui/Slider.h"
+#include "../ui/Slider.h"
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -15,30 +16,49 @@ float points[] = {
 
 std::unique_ptr<omen::Shader> pShader = nullptr;
 
-omen::ecs::MeshRenderer::MeshRenderer() : Renderer(), m_shininess(512)
+using namespace omen;
+using namespace ecs;
+
+MeshRenderer::MeshRenderer() : Renderer(), m_shininess(512), m_lightDir({ 0,1,0 })
 {
 	pShader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
 }
 
-void omen::ecs::MeshRenderer::connectSlider(Entity* e) {
-	Draggable* c = e->getComponent<Draggable>();
-	c->signal_dragged.connect([this](float value)->void {
+void MeshRenderer::connectSlider(ui::Slider* slider) {
+	slider->signal_slider_dragged.connect([this](ui::Slider* slider, float value)->void {
 		std::cout << "Dragged: " << value << std::endl;
 		setShininess(value);
 	});
 }
 
-void omen::ecs::MeshRenderer::onAttach(Entity* e) {
+void MeshRenderer::onAttach(Entity* e) {
 	const ecs::MeshController* meshController = e->getComponent<ecs::MeshController>();
 
-	Entity* sliderKnot = Engine::instance()->scene()->findEntity("SliderKnot");
-	if (sliderKnot) {
-		connectSlider(sliderKnot);
+	ui::Slider* slider = dynamic_cast<ui::Slider*>(Engine::instance()->scene()->findEntity("Slider0"));
+	if (slider != nullptr) {
+		connectSlider(slider);
 	}
 	else {
-		Engine::instance()->scene()->signal_entity_added.connect([&](Entity* e) -> void {
-			if (e->name() == "Knot")
-				connectSlider(e);
+		Engine::instance()->scene()->signal_entity_added.connect([this](Entity* e) -> void {
+			ui::Slider* slider = dynamic_cast<ui::Slider*>(e);
+			if (slider != nullptr) {
+				std::function<void(float value)> lambda;
+				if (e->name() == "Slider0")
+					lambda = [this](float value) -> void {setShininess(value); };
+				if (e->name() == "Slider1")
+					lambda = [this](float value) -> void {m_lightDir.x = -1.0f + 2.0f*value;};
+				if (e->name() == "Slider2")
+					lambda = [this](float value) -> void {m_lightDir.y = value; };
+				if (e->name() == "Slider3")
+					lambda = [this](float value) -> void {m_lightDir.z = -1.0f + 2.0f*value; };
+				if (e->name() == "Slider4")
+					lambda = [this](float value) -> void {};
+
+				slider->signal_slider_dragged.connect([lambda](ui::Slider* slider, float value)->void {
+					if(lambda!=nullptr)
+						lambda(value);
+				});
+			}
 		});
 	}
 	
@@ -102,11 +122,11 @@ void omen::ecs::MeshRenderer::onAttach(Entity* e) {
 	}
 }
 
-void omen::ecs::MeshRenderer::onDetach(Entity* e) {
+void MeshRenderer::onDetach(Entity* e) {
 
 }
 
-void omen::ecs::MeshRenderer::render()
+void MeshRenderer::render()
 {
 	int w, h;
 	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
@@ -140,7 +160,9 @@ void omen::ecs::MeshRenderer::render()
 		pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos) );
 		glm::mat4 model;
 		GLfloat angle = 20.0f * Engine::instance()->time()*0.1f;
-		model = glm::rotate(model, angle, glm::vec3(0, 1, 0));
+		Transform* tr = entity()->getComponent<Transform>();
+		//model = glm::rotate(model, angle, glm::vec3(0, 1, 0));
+		model = glm::translate(model, tr->pos());
 		pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
 		
 		pShader->setUniform1f("Shininess", m_shininess);
@@ -150,6 +172,7 @@ void omen::ecs::MeshRenderer::render()
 
 		glm::mat4 modelviewproj = Engine::instance()->camera()->viewProjection();
 		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(modelviewproj), false);
+		pShader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
 		check_gl_error();
 		glBindVertexArray(m_vao);
 		check_gl_error();

@@ -37,6 +37,9 @@ namespace omen {
 		return out.str();
 	}
 
+	/*
+	* to_wstring_with_precision
+	*/
 	template <typename T>
 	std::wstring to_wstring_with_precision(const T a_value, const int n = 6)
 	{
