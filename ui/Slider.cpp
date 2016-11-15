@@ -29,12 +29,12 @@ Slider::Slider(View* parentView, const std::string &name,const std::string &spri
 
 	std::unique_ptr<omen::ecs::Sprite> sprite = nullptr;
 
-	if(name == "SliderFill" )
-		sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, width, height, 10, 10, 3, 3);
-	else if (name == "SliderGroove")
-		sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, width, height, 10, 10, 3, 3 );
-	else
-		sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, width, height);
+	//if(name == "SliderFill" )
+	//	sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, width, height, 10, 10, 3, 3);
+	//else if (name == "SliderGroove")
+	sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, width, height, 10, 10, 3, 3 );
+	//else
+	//	sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, width, height);
 
 	glm::vec2 knotPos = { 0.0, 0.0 };
 	std::unique_ptr<omen::ui::ImageView> knot = std::make_unique<omen::ui::ImageView>(this, "Knot", "textures/slider_knot.png", knotPos);

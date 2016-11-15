@@ -84,8 +84,12 @@ void omen::Scene::initialize()
 
 	addEntity(std::move(obj));
 
-	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "SliderGroove", "textures/slider_groove.png", glm::vec2(100, 101), 1000,10);
-	addEntity(std::move(slider));
+	for (int i = 0; i < 20; ++i){
+		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+i, "textures/slider_groove.png", glm::vec2(100, 100+i*25), 100+ omen::random(0, 900),10);
+		addEntity(std::move(slider));
+	}
+
+	
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
