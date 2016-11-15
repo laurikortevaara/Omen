@@ -11,9 +11,6 @@ namespace omen {
     namespace ecs {
         class Sprite : public Renderable {
         protected:
-            //virtual void onAttach(ecs::Entity* e);
-            //virtual void onDetach(ecs::Entity* e);
-
         public:
             Sprite(const std::string &sprite,const glm::vec2& pos, float width=-1, float height=-1);
 
@@ -24,6 +21,7 @@ namespace omen {
         protected:
             virtual void initializeShader();
             virtual void initializeTexture();
+			std::string& sprite() { return m_sprite; }
         private:
             std::string m_sprite;
         };

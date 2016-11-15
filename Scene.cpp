@@ -18,6 +18,7 @@
 #include "GameObject.h"
 #include "component/MeshRenderer.h"
 #include "ui/Button.h"
+#include "ui/Slider.h"
 
 using namespace omen;
 
@@ -83,12 +84,8 @@ void omen::Scene::initialize()
 
 	addEntity(std::move(obj));
 
-	std::unique_ptr<ui::Button> groove = std::make_unique<ui::Button>(nullptr, "SliderGroove", "textures/slider_groove.png", glm::vec2(100, 101));
-	addEntity(std::move(groove));
-	std::unique_ptr<ui::Button> fill = std::make_unique<ui::Button>(nullptr, "SliderFill", "textures/slider_fill.png", glm::vec2(105, 103));
-	addEntity(std::move(fill));
-	std::unique_ptr<ui::Button> knot = std::make_unique<ui::Button>(nullptr, "SliderKnot", "textures/slider_knot.png", glm::vec2(130, 97), 18, 19);
-	addEntity(std::move(knot));
+	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "SliderGroove", "textures/slider_groove.png", glm::vec2(100, 101), 1000,10);
+	addEntity(std::move(slider));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
@@ -109,6 +106,9 @@ ecs::Entity* Scene::findEntity(const std::string& name)
 	for (const auto& e : entities()) {
 		if (e->name() == name)
 			return e.get();
+		ecs::Entity* c = e->findChild(name);
+		if (c != nullptr)
+			return c;
 	}
 	return nullptr;
 }

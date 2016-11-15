@@ -2,24 +2,27 @@
 // Created by Lauri Kortevaara(Intopalo) on 04/02/16.
 //
 
-#ifndef OMEN_CLICKABLE_H
-#define OMEN_CLICKABLE_H
+#ifndef OMEN_DRAGGABLE_H
+#define OMEN_DRAGGABLE_H
 
 #include "Component.h"
 #include <glm/glm.hpp>
 
 namespace omen {
     namespace ecs {
-        class Clickable : public ecs::Component {
+        class Draggable : public ecs::Component {
         protected:
             virtual void onAttach(ecs::Entity* e);
             virtual void onDetach(ecs::Entity* e);
         public:
-            typedef omen::Signal<std::function<void(Entity*, glm::vec2)> > EntityClicked_t;
-            EntityClicked_t signal_entity_clicked;
+            typedef omen::Signal<std::function<void(Entity*, glm::vec2)> > Clicked_t;
+            Clicked_t signal_clicked;
+
+			typedef omen::Signal<std::function<void(float value)> > Dragged_t;
+			Dragged_t signal_dragged;
         public:
-            Clickable();
-            virtual ~Clickable();
+            Draggable();
+            virtual ~Draggable();
         private:
 			glm::vec2 m_deltaPos;
             glm::vec2 m_cursorPos;
@@ -29,4 +32,4 @@ namespace omen {
 }
 
 
-#endif //OMEN_CLICKABLE_H
+#endif //OMEN_DRAGGABLE_H

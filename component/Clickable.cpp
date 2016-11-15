@@ -42,27 +42,9 @@ Clickable::Clickable() :
 	});
 
     Engine::instance()->findComponent<MouseInput>()->
-            signal_cursorpos_changed.connect([&](float x, float y) -> void {
-        m_cursorPos = glm::vec2(x,y);
-		if (m_is_pressed) {
-			omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
-			//glm::vec2 newPos = { x - m_deltaPos.x, y - m_deltaPos.y };
-			glm::vec2 newPos = { x - m_deltaPos.x, tr->pos().y };
-			newPos.x = max(newPos.x, 100);
-			newPos.x = min(newPos.x, 390);
-			tr->pos().x = newPos.x;
-			tr->pos().y = newPos.y;
-			
-			// Notify about slider change
-			signal_slider_dragged.notify((newPos.x - 100.0f) / (390.0f - 100.0f));
-
-			SpriteRenderer* sr = const_cast<SpriteRenderer*>(entity()->getComponent<SpriteRenderer>());
-			if (sr != nullptr) {
-				Sprite* sprite = sr->sprite();
-				sprite->setPos(newPos);
-			}
-		}
-    });
+		signal_cursorpos_changed.connect([&](float x, float y) -> void {
+			m_cursorPos = glm::vec2(x,y);
+		});
 }
 
 Clickable::~Clickable() {

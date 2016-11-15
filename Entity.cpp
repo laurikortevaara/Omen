@@ -5,14 +5,16 @@
 #include "Entity.h"
 #include "Component/Component.h"
 #include "Component/Transform.h"
+#include "Engine.h"
 
 using namespace omen::ecs;
 
 bool Entity::addChild(std::unique_ptr<Entity> e) {
 	if(std::find(m_children.begin(), m_children.end(), e)==m_children.end())
 	{
-		m_children.push_back(std::move(e));
-		e->m_parent=this;
+		e->m_parent = this;
+		Engine::instance()->scene()->signal_entity_added.notify(e.get());
+		m_children.push_back(std::move(e));		
 		return true;
 	}
 	else 
@@ -61,3 +63,14 @@ const type* Entity::getComponent(const std::string &component_name) {
 			return std::dynamic_pointer_cast<type*>(c.get());
 	return nullptr;
 }*/
+
+Entity* Entity::findChild(const std::string& name) {
+	for (const auto& child : m_children) {
+		if (child->name() == name)
+			return child.get();
+		Entity* matchingChild = child->findChild(name);
+		if (matchingChild != nullptr)
+			return matchingChild;
+	}
+	return nullptr;
+}

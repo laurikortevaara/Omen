@@ -2,16 +2,22 @@
 // Created by Lauri Kortevaara(Intopalo) on 11/01/16.
 //
 
-#include "Sprite.h"
+#include "BorderSprite.h"
 #include "../GL_error.h"
 #include "../Engine.h"
 
 using namespace omen;
 using namespace ecs;
 
-Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, float width, float height) :
-	Renderable({ pos.x,pos.y,0 }, width, height, 0), m_sprite(sprite) {
-	setShader(new Shader("shaders/sprite.glsl"));
+BorderSprite::BorderSprite(const std::string& sprite, const glm::vec2& pos, float width, float height, int left, int right, int top, int bottom) 
+	:
+	Sprite(sprite, { pos.x,pos.y }, width, height), 
+	left(left), 
+	right(right), 
+	top(top), 
+	bottom(bottom) 
+{
+	setShader(new Shader("shaders/border_sprite.glsl"));
 	setTexture(new Texture(sprite));
 	if (m_width == -1) {
 		m_width = static_cast<float>(texture()->width());
@@ -52,9 +58,9 @@ Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, float width, flo
 }
 
 
-Sprite::~Sprite() = default;
+BorderSprite::~BorderSprite() = default;
 
-void Sprite::render() {
+void BorderSprite::render() {
 	shader()->use();
 	texture()->bind();
 
@@ -71,6 +77,16 @@ void Sprite::render() {
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);
+	shader()->setUniform1i("BorderLeft", left);
+	shader()->setUniform1i("BorderRight", right);
+	shader()->setUniform1i("BorderTop", top);
+	shader()->setUniform1i("BorderBottom", bottom);
+	shader()->setUniform1i("ViewWidth", m_width);
+	shader()->setUniform1i("ViewHeight", m_height);
+	int spriteWidth = texture()->width();
+	int spriteHeight = texture()->height();
+	shader()->setUniform1i("SpriteWidth", texture()->width());
+	shader()->setUniform1i("SpriteHeight", texture()->height());
 
 	glBindVertexArray(m_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -84,26 +100,10 @@ void Sprite::render() {
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-/*void Sprite::onAttach(ecs::Entity *e) {
-	m_entity = e;
-	Transform* tr = new Transform;
-	tr->pos() = glm::vec3(m_pos, 0);
-	omen::floatprec bminx = -(m_width / 2.0f) + m_pivot.x;
-	omen::floatprec bmaxx = (m_width / 2.0f) + m_pivot.x;
-	omen::floatprec bminy = -(m_height / 2.0f) + m_pivot.y;
-	omen::floatprec bmaxy = (m_height / 2.0f) + m_pivot.y;
-	tr->setBounds(glm::vec3(bminx, bminy, 0), glm::vec3(bmaxx, bmaxy, 0));
-	m_entity->addComponent(tr);
+void BorderSprite::initializeTexture() {
+	setTexture(new Texture(sprite()));
 }
 
-void Sprite::onDetach(ecs::Entity *e) {
-	m_entity = nullptr;
-}
-*/
-void Sprite::initializeTexture() {
-	setTexture(new Texture(m_sprite));
-}
-
-void Sprite::initializeShader() {
-	setShader(new Shader("shaders/sprite.glsl"));
+void BorderSprite::initializeShader() {
+	setShader(new Shader("shaders/border_sprite.glsl"));
 }

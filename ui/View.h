@@ -56,6 +56,8 @@ namespace omen {
 
             void addChildView(View *pView);
 
+			View* parentView() const { return m_parentView; }
+
             // Layout
             void layout(float left, float top, float right, float bottom);
         };

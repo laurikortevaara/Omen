@@ -21,8 +21,9 @@ View::~View() {
 }
 
 void View::addChildView(View *pView) {
-    m_childViews.push_back(pView);
-    updateLayout();
+	//Engine::instance()->scene()->signal_entity_added.notify(pView);
+	m_childViews.push_back(pView);
+    updateLayout();	
 }
 
 float View::width() {

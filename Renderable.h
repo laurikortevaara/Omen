@@ -17,14 +17,16 @@ namespace omen {
 
 		void setPos(const glm::vec2& pos) { m_pos = pos; }
 		glm::vec2 pos() const { return m_pos; }
+
+		Shader* shader() { return m_shader; }
+		Texture* texture() { return m_texture; }
+
     protected:
         Renderable(glm::vec3 pos, float width, float height, float depth = 0.0f);
 		
         void setShader(Shader* shader) {m_shader = shader;}
         void setTexture(Texture* texture) {m_texture = texture;}
 
-        Shader* shader() {return m_shader;}
-        Texture* texture() {return m_texture;}
 
         virtual void initializeShader() = 0;
         virtual void initializeTexture() = 0;

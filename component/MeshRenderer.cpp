@@ -5,6 +5,7 @@
 #include "../Engine.h"
 #include "../GL_error.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "Draggable.h"
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -20,8 +21,9 @@ omen::ecs::MeshRenderer::MeshRenderer() : Renderer(), m_shininess(512)
 }
 
 void omen::ecs::MeshRenderer::connectSlider(Entity* e) {
-	Clickable* c = e->getComponent<Clickable>();
-	c->signal_slider_dragged.connect([&](float value)->void {
+	Draggable* c = e->getComponent<Draggable>();
+	c->signal_dragged.connect([this](float value)->void {
+		std::cout << "Dragged: " << value << std::endl;
 		setShininess(value);
 	});
 }
@@ -35,7 +37,7 @@ void omen::ecs::MeshRenderer::onAttach(Entity* e) {
 	}
 	else {
 		Engine::instance()->scene()->signal_entity_added.connect([&](Entity* e) -> void {
-			if (e->name() == "SliderKnot")
+			if (e->name() == "Knot")
 				connectSlider(e);
 		});
 	}

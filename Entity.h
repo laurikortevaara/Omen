@@ -21,7 +21,7 @@ namespace omen {
 			std::vector<std::unique_ptr<Entity>> m_children;
 			std::vector<std::unique_ptr<Component>> m_components;
 
-		protected:
+		public:
 			Entity(const std::string &name);
 			Entity* parent() { return m_parent; }
 
@@ -30,6 +30,8 @@ namespace omen {
             bool removeChild(std::unique_ptr<Entity> e);
 
             bool removeComponent(std::unique_ptr<Component> c);
+
+			Entity* findChild(const std::string& name);
 
         public:
             template<class type>
