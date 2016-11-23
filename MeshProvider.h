@@ -12,6 +12,7 @@ namespace omen {
 		~MeshProvider();
 
 		static std::unique_ptr<Mesh> createPlane();
+		static std::unique_ptr<Mesh> createCube();
 	};
 }
 

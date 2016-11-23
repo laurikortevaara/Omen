@@ -27,6 +27,8 @@ namespace omen {
 
 		void initialize();
 
+		void renderBackground();
+
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
         std::vector<std::unique_ptr<Light> >& lights() {return m_lights;}
 

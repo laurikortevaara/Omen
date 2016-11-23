@@ -12,7 +12,7 @@
 #define _USE_MATH_DEFINES
 
 #include <math.h>
-
+/*
 using namespace std;
 using namespace omen;
 
@@ -35,7 +35,7 @@ bool MD3Loader::loadModel(const string &filepath) {
 		for(size_t i=0; i < filesize; ++i){
 			unsigned short h = buffer[i];
 			cout << h;
-		}*/
+		}//
 
 		// Start reading the content, from the header
 		m_currentPos = 0;
@@ -197,3 +197,4 @@ void MD3Loader::getMesh(std::vector<std::unique_ptr<omen::Mesh>> &meshes) {
 		meshes.push_back(std::move(mesh));
 	}
 }
+*/

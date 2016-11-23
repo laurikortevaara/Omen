@@ -15,8 +15,8 @@ namespace omen {
         Model(std::unique_ptr<Mesh> mesh= nullptr);
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
-		Mesh* mesh() {
-			return m_mesh.get();
+		std::unique_ptr<Mesh>& mesh() {
+			return m_mesh;
 		}
 	private:
         std::unique_ptr<omen::Mesh> m_mesh;

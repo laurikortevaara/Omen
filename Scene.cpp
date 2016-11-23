@@ -20,16 +20,27 @@
 #include "ui/Button.h"
 #include "ui/Slider.h"
 #include "ui/TextView.h"
+#include "Texture.h"
 
 using namespace omen;
+
+Shader* bgShader = nullptr;
+omen::Texture* bgTexture = nullptr;
 
 Scene::Scene() {
 	Engine* e = Engine::instance();
 	Window* w = e->window();
 
-	Engine::instance()->window()->signal_file_dropped.connect([this](std::vector<std::string> files)
+	bgShader = new Shader("shaders/texture_quad.glsl");
+	bgTexture = new Texture("textures/bg_gradient2.jpg");
+
+	Engine::instance()->window()->signal_file_dropped.connect([this](std::vector<std::string>& files)
 	{
-		loadModel(files.front());
+		std::string& file = *files.begin();
+		if (file.find(".MD3") != std::string::npos 
+			|| file.find(".md3") != std::string::npos) {
+			loadModel(file);
+		}
 	});
 
 	JoystickInput* ji = (JoystickInput*)e->findComponent<JoystickInput>();
@@ -46,23 +57,23 @@ std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 	std::vector<std::unique_ptr<omen::Mesh>> meshes;
 	loader.getMesh(meshes);
 	int i = 0;
-	std::unique_ptr<Model> model;
 	for (auto& mesh : meshes) {
-		model = std::make_unique<Model>(std::move(mesh));
-		
 		std::string name = filename;
 		name += "_";
 		name += i;
-		std::unique_ptr<ecs::GameObject> obj = std::make_unique<ecs::GameObject>(name);
+		//std::unique_ptr<ecs::GameObject> obj = std::make_unique<ecs::GameObject>(name);
+		std::unique_ptr<ecs::GameObject> obj = std::make_unique<ecs::GameObject>("OBJECT");
 		std::unique_ptr<ecs::MeshController> meshController = std::make_unique<ecs::MeshController>();
-		//meshController->setMesh(model->mesh());
-		//obj->addComponent(meshController);
-
-		//addEntity(obj);
+		meshController->setMesh(std::move(mesh));
+		obj->addComponent(std::move(meshController));
+		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
+		obj->addCompnent(std::move(mr));
+		addEntity(std::move(obj));
 		
 		i++;
 	}
-	return model;
+	meshes.clear();
+	return nullptr;
 }
 
 Scene::~Scene() {
@@ -76,9 +87,14 @@ std::unique_ptr<ecs::GameObject> createObject() {
 	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
 	mc->setMesh(std::move(mesh));
 
+	std::unique_ptr<Mesh> cube = provider->createCube();
+	std::unique_ptr<omen::ecs::MeshController> mc2 = std::make_unique<omen::ecs::MeshController>();
+	mc2->setMesh(std::move(cube));
+
 	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
 
-	obj->addCompnent(std::move(mc));
+	//obj->addCompnent(std::move(mc));
+	obj->addCompnent(std::move(mc2));
 	obj->addCompnent(std::move(mr));
 
 	return obj;
@@ -90,12 +106,12 @@ void omen::Scene::initialize()
 		obj->transform()->pos().x += i*2.1f;
 		addEntity(std::move(obj));
 	}
-
-	for (int i = 0; i < 4; ++i){
+	
+	for (int i = 0; i < 5; ++i){
 		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i), "textures/slider_groove.png", glm::vec2(10, 100+i*20), 100,10);
 		addEntity(std::move(slider));
 	}
-
+	
 	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView");
 	tv->setText(L"Textii :D");
 	ui::TextView* ptr = tv.get();
@@ -108,10 +124,48 @@ void omen::Scene::initialize()
 	addEntity(std::move(tv));
 }
 
-void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) {
+void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
+{
+	renderBackground();
 	check_gl_error();
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 	gs->render();
+}
+
+void Scene::renderBackground()
+{
+	bgTexture->bind();
+	int w, h;
+	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
+	glViewport(0, 0, w, h);
+
+	bgShader->use();
+
+	glm::vec2 v[4] = { {-1.0,1.0},{-1.0,-1.0},{ 1.0, 1.0 },{ 1.0,-1.0 } };
+	GLuint vbo = 0, vao = 0;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	
+	glGenBuffers(1, &vbo);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDeleteBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &vao);
+
+	
 }
 
 void omen::Scene::addEntity(std::unique_ptr<ecs::Entity> entity)

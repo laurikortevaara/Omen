@@ -32,6 +32,7 @@ namespace omen {
 		private:
 			std::unique_ptr<Material> m_material;
 			float m_shininess;
+			float m_specularCoeff;
 			Texture* m_texture;
 			Sprite * m_sprite;
 			glm::vec3 m_lightDir;
