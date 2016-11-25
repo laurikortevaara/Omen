@@ -189,7 +189,10 @@ void omen::Scene::initialize()
 		obj->transform()->rotate(omen::random(0, 360), glm::vec3(1, 0, 0));
 		obj->transform()->rotate(omen::random(0, 360), glm::vec3(0, 1, 0));
 		obj->transform()->rotate(omen::random(0, 360), glm::vec3(0, 0, 1));*/
-		obj->transform()->scale(glm::vec3(100, 100, 100));
+		//obj->transform()->scale(glm::vec3(100, 100, 100));
+		obj->transform()->pos().x = 0;
+		obj->transform()->pos().y = 0;
+		obj->transform()->pos().z = 0;
 		obj->setName("Cube");
 		Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
 			ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity("Cube"));

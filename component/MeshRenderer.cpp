@@ -159,23 +159,26 @@ void MeshRenderer::onDetach(Entity* e) {
 
 void MeshRenderer::render()
 {		
+	// Use shader
 	pShader->use();
-	glm::vec3 viewPos = Engine::instance()->camera()->position();
-	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos) );
-	glm::mat4 model = entity()->getComponent<Transform>()->tr();
-	pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
 
+	// Get matrices
+	glm::mat4 modelviewproj = Engine::instance()->camera()->viewProjection();
+	glm::mat4 model = entity()->getComponent<Transform>()->tr();
+	glm::mat3 normalMatrix = glm::mat3(transpose(inverse(modelviewproj)));
+	glm::vec3 viewPos = Engine::instance()->camera()->position();
+
+	// Set matrix uniforms
+	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(modelviewproj), false);
+	pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
+	pShader->setUniformMatrix4fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
+
+	// Set other uniforms
+	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
 	pShader->setUniform1f("Shininess", m_shininess);
 	pShader->setUniform1f("SpecularCoeff", m_specularCoeff);
-		
-	if(m_texture != nullptr)
-		m_texture->bind();
-
-	glm::mat4 modelviewproj = Engine::instance()->camera()->viewProjection();
-	glm::mat3 normalMatrix = glm::mat3(transpose(inverse(modelviewproj)));
-	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(modelviewproj), false);
-	pShader->setUniformMatrix4fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
 	pShader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
+
 	glBindVertexArray(m_vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -196,6 +199,10 @@ void MeshRenderer::render()
 		glEnableVertexAttribArray(3);
 	}*/
 	// draw points 0-3 from the currently bound VAO with current in-use shader
+
+	if (m_texture != nullptr)
+		m_texture->bind();
+	
 	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);

@@ -36,8 +36,6 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	float aspect = (float)w->width() / (float)w->height();
 	m_view = glm::perspective(m_fov, aspect, m_near, m_far);
 
-	m_pitch = 30;
-
 	// Initialize forward and up vectors
 	m_forward = glm::vec3(0, 0, 1);
 	m_up = glm::vec3(0, 1, 0);
