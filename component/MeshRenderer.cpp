@@ -5,8 +5,14 @@
 #include "../Engine.h"
 #include "../GL_error.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include "../ui/Slider.h"
 #include "../ui/Slider.h"
+
+#define VERTEX_ATTRIB_POS 0
+#define VERTEX_ATTRIB_TCOORD 1
+#define VERTEX_ATTRIB_NORMAL 2
+#define VERTEX_ATTRIB_TANGENT 3
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -84,7 +90,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		check_gl_error();
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		check_gl_error();
-		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
 		check_gl_error();
 		std::vector<omen::Mesh::Vertex> &verts = meshController->mesh()->vertices();
 		std::vector<glm::vec3> vertices;
@@ -92,9 +98,9 @@ void MeshRenderer::onAttach(Entity* e) {
 		check_gl_error();
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
 		check_gl_error();
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(VERTEX_ATTRIB_POS, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		check_gl_error();
-		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(VERTEX_ATTRIB_POS);
 
 		// Create VBO for texture
 		std::vector<glm::vec2> uvs = meshController->mesh()->uv();
@@ -102,7 +108,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		if(!uvs.empty()){
 			glGenBuffers(1, &m_vbo_texture);
 			check_gl_error();
-			glEnableVertexAttribArray(1);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 			check_gl_error();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
 			check_gl_error();
@@ -110,9 +116,9 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*uvs.size(), uvs.data(), GL_STATIC_DRAW);
 			check_gl_error();
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			glVertexAttribPointer(VERTEX_ATTRIB_TCOORD, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			check_gl_error();
-			glDisableVertexAttribArray(1);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 		}
 		
 		// Create VBO for normals
@@ -120,7 +126,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		if (!normals.empty()) {
 			glGenBuffers(1, &m_vbo_normals);
 			check_gl_error();
-			glEnableVertexAttribArray(2);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
 			check_gl_error();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
 			check_gl_error();
@@ -128,9 +134,9 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*normals.size(), normals.data(), GL_STATIC_DRAW);
 			check_gl_error();
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			check_gl_error();
-			glDisableVertexAttribArray(2);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
 		}
 
 		// Create VBO for tangents
@@ -138,7 +144,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		if (!tangents.empty()) {
 			glGenBuffers(1, &m_vbo_tangents);
 			check_gl_error();
-			glEnableVertexAttribArray(3);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
 			check_gl_error();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_tangents);
 			check_gl_error();
@@ -146,9 +152,9 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*tangents.size(), tangents.data(), GL_STATIC_DRAW);
 			check_gl_error();
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glVertexAttribPointer(VERTEX_ATTRIB_TANGENT, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			check_gl_error();
-			glDisableVertexAttribArray(3);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
 		}
 	}
 }
@@ -163,15 +169,21 @@ void MeshRenderer::render()
 	pShader->use();
 
 	// Get matrices
-	glm::mat4 modelviewproj = Engine::instance()->camera()->viewProjection();
-	glm::mat4 model = entity()->getComponent<Transform>()->tr();
-	glm::mat3 normalMatrix = glm::mat3(transpose(inverse(modelviewproj)));
+	glm::mat4 viewMatrix		= Engine::instance()->camera()->view();
+	glm::mat4 viewprojMatrix	= Engine::instance()->camera()->viewProjection();
+	glm::mat4 modelMatrix		= entity()->getComponent<Transform>()->tr();
+	glm::mat4 modelViewMatrix	= viewMatrix * modelMatrix;
+	glm::mat4 MVP = viewprojMatrix * modelMatrix;
+	glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos = Engine::instance()->camera()->position();
 
 	// Set matrix uniforms
-	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(modelviewproj), false);
-	pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
-	pShader->setUniformMatrix4fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
+	pShader->setUniformMatrix4fv("ViewMatrix", 1, glm::value_ptr(viewMatrix), false);
+	pShader->setUniformMatrix4fv("ViewProjMatrix", 1, glm::value_ptr(modelMatrix), false);
+	pShader->setUniformMatrix4fv("ModelMatrix", 1, glm::value_ptr(normalMatrix), false);
+	pShader->setUniformMatrix4fv("ModelViewMatrix", 1, glm::value_ptr(modelViewMatrix), false);
+	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
+	pShader->setUniformMatrix3fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
 
 	// Set other uniforms
 	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
@@ -182,29 +194,28 @@ void MeshRenderer::render()
 	glBindVertexArray(m_vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
 
 	if (m_vbo_texture != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
-		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 	}
 
 	if (m_vbo_normals != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
-		glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
 	}
 
-	/*if (m_vbo_tangents != 0) {
+	if (m_vbo_tangents != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_tangents);
-		glEnableVertexAttribArray(3);
-	}*/
+		glEnableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
+	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 
 	if (m_texture != nullptr)
 		m_texture->bind();
 	
 	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
-	glDisable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
+
 	glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
 }

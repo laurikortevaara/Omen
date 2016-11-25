@@ -196,7 +196,7 @@ void omen::Scene::initialize()
 		obj->setName("Cube");
 		Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
 			ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity("Cube"));
-			obj->transform()->rotate(time, glm::vec3(0, 1, 0));
+			//obj->transform()->rotate(time, glm::vec3(0, 1, 0));
 		});
 		addEntity(std::move(obj));
 	}
