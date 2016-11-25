@@ -1,7 +1,7 @@
 ######################################################################
 # omen Game engine project
 #
-# Lauri Kortevaara (2015)
+# Lauri Kortevaara (2015,2016)
 # lauri.kortevaara@gmail.com
 #
 # https://github.com/laurikortevaara/omen
@@ -130,10 +130,10 @@ include_directories(thirdparty/bullet/src)
 # LIBPNG
 ######################################################################
 if (APPLE)
-find_package(Png REQUIRED)
-if(NOT PNG_FOUND)
-    message(FATAL_ERROR "Png not found")
-endif (NOT PNG_FOUND)
+  find_package(Png REQUIRED)
+  if(NOT PNG_FOUND)
+      message(FATAL_ERROR "Png not found")
+  endif (NOT PNG_FOUND)
 else(APPLE)
   set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
   set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
@@ -143,6 +143,23 @@ else(APPLE)
 endif(APPLE)
 
 include_directories(${BULLET_INCLUDE_DIRS})
+
+
+######################################################################
+# FBXSDK
+######################################################################
+find_package(FbxSdk REQUIRED)
+if(NOT FBX_INCLUDE_DIR)
+    message(FATAL_ERROR "FBX SDK not found: " ${FBX_INCLUDE_DIR})
+endif (NOT FBX_INCLUDE_DIR)
+if(APPLE)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+  set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
+  set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+  set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
+  #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+endif(APPLE)
+
 
 ######################################################################
 # tinydir
@@ -180,7 +197,7 @@ if (APPLE)
         message(FATAL_ERROR "CoreVideo not found")
     endif ()
 
-    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES} ${PNG_LIBRARY})
+    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES} ${PNG_LIBRARY} {$ZLIB_LIBRARY})
 endif (APPLE)
 
 
@@ -220,7 +237,7 @@ include_directories(${BULLET_INCLUDE_DIRS})
 set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
 include_directories(${PNG_INCLUDE_DIR})
 
-SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY})
+SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY} ${ZLIB_LIBRARY})
 
 message(STATUS "Libs:" ${LIBRARIES})
 
@@ -228,7 +245,150 @@ message(STATUS "Libs:" ${LIBRARIES})
 ######################################################################
 # Define the source files and the executable
 ######################################################################
-set(SOURCE_FILES main.cpp Model.cpp Model.h Mesh.cpp Mesh.h Triangle.cpp Triangle.h Vertex.cpp Vertex.h VertexArrayObject.cpp VertexArrayObject.h VertexBufferObject.cpp VertexBufferObject.h Scene.cpp Scene.h GL_error.h Engine.cpp Engine.h Camera.cpp Camera.h Window.cpp Window.h Signal.h Shader.cpp Shader.h Texture.cpp Texture.h Camera.cpp Camera.h Entity.cpp Entity.h component/Component.cpp component/Component.h system/System.cpp system/System.h GameObject.cpp GameObject.h component/Transform.cpp component/Transform.h system/PhysicsSystem.cpp system/PhysicsSystem.h system/GraphicsSystem.cpp system/GraphicsSystem.h system/InputSystem.cpp system/InputSystem.h component/KeyboardInput.cpp component/MouseInput.cpp component/KeyboardInput.h component/JoystickInput.cpp component/JoystickInput.h MathUtils.h TextRenderer.cpp TextRenderer.h Material.cpp Material.h utils.h utils.cpp WavefrontLoader.cpp WavefrontLoader.h MD3Loader.cpp MD3Loader.h BoundingBox.cpp BoundingBox.h BoundingVolume.cpp BoundingVolume.h component/Picker.cpp component/Picker.h component/CameraController.cpp component/CameraController.h system/CoreSystem.cpp system/CoreSystem.h Light.cpp Light.h PointLight.cpp PointLight.h Sky.cpp Sky.h component/Transformer.cpp component/Transformer.h component/Renderable.cpp component/Renderable.h Ocean.cpp Ocean.h ui/Button.cpp ui/Button.h component/Sprite.cpp component/Sprite.h component/Clickable.cpp component/Clickable.h ui/Layout.cpp ui/Layout.h ui/View.cpp ui/View.h ui/FrameLayout.cpp ui/FrameLayout.h ui/LinearLayout.cpp ui/LinearLayout.h ui/TextView.cpp ui/TextView.h component/TextRenderer.cpp component/TextRenderer.h thirdparty/boxer/lib/boxer_win.cpp)
+set(SOURCE_FILES
+# Main sources and headers
+AudioSystem.cpp
+BoundingBox.cpp
+BoundingVolume.cpp
+Camera.cpp
+Engine.cpp
+Entity.cpp
+FBXLoader.cpp
+GameObject.cpp
+Light.cpp
+main.cpp
+Material.cpp
+MD3Loader.cpp
+Mesh.cpp
+MeshProvider.cpp
+Model.cpp
+MultipassShader.cpp
+Object.cpp
+Ocean.cpp
+PointLight.cpp
+Renderable.cpp
+RenderBuffer.cpp
+Scene.cpp
+Shader.cpp
+Sky.cpp
+TextRenderer.cpp
+Texture.cpp
+Triangle.cpp
+utils.cpp
+Vertex.cpp
+VertexArrayObject.cpp
+VertexBufferObject.cpp
+WavefrontLoader.cpp
+Window.cpp
+AnimationFrame.h
+AudioSystem.h
+BoundingBox.h
+BoundingVolume.h
+Camera.h
+Engine.h
+Entity.h
+FBXLoader.h
+GameObject.h
+GL_error.h
+Light.h
+Material.h
+MathUtils.h
+MD3Loader.h
+Mesh.h
+MeshProvider.h
+Model.h
+MultipassShader.h
+Object.h
+Ocean.h
+Omen_OpenGL.h
+PointLight.h
+Renderable.h
+RenderBuffer.h
+Scene.h
+Shader.h
+Signal.h
+Sky.h
+TextRenderer.h
+Texture.h
+Triangle.h
+utils.h
+Vertex.h
+VertexArrayObject.h
+VertexBufferObject.h
+WavefrontLoader.h
+Window.h
+
+#/component/
+component/BorderSprite.cpp
+component/CameraController.cpp
+component/Clickable.cpp
+component/Component.cpp
+component/Draggable.cpp
+component/JoystickInput.cpp
+component/KeyboardInput.cpp
+component/MeshAnimator.cpp
+component/MeshController.cpp
+component/MeshRenderer.cpp
+component/MouseInput.cpp
+component/Picker.cpp
+component/Renderer.cpp
+component/Sprite.cpp
+component/SpriteRenderer.cpp
+component/TextRenderer.cpp
+component/Transform.cpp
+component/Transformer.cpp
+component/BorderSprite.h
+component/CameraController.h
+component/Clickable.h
+component/Component.h
+component/Draggable.h
+component/JoystickInput.h
+component/KeyboardInput.h
+component/MeshAnimator.h
+component/MeshController.h
+component/MeshRenderer.h
+component/MouseInput.h
+component/Picker.h
+component/Renderer.h
+component/Sprite.h
+component/SpriteRenderer.h
+component/TextRenderer.h
+component/Transform.h
+component/Transformer.h
+
+# /system/
+system/CoreSystem.cpp
+system/GraphicsSystem.cpp
+system/InputSystem.cpp
+system/PhysicsSystem.cpp
+system/System.cpp
+system/CoreSystem.h
+system/GraphicsSystem.h
+system/InputSystem.h
+system/PhysicsSystem.h
+system/System.h
+
+# /ui/
+ui/Button.cpp
+ui/FrameLayout.cpp
+ui/ImageView.cpp
+ui/Layout.cpp
+ui/LinearLayout.cpp
+ui/Slider.cpp
+ui/TextView.cpp
+ui/View.cpp
+ui/Button.h
+ui/FrameLayout.h
+ui/ImageView.h
+ui/Layout.h
+ui/LinearLayout.h
+ui/Slider.h
+ui/TextView.h
+ui/View.h
+
+# thirdparty
+thirdparty/boxer/lib/boxer_win.cpp
+)
 add_executable(Omen ${SOURCE_FILES})
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)
 ######################################################################

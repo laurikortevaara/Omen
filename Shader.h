@@ -1,17 +1,23 @@
 //
-// Created by Lauri Kortevaara(personal) on 21/12/15.
+// Created by Lauri Kortevaara on 21/12/15.
 //
 
 #ifndef OMEN_SHADER_H
 #define OMEN_SHADER_H
 
 #include <memory>
+#include <vector>
+#include <string>
 
 #include "Texture.h"
 #include "Material.h"
 
 namespace omen {
     class Shader {
+		std::string m_shaderFile;
+		std::vector<std::string> includedShaders;
+		std::string readSubShader(const std::string& relativePath, const std::string &shader_file);
+		std::string include_sub_shaders(const std::string& relativePath, const std::string& shader_source);
     public:
         Shader(const std::string &shader_file);
 

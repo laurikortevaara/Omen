@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 29/12/15.
+// Created by Lauri Kortevaara on 29/12/15.
 //
 
 #ifndef OMEN_UTILS_H_H
@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <vector>
+#include <string>
 
 namespace omen {
     
@@ -47,4 +49,9 @@ namespace omen {
 		out << std::setprecision(n) << a_value;
 		return out.str();
 	}
+
+	/*
+	* split_string with given delimiter
+	*/
+	std::vector<std::string> split_string(const std::string& str,const std::string& delimiter);
 }

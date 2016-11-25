@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 20/12/15.
+// Created by Lauri Kortevaara on 20/12/15.
 //
 
 #include "Omen_OpenGL.h"

@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 12/11/16.
+// Created by Lauri Kortevaara on 12/11/16.
 //
 
 #ifndef OMEN_AUDIOSYSTEM_H

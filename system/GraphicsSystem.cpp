@@ -1,9 +1,10 @@
 //
-// Created by Lauri Kortevaara(personal) on 26/12/15.
+// Created by Lauri Kortevaara on 26/12/15.
 //
 
 #include "GraphicsSystem.h"
 #include "../component/Renderer.h"
+#include "../component/MeshRenderer.h"
 
 using namespace omen;
 using namespace ecs;
@@ -14,7 +15,18 @@ void GraphicsSystem::add(Component* component)
 }
 
 void GraphicsSystem::render() {
+	int w, h;
+	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
+	glViewport(0, 0, w, h);
+
 	std::vector<Renderer*> renderers;
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	
+	//glDisable(GL_BLEND);*/
+	//glDepthFunc()
     for(auto c : m_components){
         Renderer* r = dynamic_cast<Renderer*>(c);
 		if (r != nullptr)

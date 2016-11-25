@@ -2,11 +2,10 @@
 
 #include "Renderer.h"
 
-class Sprite;
-class Texture;
-
 namespace omen {
 	class Material;
+	class Texture;
+	class Sprite;
 	namespace ui { class Slider; }
 	
 	namespace ecs {
@@ -34,6 +33,7 @@ namespace omen {
 			float m_shininess;
 			float m_specularCoeff;
 			Texture* m_texture;
+			Texture* m_textureNormal;
 			Sprite * m_sprite;
 			glm::vec3 m_lightDir;
 		};

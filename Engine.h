@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 20/12/15.
+// Created by Lauri Kortevaara on 20/12/15.
 //
 
 #ifndef GLEW_TEST_ENGINE_H
@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include <glm/detail/type_mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <future>
 #include <btBulletDynamicsCommon.h>
 

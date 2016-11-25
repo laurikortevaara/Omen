@@ -19,7 +19,7 @@ std::unique_ptr<omen::Shader> pShader = nullptr;
 using namespace omen;
 using namespace ecs;
 
-MeshRenderer::MeshRenderer() : Renderer(), m_specularCoeff(512), m_shininess(5), m_lightDir({ 0,1,0 })
+MeshRenderer::MeshRenderer() : Renderer(), m_specularCoeff(512), m_shininess(5), m_lightDir({ 0,1,0 }), m_texture(nullptr)
 {
 	pShader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
 }
@@ -70,7 +70,7 @@ void MeshRenderer::onAttach(Entity* e) {
 			m_texture = new Texture(*files.begin());
 	})*/;
 	m_texture = new Texture("textures/checker.jpg");
-	m_sprite = new Sprite("textures/skull.png", glm::vec2(0,0), 100, 100);
+	m_textureNormal = new Texture("textures/brick_normal.png");
 	if (meshController) {
 		// Create VAO
 		check_gl_error();
@@ -86,11 +86,11 @@ void MeshRenderer::onAttach(Entity* e) {
 		check_gl_error();
 		glEnableVertexAttribArray(0);
 		check_gl_error();
-		std::vector<glm::vec3> verts = meshController->mesh()->vertices();
-		for (auto& v : verts)
-			v *= 10;
+		std::vector<omen::Mesh::Vertex> &verts = meshController->mesh()->vertices();
+		std::vector<glm::vec3> vertices;
+		for (auto& v : verts) vertices.push_back(v.pos);
 		check_gl_error();
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*verts.size(), verts.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
 		check_gl_error();
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		check_gl_error();
@@ -114,9 +114,8 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glDisableVertexAttribArray(1);
 		}
-
-
-		// Create VBO for texture
+		
+		// Create VBO for normals
 		std::vector<glm::vec3> normals = meshController->mesh()->normals();
 		if (!normals.empty()) {
 			glGenBuffers(1, &m_vbo_normals);
@@ -133,6 +132,24 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glDisableVertexAttribArray(2);
 		}
+
+		// Create VBO for tangents
+		std::vector<glm::vec3> tangents = meshController->mesh()->tangents();
+		if (!tangents.empty()) {
+			glGenBuffers(1, &m_vbo_tangents);
+			check_gl_error();
+			glEnableVertexAttribArray(3);
+			check_gl_error();
+			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_tangents);
+			check_gl_error();
+
+			check_gl_error();
+			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*tangents.size(), tangents.data(), GL_STATIC_DRAW);
+			check_gl_error();
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			check_gl_error();
+			glDisableVertexAttribArray(3);
+		}
 	}
 }
 
@@ -141,75 +158,46 @@ void MeshRenderer::onDetach(Entity* e) {
 }
 
 void MeshRenderer::render()
-{
-	int w, h;
-	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
-	glViewport(0, 0, w, h);
+{		
+	pShader->use();
+	glm::vec3 viewPos = Engine::instance()->camera()->position();
+	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos) );
+	glm::mat4 model = entity()->getComponent<Transform>()->tr();
+	pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
 
-	// TODO
-	/*for (int i = 0; i < 4; ++i) {
-		if (i == 0) {
-			glViewport(0, 0, w / 2, h /2);
-		}
-		if (i == 1) {
-			glViewport(w / 2, 0, w / 2, h /2);
-		}
-		if (i == 2) {
-			glViewport(0, h/2, w / 2, h / 2);
-		}
-		if (i == 3) {
-			glViewport(w / 2, h/2, w / 2, h / 2);
-		}*/
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		//glDisable(GL_CULL_FACE);
-		//glClearColor(0.3f, 0.2f, 0.1f, 1.0f);
-		check_gl_error();
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	pShader->setUniform1f("Shininess", m_shininess);
+	pShader->setUniform1f("SpecularCoeff", m_specularCoeff);
 		
-		
-		pShader->use();
-		glm::vec3 viewPos = Engine::instance()->camera()->position();
-		pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos) );
-		glm::mat4 model;
-		GLfloat angle = 20.0f * Engine::instance()->time()*0.1f;
-		Transform* tr = entity()->getComponent<Transform>();
-		model = glm::rotate(model, angle, glm::vec3(0, 1, 0));
-		model = glm::translate(model, tr->pos());
-		pShader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
-		
-		pShader->setUniform1f("Shininess", m_shininess);
-		pShader->setUniform1f("SpecularCoeff", m_specularCoeff);
-		
+	if(m_texture != nullptr)
 		m_texture->bind();
-		//m_texture->bindSampler();
 
-		glm::mat4 modelviewproj = Engine::instance()->camera()->viewProjection();
-		modelviewproj = glm::translate(modelviewproj, glm::vec3(0, -50, 100));
-		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(modelviewproj), false);
-		pShader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
-		check_gl_error();
-		glBindVertexArray(m_vao);
-		check_gl_error();
+	glm::mat4 modelviewproj = Engine::instance()->camera()->viewProjection();
+	glm::mat3 normalMatrix = glm::mat3(transpose(inverse(modelviewproj)));
+	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(modelviewproj), false);
+	pShader->setUniformMatrix4fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
+	pShader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
+	glBindVertexArray(m_vao);
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glEnableVertexAttribArray(0);
 
-		if (m_vbo_texture != 0) {
-			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
-			glEnableVertexAttribArray(1);
-		}
+	if (m_vbo_texture != 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
+		glEnableVertexAttribArray(1);
+	}
 
-		if (m_vbo_normals != 0) {
-			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
-			glEnableVertexAttribArray(2);
-		}
-		// draw points 0-3 from the currently bound VAO with current in-use shader
-		const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
-		glDisable(GL_CULL_FACE);
-		glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
-		check_gl_error();	
-	//}
-		m_sprite->render();
+	if (m_vbo_normals != 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
+		glEnableVertexAttribArray(2);
+	}
+
+	/*if (m_vbo_tangents != 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_tangents);
+		glEnableVertexAttribArray(3);
+	}*/
+	// draw points 0-3 from the currently bound VAO with current in-use shader
+	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
 }

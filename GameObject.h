@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 26/12/15.
+// Created by Lauri Kortevaara on 26/12/15.
 //
 
 #ifndef OMEN_GAMEOBJECT_H

@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 25/12/15.
+// Created by Lauri Kortevaara on 25/12/15.
 //
 
 #include "Texture.h"

@@ -230,6 +230,11 @@ void Engine::initializeSystems() {
 void Engine::update() {
 	m_timeDelta = static_cast<omen::floatprec>(glfwGetTime()) - m_time;
 	m_time = static_cast<omen::floatprec>(glfwGetTime());
+	
+	// Update systems
+	for (auto system : m_systems)
+		system->update(m_time, m_timeDelta);
+
 	signal_engine_update.notify(m_time, m_timeDelta);
 	//glSampleCoverage(m_sample_coverage, GL_FALSE);
 	//doPhysics(m_timeDelta);
@@ -318,20 +323,14 @@ bool Engine::createShadowFramebuffer() {
 }
 
 void Engine::render() {
+	omen::floatprec t1 = time();
+
 	m_framecounter++;
 	m_window->start_rendering();
-	check_gl_error();
-	//glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-	//renderScene();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	renderScene();
-	check_gl_error();
-
 	
 	//
 	// Render FPS counter as text
 	//
-
 	static std::vector<omen::floatprec> q_fps;
 	if (q_fps.size() < 500)
 		q_fps.push_back(static_cast<omen::floatprec>(1.0) / m_timeDelta);
@@ -342,16 +341,19 @@ void Engine::render() {
 
 	for (auto fps : q_fps)
 		m_avg_fps += fps;
+	
 	m_avg_fps /= q_fps.size();
-
+	
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	renderScene();
-	//ecs::Sprite s("textures/checker.jpg", glm::vec2(0,0));
-	//s.render();
 	m_window->end_rendering();
 
 	handle_task_queue();
+
+	float delta = (1000.0f/60.0)-(m_timeDelta*1000.0f);
+	if(delta > 0 )
+		Sleep((int)(delta));
 }
 
 

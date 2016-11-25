@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(personal) on 21/12/15.
+// Created by Lauri Kortevaara on 21/12/15.
 //
 
 #ifdef _WIN32
@@ -27,11 +27,13 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Material.h"
-
+#include "utils.h"
+#include "Engine.h"
+#include "component/MouseInput.h"
 
 using namespace omen;
 
-Shader::Shader(const std::string &shader_file) {
+Shader::Shader(const std::string &shader_file) : m_shaderFile(shader_file) {
 	readShaderFile(shader_file);
 
 }
@@ -60,11 +62,15 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 		break;
 	}
 
+	full_source += "uniform float iGlobalTime;"; // Floating point global time in seconds
+	full_source += "uniform vec4 iMouse;"; // MouseCoord(x,y), MouseButtons(Left,Right);
+	full_source += "uniform vec2 iResolution;"; // WindowSize(width,height);
 	full_source += shader_source;
 	full_source += "\0";
 
 	shader = glCreateShader(shaderType);
 	check_gl_error();
+
 
 	unsigned long len = full_source.length()+1;
 	char *shader_source_buffer = new char[len];
@@ -73,14 +79,33 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 	check_gl_error();
 
 	GLchar info_log[1024];
+	GLchar shader_source_raw[100 * 1024];
+	GLsizei shader_len = 0;
 
 	glCompileShader(shader);
 	check_gl_error();
+
+	glGetShaderSource(shader, sizeof(shader_source_raw), &shader_len, &shader_source_raw[0]);
 
 	int info_len = 0;
 	glGetShaderInfoLog(shader, sizeof(info_log), &info_len, info_log);
 	if (strlen(info_log) != 0) {
 		boxer::show(info_log, "Vertex Shader ERROR");
+		std::string str_info_log = info_log;
+		int i1 = str_info_log.find_first_of("(");
+		int i2 = str_info_log.find_first_of("(", i1 + 1);
+		std::string line_no = str_info_log.substr(i1 + 1, i2-1);
+		int line_number = std::stoi(line_no);
+		std::vector<std::string> lines = omen::split_string(shader_source_raw, "\n");
+		std::string source;
+		int line = 1;
+		for (auto l : lines) {
+			if(line> (line_number - 10) && line <= (line_number + 10))
+				source += std::to_string(line) + ": " + l;
+			line++;
+		}
+		boxer::show(source.c_str(), m_shaderFile.c_str());
+			
 		return false;
 	}
 	shader_id = shader;
@@ -93,6 +118,45 @@ std::string Shader::getShaderSource(GLuint &shader_id) {
 	GLsizei vertex_shader_source_len = 0;
 	glGetShaderSource(shader_id, sizeof(vertex_shader_source), &vertex_shader_source_len, vertex_shader_source);
 	return vertex_shader_source;
+}
+
+std::string Shader::readSubShader(const std::string& relativePath, const std::string &shader_file) {
+	std::string fullPath = relativePath + shader_file;
+	std::ifstream is(fullPath, std::ifstream::binary);
+	if (is && std::find(includedShaders.begin(), includedShaders.end(), fullPath ) == includedShaders.end()) {
+		std::ostringstream sout;
+		std::copy(std::istreambuf_iterator<char>(is),
+			std::istreambuf_iterator<char>(),
+			std::ostreambuf_iterator<char>(sout));
+		is.close();
+
+		includedShaders.push_back(fullPath);
+		return sout.str();
+	}
+	return "";
+}
+
+std::string Shader::include_sub_shaders(const std::string& relativePath, const std::string& shader_source) 
+{
+	std::vector<std::string> lines = omen::split_string(shader_source, "\n");
+	std::string full_shader;
+	for (auto& line : lines)
+	{
+		if (line.find("#include") == std::string::npos) {
+			full_shader += line +"\n";
+			continue;
+		}
+		int i0 = line.find_first_of("\"")+1;
+		//for (int i = 0; i < 100; ++i) {
+		//	std::string s = line.substr(i0, i);
+		//	std::cout << s << std::endl;
+		//}
+		int i1 = line.find_first_of("\"", i0);
+		std::string filename = line.substr(i0, i1-i0);
+		
+		full_shader += readSubShader(relativePath, filename) + "\n";
+	}
+	return full_shader;
 }
 
 bool Shader::readShaderFile(const std::string &shader_file) {
@@ -108,6 +172,11 @@ bool Shader::readShaderFile(const std::string &shader_file) {
 		check_gl_error();
 
 		std::string shader_source = sout.str();
+		std::string relativePath = shader_file.find_first_of("/") == std::string::npos ? "./" :
+			shader_file.substr(0, shader_file.find_last_of("/")+1);
+
+		shader_source = include_sub_shaders(relativePath,shader_source);
+
 		GLuint vShader, gShader, tcShader, teShader, fShader;
 		if (shader_source.find("VERTEX_SHADER") != std::string::npos) {
 			if (createShader(GL_VERTEX_SHADER, vShader, shader_source))
@@ -147,6 +216,15 @@ bool Shader::readShaderFile(const std::string &shader_file) {
 void Shader::use() {
 	check_gl_error();
 	glUseProgram(m_shader_program);
+	setUniform1f("iGlobalTime", Engine::instance()->time());
+	glm::vec2 mousePos = Engine::instance()->findComponent<MouseInput>()->cursorPos();
+	glm::vec2 mouseButtons = Engine::instance()->findComponent<MouseInput>()->mouseButtonStatesLR();
+	glm::vec4 iMouse(mousePos, mouseButtons);
+	setUniform4fv("iMouse", 1, glm::value_ptr(mousePos));
+
+	glm::vec2 windowSize(Engine::instance()->window()->width(), Engine::instance()->window()->height());
+	setUniform2fv("iResolution", 1, glm::value_ptr(windowSize));
+
 	check_gl_error();
 }
 
