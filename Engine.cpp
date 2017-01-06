@@ -37,20 +37,63 @@ using namespace omen;
 
 // Singleton instance
 Engine *Engine::m_instance = nullptr;
+static long Engine_left_bytes = 0;
+static long Engine_left_kbytes = 0;
+static long Engine_left_mbytes = 0;
 
 std::mutex Engine::t_future_task::task_mutex;
 
+#define size_alloc 1024*1024*300
+
+typedef struct allocation{
+	BYTE* ptr;
+	unsigned long long size;
+};
+
+static unsigned int current_pool = 0;
+static BYTE* pools[1024] = {};
+static long long allocation_index = 0;
+static BYTE *mempool = (BYTE*)malloc(size_alloc);
+static BYTE* current_p = mempool;
+
 void * operator new(size_t size)
-{       // try to allocate size bytes
+{   
+	/*std::cout << "Allocating with new [" << size << "] bytes. " << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__ << std::endl;
+	// try to allocate size bytes
 	void *p;
 	while ((p = malloc(size)) == 0)
 		if (_callnewh(size) == 0)
-		{       // report no memory
+		{       
+			// report no memory
 			static const std::bad_alloc nomem;
 			_RAISE(nomem);
 		}
+		*/
+	void * p = (void*)current_p;
+	current_p += size;
+	Engine_left_bytes = size_alloc - (current_p - mempool);
+	Engine_left_kbytes = Engine_left_bytes >> 10;
+	Engine_left_mbytes = Engine_left_kbytes >> 10;
+	if (Engine_left_bytes < 0) {
+		pools[current_pool] = mempool;
+		mempool = (BYTE*)malloc(size_alloc);
+		current_p = mempool;
+		current_pool++;
+		p = (void*)current_p;
+	}
+	/*if (Engine_left_mbytes > 0) printf("Memory left: %lu MBytes\n", Engine_left_mbytes);
+	else if (Engine_left_kbytes > 0) printf("Memory left: %lu KBytes\n", Engine_left_kbytes);
+	else printf("Memory left: %lu bytes\n", Engine_left_bytes);*/
 
+	//allocations[allocation_index].ptr = (BYTE*)p;
+	//allocations[allocation_index].size = size;
+	allocation_index++;
 	return (p);
+}
+
+void operator delete(void* ptr) noexcept
+{
+	//std::puts("");
 }
 
 Engine::Engine() :
@@ -103,6 +146,11 @@ Engine::Engine() :
 		}), 3.0, true);
 
 	});
+}
+
+Engine::~Engine()
+{
+	free(mempool);
 }
 
 Engine *Engine::instance() {
@@ -608,7 +656,8 @@ void Engine::renderText() {
 	for (auto fps : q_fps)
 		avg_fps += fps;
 	avg_fps /= q_fps.size();
-
+	m_fps = static_cast<omen::floatprec>(1.0) / m_timeDelta;
+	m_avg_fps = avg_fps;
 	glm::mat4 viewmat = m_camera->view();
 	MouseInput *mi = findComponent<MouseInput>();
 

@@ -33,8 +33,12 @@ namespace omen {
         /** Singleton interface **/
         static Engine* m_instance;
         Engine();
+		~Engine();
 
     public:
+		/*static long left_bytes;
+		static long left_kbytes;
+		static long left_mbytes;*/
         static Engine* instance();
 
         /** Signals **/
@@ -103,7 +107,8 @@ namespace omen {
         std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
         void post(std::function<void()>& task, omen::floatprec delay = 0.0, bool repeating = false );
 
-
+		const omen::floatprec fps() const { return m_fps; }
+		const omen::floatprec averageFps() const { return m_avg_fps; }
     private:
         std::unique_ptr<Window> m_window;
         Camera *m_camera;
@@ -117,6 +122,7 @@ namespace omen {
 
 		omen::floatprec m_time;
 		omen::floatprec m_timeDelta;
+		omen::floatprec m_fps;
 		omen::floatprec m_avg_fps;
 
 

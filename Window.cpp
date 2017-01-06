@@ -140,6 +140,8 @@ void Window::createWindow(unsigned int width, unsigned int height) {
 		}
 
 	});
+
+	hideMouseCursor();
 }
 
 Window::~Window() {

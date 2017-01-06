@@ -23,6 +23,7 @@ namespace omen {
         Material();
 
         glm::vec4 &diffuseColor() { return m_diffuse_color; }
+		glm::vec4 const &const_diffuseColor()const { return m_diffuse_color; }
 
         void setDiffuseColor(glm::vec4 color) { m_diffuse_color = color; }
 
@@ -38,7 +39,7 @@ namespace omen {
 
         void setSpecularCoeff(float coeff) { m_spec_coeff = coeff; }
 
-        Texture *texture() { return m_texture; }
+        Texture *texture() const { return m_texture; }
 
         void setTexture(Texture *texture) { m_texture = texture; }
 

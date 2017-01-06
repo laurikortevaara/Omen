@@ -45,4 +45,12 @@ namespace omen {
 		strings.push_back(str.substr(prev));
 		return strings;
 	}
+
+	template <typename T>
+	std::wstring to_string_with_precision(const T a_value, const int n)
+	{
+		std::owstringstream out;
+		out << std::setprecision(n) << a_value;
+		return out.wstr();
+	}
 }

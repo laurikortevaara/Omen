@@ -54,4 +54,7 @@ namespace omen {
 	* split_string with given delimiter
 	*/
 	std::vector<std::string> split_string(const std::string& str,const std::string& delimiter);
+
+	template <typename T>
+	std::wstring to_string_with_precision(const T a_value, const int n = 6);
 }

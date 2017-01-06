@@ -152,6 +152,9 @@ find_package(FbxSdk REQUIRED)
 if(NOT FBX_INCLUDE_DIR)
     message(FATAL_ERROR "FBX SDK not found: " ${FBX_INCLUDE_DIR})
 endif (NOT FBX_INCLUDE_DIR)
+
+include_directories(${FBX_INCLUDE_DIR})
+link_libraries(${FBX_LIBRARY})
 if(APPLE)
   set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
   set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
@@ -388,6 +391,8 @@ ui/View.h
 
 # thirdparty
 thirdparty/boxer/lib/boxer_win.cpp
+Common/Common.cxx
+Common/Common.h
 )
 add_executable(Omen ${SOURCE_FILES})
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)

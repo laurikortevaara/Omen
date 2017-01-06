@@ -26,6 +26,7 @@ namespace omen {
 			Vertex(const glm::vec3& pos) :pos(pos) {}
 			operator glm::vec3() { return pos; }
 			operator glm::vec3&() { return pos; }
+			operator Mesh::Vertex&() { return *this; }
 
 			glm::vec3 pos;
 			glm::vec3 normal;
@@ -46,9 +47,13 @@ namespace omen {
         std::vector<Mesh::Vertex> &vertices() { return m_vertices; }
         std::vector<glm::vec3> &normals() { return m_normals; }
 		std::vector<glm::vec3> &tangents() { return m_tangents; }
+		std::vector<glm::vec3> &bitangents() { return m_bitangents; }
         std::vector<glm::vec2> &uv() { return m_uv; }
 		std::vector<GLsizei> &vertexIndices() { return m_vertex_indices; }
 		const BoundingBox& boundingBox() { return m_bb; }
+		
+		const Material* material() const { return m_material.get(); }
+		void setMaterial(std::unique_ptr<Material> material) { m_material = std::move(material); }
 
         Mesh& setVertices(const std::vector<glm::vec3> &vertices) {
             for(auto v : vertices)
@@ -90,9 +95,11 @@ namespace omen {
 		//std::vector<glm::vec3>	m_vertices;
 		std::vector<glm::vec3>	m_normals;
 		std::vector<glm::vec3>	m_tangents;
+		std::vector<glm::vec3>	m_bitangents;
 		std::vector<glm::vec2>	m_uv;
 		std::vector<GLsizei>	m_vertex_indices;
 		BoundingBox				m_bb;
+		std::unique_ptr<Material>m_material;
     };
 } // namespace omen
 

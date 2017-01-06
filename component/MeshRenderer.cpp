@@ -13,6 +13,7 @@
 #define VERTEX_ATTRIB_TCOORD 1
 #define VERTEX_ATTRIB_NORMAL 2
 #define VERTEX_ATTRIB_TANGENT 3
+#define VERTEX_ATTRIB_BITANGENT 4
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -70,11 +71,11 @@ void MeshRenderer::onAttach(Entity* e) {
 	
 
 	// Create Texture
-	/*Engine::instance()->window()->signal_file_dropped.connect([this](std::vector<std::string>& files)
+	/*Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
 		if( !files.empty() && files.begin()->find(".md3") == std::string::npos )
 			m_texture = new Texture(*files.begin());
-	})*/;
+	});*/
 	m_texture = new Texture("textures/checker.jpg");
 	m_textureNormal = new Texture("textures/brick_normal.png");
 	if (meshController) {
@@ -102,9 +103,15 @@ void MeshRenderer::onAttach(Entity* e) {
 		check_gl_error();
 		glDisableVertexAttribArray(VERTEX_ATTRIB_POS);
 
+		// Check if we have index buffer
+		m_indexBufferSize = meshController->mesh()->vertexIndices().size();
+		if (m_indexBufferSize>0) {
+			glGenBuffers(1, &m_indexBuffer);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferSize * sizeof(unsigned int), meshController->mesh()->vertexIndices().data(), GL_STATIC_DRAW);
+		}
 		// Create VBO for texture
 		std::vector<glm::vec2> uvs = meshController->mesh()->uv();
-
 		if(!uvs.empty()){
 			glGenBuffers(1, &m_vbo_texture);
 			check_gl_error();
@@ -156,6 +163,26 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glDisableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
 		}
+
+		// Create VBO for tangents
+		std::vector<glm::vec3> bitangents = meshController->mesh()->bitangents();
+		if (!bitangents.empty()) {
+			glGenBuffers(1, &m_vbo_bitangents);
+			check_gl_error();
+			glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
+			check_gl_error();
+			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_bitangents);
+			check_gl_error();
+
+			check_gl_error();
+			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*bitangents.size(), bitangents.data(), GL_STATIC_DRAW);
+			check_gl_error();
+			glVertexAttribPointer(VERTEX_ATTRIB_BITANGENT, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			check_gl_error();
+			glDisableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
+		}
+
+		m_texture = meshController->mesh()->material() != nullptr ? meshController->mesh()->material()->texture() : m_texture;
 	}
 }
 
@@ -164,7 +191,9 @@ void MeshRenderer::onDetach(Entity* e) {
 }
 
 void MeshRenderer::render()
-{		
+{	
+	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
+
 	// Use shader
 	pShader->use();
 
@@ -177,6 +206,10 @@ void MeshRenderer::render()
 	glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos = Engine::instance()->camera()->position();
 
+	
+	glm::vec4 diffuseColor = meshController->mesh()->material()->const_diffuseColor();
+	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
+	
 	// Set matrix uniforms
 	pShader->setUniformMatrix4fv("ViewMatrix", 1, glm::value_ptr(viewMatrix), false);
 	pShader->setUniformMatrix4fv("ViewProjMatrix", 1, glm::value_ptr(modelMatrix), false);
@@ -210,12 +243,21 @@ void MeshRenderer::render()
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_tangents);
 		glEnableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
 	}
+
+	if (m_vbo_bitangents != 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_bitangents);
+		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
+	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 
 	if (m_texture != nullptr)
 		m_texture->bind();
-	
-	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
 
-	glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
+	glEnable(GL_CULL_FACE);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	//glPolygonMode(GL_BACK, GL_LINE);
+	if(m_indexBuffer!=0)
+		glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
+	else
+		glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
 }

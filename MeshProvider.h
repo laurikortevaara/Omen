@@ -14,6 +14,7 @@ namespace omen {
 		static std::unique_ptr<Mesh> createPlane();
 		static std::unique_ptr<Mesh> createCube();
 		static std::unique_ptr<Mesh> createSphere();
+		static std::unique_ptr<Mesh> loadObject(const std::string& filename);
 	};
 }
 

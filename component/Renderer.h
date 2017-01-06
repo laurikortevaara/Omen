@@ -22,6 +22,14 @@ namespace omen {
 		protected:
 			Renderer() : m_vao(0),
 				m_vbo(0),
+				m_vbo_texture(0),
+				m_vbo_normals(0),
+				m_vbo_tangents(0),
+				m_vbo_bitangents(0),
+
+				m_indexBuffer(0),
+				m_indexBufferSize(0),
+				
 				Component() {
 				GraphicsSystem *gs = omen::Engine::instance()->findSystem<GraphicsSystem>();
 				assert(gs != nullptr);
@@ -30,10 +38,13 @@ namespace omen {
 			};
 		protected:
 			GLuint m_vao;
+			GLuint m_indexBufferSize;
+			GLuint m_indexBuffer;
 			GLuint m_vbo;
 			GLuint m_vbo_texture;
 			GLuint m_vbo_normals;
 			GLuint m_vbo_tangents;
+			GLuint m_vbo_bitangents;
 			std::unique_ptr<Shader> m_shader;
 			std::unique_ptr<Texture> m_texture;
 		private:

@@ -38,6 +38,9 @@ void TextRenderer::render() {
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)
 {
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// Activate corresponding render state	
 	m_shader->use();
 
@@ -58,10 +61,18 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 
 	// Iterate through all characters
 	std::wstring::const_iterator c;
+	omen::floatprec origin_x = x;
+	omen::floatprec row_spacing = Characters['X'].Size.y * 0.5f;
+
 	for (c = text.begin(); c != text.end(); c++)
 	{
 		Character ch = Characters[*c];
-
+		if (*c == '\n') {
+			y -= (Characters['X'].Size.y + row_spacing)*scale;
+			x = origin_x;
+			continue;
+		}
+		
 		GLfloat xpos = x + ch.Bearing.x * scale;
 		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
 

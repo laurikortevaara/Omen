@@ -104,7 +104,6 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 					m_camera->velocity().x += axes[0] * deltaTime;
 					m_camera->velocity().z -= axes[1] * deltaTime;
 				}
-
 			}
 		}
 	});

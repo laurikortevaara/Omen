@@ -45,6 +45,7 @@ long AudioSystem::getVolume()
 }
 
 void AudioSystem::playAudio() {
+	return;
 	m_audioThread = new std::thread([&] {
 
 	// Initialize the COM library.

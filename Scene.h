@@ -28,6 +28,7 @@ namespace omen {
 		void initialize();
 
 		void renderBackground();
+		void renderArrow();
 
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
         std::vector<std::unique_ptr<Light> >& lights() {return m_lights;}
@@ -44,6 +45,7 @@ namespace omen {
         Sky*    m_sky;
 
         std::unique_ptr<Model> loadModel(const std::string filename);
+		std::unique_ptr<ecs::GameObject> createObject(const std::string& filename);
 
         void render();
     };

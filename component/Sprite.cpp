@@ -58,6 +58,8 @@ void Sprite::render() {
 	shader()->use();
 	texture()->bind();
 
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -82,6 +84,7 @@ void Sprite::render() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 }
 
 /*void Sprite::onAttach(ecs::Entity *e) {

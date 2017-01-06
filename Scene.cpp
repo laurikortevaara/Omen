@@ -27,9 +27,12 @@
 #include "component/MouseInput.h"
 #include "RenderBuffer.h"
 #include "MultipassShader.h"
+#include "MathUtils.h"
+#include "component/KeyboardInput.h"
 
 using namespace omen;
 
+Shader* lineShader = nullptr;
 Shader* bgShaderPass1 = nullptr;
 Shader* bgShaderPass2 = nullptr;
 Shader* bgShaderPass3 = nullptr;
@@ -47,6 +50,7 @@ Scene::Scene() {
 	Window* w = e->window();
 
 	// Two pass gauss blur for the background
+	lineShader = new Shader("shaders/line_shader.glsl");
 	bgShaderPass1 = new Shader("shaders/texture_quad.glsl");
 	bgShaderPass2 = new Shader("shaders/ring_twisterdistance_field_text.glsl");
 
@@ -101,13 +105,28 @@ Scene::Scene() {
 	//bgTexture = new Texture(bgFiles.at(omen::random(0,bgFiles.size()-1)));
 	bgTexture = new Texture("textures/bg_gradient.jpg");
 	
-	Engine::instance()->window()->signal_file_dropped.connect([this](std::vector<std::string>& files)
+	Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
-		std::string& file = *files.begin();
+		const std::string& file = *files.begin();
 		if (file.find(".MD3") != std::string::npos 
 			|| file.find(".md3") != std::string::npos) {
 			loadModel(file);
 		}
+		else
+			if (file.find(".FBX") != std::string::npos
+				|| file.find(".fbx") != std::string::npos) {
+				std::unique_ptr<ecs::GameObject> obj = createObject(file);
+				obj->transform()->pos().x = 0;
+				obj->transform()->pos().y = 0;
+				obj->transform()->pos().z = 0;
+				obj->setName(file);
+				/*Engine::instance()->signal_engine_update.connect([file](float time, float delta_time) {
+					ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity(file));
+					obj->transform()->rotate(time, glm::vec3(0.75, 0, 0));
+					obj->transform()->rotate(time, glm::vec3(0, 0.34, 0));
+				});*/
+				addEntity(std::move(obj));
+			}
 	});
 
 	JoystickInput* ji = (JoystickInput*)e->findComponent<JoystickInput>();
@@ -123,11 +142,6 @@ Scene::Scene() {
 			blur += y;
 		});
 	}
-
-	Engine::instance()->window()->signal_file_dropped.connect([this](std::vector<std::string>& files) {
-		delete bgTexture;
-		bgTexture = new Texture(*files.begin());
-	});
 }
 
 std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
@@ -147,7 +161,7 @@ std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 		obj->addComponent(std::move(meshController));
 		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
 		obj->addCompnent(std::move(mr));
-		addEntity(std::move(obj));
+		//addEntity(std::move(obj));
 		
 		i++;
 	}
@@ -158,48 +172,23 @@ std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 Scene::~Scene() {
 }
 
-std::unique_ptr<ecs::GameObject> createObject() {
+std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename ) {
 	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
 
-	std::unique_ptr<Mesh> mesh = provider->createPlane();
+	std::unique_ptr<Mesh> mesh = provider->loadObject(filename);
 	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
 	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
 	mc->setMesh(std::move(mesh));
-
-	std::unique_ptr<Mesh> cube = provider->createCube();
-	std::unique_ptr<omen::ecs::MeshController> mc2 = std::make_unique<omen::ecs::MeshController>();
-	mc2->setMesh(std::move(cube));
+	obj->addCompnent(std::move(mc));
 
 	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
-
-	//obj->addCompnent(std::move(mc));
-	obj->addCompnent(std::move(mc2));
 	obj->addCompnent(std::move(mr));
-
+	
 	return obj;
 }
 void omen::Scene::initialize()
 {
 	float distributionFactor = 10.0f;
-	for (int i = 0; i < 1; ++i){
-		std::unique_ptr<ecs::GameObject> obj = createObject();
-		/*obj->transform()->pos().x = -omen::random(0,1)*distributionFactor+omen::random(0,1)*distributionFactor; // omen::random(-i*2.1f, i*2.1f);
-		obj->transform()->pos().y = -omen::random(0,1)*distributionFactor+omen::random(0,1)*distributionFactor; // omen::random(-i*2.1f, i*2.1f);
-		obj->transform()->pos().z = -omen::random(0,1)*distributionFactor+omen::random(0,1)*distributionFactor; // omen::random(-i*2.1f, i*2.1f);
-		obj->transform()->rotate(omen::random(0, 360), glm::vec3(1, 0, 0));
-		obj->transform()->rotate(omen::random(0, 360), glm::vec3(0, 1, 0));
-		obj->transform()->rotate(omen::random(0, 360), glm::vec3(0, 0, 1));*/
-		//obj->transform()->scale(glm::vec3(100, 100, 100));
-		obj->transform()->pos().x = 0;
-		obj->transform()->pos().y = 0;
-		obj->transform()->pos().z = 0;
-		obj->setName("Cube");
-		Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
-			ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity("Cube"));
-			//obj->transform()->rotate(time, glm::vec3(0, 1, 0));
-		});
-		addEntity(std::move(obj));
-	}
 
 	/*for (int i = 0; i < 5; ++i){
 		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i), "textures/slider_groove.png", glm::vec2(10, 100+i*20), 100,10);
@@ -217,6 +206,57 @@ void omen::Scene::initialize()
 	});
 	addEntity(std::move(tv));
 	*/
+
+	/*
+	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider", "textures/slider_groove.png", glm::vec2(100, 100), 100, 100);
+	ui::Slider* ptr = slider.get();
+	ptr->signal_slider_dragged.connect([ptr](ui::Slider* slider, float value) -> void {
+		std::wstring str = L"Slider Dragged:";
+		str += omen::to_wstring_with_precision(value, 2);
+		std::wcout << str << std::endl;
+	});
+	addEntity(std::move(slider));*/
+	
+	Engine::instance()->findComponent<KeyboardInput>()->signal_key_release.connect([this](int key, int scan, int action, int mods)
+	{
+		if (key == GLFW_KEY_C && mods & GLFW_MOD_SHIFT) {
+			Scene* s = this;
+			s->m_entities.clear();
+		}
+	});
+
+	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "FPS_COUNTER");
+	Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
+		ui::TextView* obj = dynamic_cast<ui::TextView*>(Engine::instance()->scene()->findEntity("FPS_COUNTER"));
+		if (obj != nullptr) {
+			std::setprecision(2);
+			glm::vec3 v1 = glm::vec3(Engine::instance()->camera()->view()[0][0], Engine::instance()->camera()->view()[0][1], Engine::instance()->camera()->view()[0][2]);
+			glm::vec3 v2 = glm::vec3(Engine::instance()->camera()->view()[1][0], Engine::instance()->camera()->view()[1][1], Engine::instance()->camera()->view()[1][2]);
+			glm::vec3 v3 = glm::vec3(Engine::instance()->camera()->view()[2][0], Engine::instance()->camera()->view()[2][1], Engine::instance()->camera()->view()[2][2]);
+			float y_angle = atan2(Engine::instance()->camera()->view()[0][0], Engine::instance()->camera()->view()[0][2]) * 180 / M_PI;
+			std::wstring fps_str = L"FPS:" + omen::to_wstring_with_precision(Engine::instance()->averageFps(), 3) +
+				L"\nCameraPos: [" + omen::to_wstring_with_precision(Engine::instance()->camera()->position().x, 1) +
+				L", " + omen::to_wstring_with_precision(Engine::instance()->camera()->position().y, 1) +
+				L", " + omen::to_wstring_with_precision(Engine::instance()->camera()->position().z, 1) + L"]" +
+				L"\nCameraDir: [" + omen::to_wstring_with_precision(y_angle, 3) + L"]";
+			obj->setText(fps_str.c_str());
+		}
+	});
+	addEntity(std::move(tv));
+
+
+	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
+
+	std::unique_ptr<Mesh> mesh = provider->createPlane();
+	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("plane");
+	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+	mc->setMesh(std::move(mesh));
+	obj->addCompnent(std::move(mc));
+
+	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
+	obj->addCompnent(std::move(mr));
+	addEntity(std::move(obj));
+	
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
@@ -224,6 +264,52 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view)
 	//renderBackground();
 	ms->render();
 	check_gl_error();
+	//renderArrow();
+}
+
+void Scene::renderArrow()
+{
+	int w, h;
+	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
+	glViewport(0, 0, w, h);
+
+	lineShader->use();
+
+	glm::vec3 p1 = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 p2 = { 1.0f, 0.2f, 0.0f };
+
+	glm::vec3 v = p2 - p1;
+	float tx = v.x;
+	v.x = v.y;
+	v.y = -tx;
+	v = glm::normalize(v);
+	omen::floatprec thickness = 0.01f;
+	
+	glm::vec3 v2[4] = {
+	{p1.x + v.x * thickness / 2,p1.y + v.y * thickness / 2,0},
+	{p1.x - v.x * thickness / 2,p1.y - v.y * thickness / 2,0},
+	{p2.x + v.x * thickness / 2,p2.y + v.y * thickness / 2,0},
+	{p2.x - v.x * thickness / 2,p2.y - v.y * thickness / 2,0},
+	};
+	GLuint vbo2 = 0, vao2 = 0;
+
+	glGenVertexArrays(1, &vao2);
+	glBindVertexArray(vao2);
+
+	glGenBuffers(1, &vbo2);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(v2), v2, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	if( true )
+		return;
+
 	
 }
 
