@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include "../ui/Slider.h"
 #include "../ui/Slider.h"
+#include "KeyboardInput.h"
 
 #define VERTEX_ATTRIB_POS 0
 #define VERTEX_ATTRIB_TCOORD 1
@@ -26,7 +27,7 @@ std::unique_ptr<omen::Shader> pShader = nullptr;
 using namespace omen;
 using namespace ecs;
 
-MeshRenderer::MeshRenderer() : Renderer(), m_specularCoeff(512), m_shininess(5), m_lightDir({ 0,1,0 }), m_texture(nullptr)
+MeshRenderer::MeshRenderer() : Renderer(), m_specularCoeff(512), m_shininess(5), m_lightDir({ 0,1,0 }), m_texture(nullptr), m_renderNormals(false)
 {
 	pShader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
 }
@@ -69,7 +70,6 @@ void MeshRenderer::onAttach(Entity* e) {
 		});
 	}
 	
-
 	// Create Texture
 	/*Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
@@ -182,8 +182,19 @@ void MeshRenderer::onAttach(Entity* e) {
 			glDisableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 		}
 
-		m_texture = meshController->mesh()->material() != nullptr ? meshController->mesh()->material()->texture() : m_texture;
+		m_texture = meshController->mesh()->material() != nullptr ? meshController->mesh()->material()->texture() : nullptr;
 	}
+
+	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
+	{
+		int isN = key == GLFW_KEY_N;
+		int isShift = mods & GLFW_MOD_SHIFT;
+
+		if (isN && isShift)
+		{
+			m_renderNormals = !m_renderNormals;
+		}
+	});
 }
 
 void MeshRenderer::onDetach(Entity* e) {
@@ -250,8 +261,17 @@ void MeshRenderer::render()
 	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 
+	pShader->setUniform1i("RenderNormals", m_renderNormals);
+
 	if (m_texture != nullptr)
+	{
+		pShader->setUniform1i("HasTexture", 1);
 		m_texture->bind();
+	}
+	else
+	{
+		pShader->setUniform1i("HasTexture", 0);
+	}
 
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT, GL_FILL);

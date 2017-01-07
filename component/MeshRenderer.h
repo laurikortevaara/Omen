@@ -36,6 +36,7 @@ namespace omen {
 			Texture* m_textureNormal;
 			Sprite * m_sprite;
 			glm::vec3 m_lightDir;
+			bool	m_renderNormals;
 		};
 
 	}

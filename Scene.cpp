@@ -217,7 +217,7 @@ void omen::Scene::initialize()
 	});
 	addEntity(std::move(slider));*/
 	
-	Engine::instance()->findComponent<KeyboardInput>()->signal_key_release.connect([this](int key, int scan, int action, int mods)
+	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
 	{
 		if (key == GLFW_KEY_C && mods & GLFW_MOD_SHIFT) {
 			Scene* s = this;

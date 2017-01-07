@@ -15,6 +15,8 @@ uniform float	  SpecularCoeff;
 uniform vec4	  MaterialDiffuse;
 uniform vec4	  MaterialSpecular;
 uniform vec4	  MaterialAmbient;
+uniform bool      HasTexture;
+uniform bool	  RenderNormals = true;
 
 /**
  * Vertex Shader
@@ -110,8 +112,13 @@ void main() {
 
     float ldot = abs(dot(normal,l));
 
-	out_color = /*ldot **/ texture(tex,tcoord);
-	out_color = vec4(tcoord.x,tcoord.y,0,1);
+	if(RenderNormals)
+		out_color = vec4(abs(normal),1);
+	else
+	if(HasTexture)
+		out_color = /*ldot **/ texture(tex,tcoord);
+	else
+		out_color = ldot * MaterialDiffuse;
 	out_color.a = 1;
 }
 
