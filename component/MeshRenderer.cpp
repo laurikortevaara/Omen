@@ -10,26 +10,25 @@
 #include "../ui/Slider.h"
 #include "KeyboardInput.h"
 
-#define VERTEX_ATTRIB_POS 0
-#define VERTEX_ATTRIB_TCOORD 1
-#define VERTEX_ATTRIB_NORMAL 2
-#define VERTEX_ATTRIB_TANGENT 3
-#define VERTEX_ATTRIB_BITANGENT 4
-
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
 	-0.5f, -0.5f,  -1.0f,
 	0.5f, -0.5f,  -1.0f
 };
 
-std::unique_ptr<omen::Shader> pShader = nullptr;
-
 using namespace omen;
 using namespace ecs;
 
-MeshRenderer::MeshRenderer() : Renderer(), m_specularCoeff(512), m_shininess(5), m_lightDir({ 0,1,0 }), m_texture(nullptr), m_renderNormals(false)
+MeshRenderer::MeshRenderer(MeshController* meshController) : 
+	Renderer(), 
+	m_specularCoeff(512), 
+	m_shininess(5), 
+	m_lightDir({ 0,1,0 }), 
+	m_texture(nullptr), 
+	m_renderNormals(false),
+	m_meshController(meshController)
 {
-	pShader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
+	m_shader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
 }
 
 void MeshRenderer::connectSlider(ui::Slider* slider) {
@@ -40,8 +39,6 @@ void MeshRenderer::connectSlider(ui::Slider* slider) {
 }
 
 void MeshRenderer::onAttach(Entity* e) {
-	const ecs::MeshController* meshController = e->getComponent<ecs::MeshController>();
-
 	ui::Slider* slider = dynamic_cast<ui::Slider*>(Engine::instance()->scene()->findEntity("Slider0"));
 	if (slider != nullptr) {
 		connectSlider(slider);
@@ -78,7 +75,7 @@ void MeshRenderer::onAttach(Entity* e) {
 	});*/
 	m_texture = new Texture("textures/checker.jpg");
 	m_textureNormal = new Texture("textures/brick_normal.png");
-	if (meshController) {
+	if (m_meshController) {
 		// Create VAO
 		check_gl_error();
 		glGenVertexArrays(1, &m_vao);
@@ -93,7 +90,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		check_gl_error();
 		glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
 		check_gl_error();
-		std::vector<omen::Mesh::Vertex> &verts = meshController->mesh()->vertices();
+		std::vector<omen::Mesh::Vertex> &verts = m_meshController->mesh()->vertices();
 		std::vector<glm::vec3> vertices;
 		for (auto& v : verts) vertices.push_back(v.pos);
 		check_gl_error();
@@ -104,14 +101,14 @@ void MeshRenderer::onAttach(Entity* e) {
 		glDisableVertexAttribArray(VERTEX_ATTRIB_POS);
 
 		// Check if we have index buffer
-		m_indexBufferSize = meshController->mesh()->vertexIndices().size();
+		m_indexBufferSize = m_meshController->mesh()->vertexIndices().size();
 		if (m_indexBufferSize>0) {
 			glGenBuffers(1, &m_indexBuffer);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferSize * sizeof(unsigned int), meshController->mesh()->vertexIndices().data(), GL_STATIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferSize * sizeof(unsigned int), m_meshController->mesh()->vertexIndices().data(), GL_STATIC_DRAW);
 		}
 		// Create VBO for texture
-		std::vector<glm::vec2> uvs = meshController->mesh()->uv();
+		std::vector<glm::vec2> uvs = m_meshController->mesh()->uv();
 		if(!uvs.empty()){
 			glGenBuffers(1, &m_vbo_texture);
 			check_gl_error();
@@ -129,7 +126,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		}
 		
 		// Create VBO for normals
-		std::vector<glm::vec3> normals = meshController->mesh()->normals();
+		std::vector<glm::vec3> normals = m_meshController->mesh()->normals();
 		if (!normals.empty()) {
 			glGenBuffers(1, &m_vbo_normals);
 			check_gl_error();
@@ -147,7 +144,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		}
 
 		// Create VBO for tangents
-		std::vector<glm::vec3> tangents = meshController->mesh()->tangents();
+		std::vector<glm::vec3> tangents = m_meshController->mesh()->tangents();
 		if (!tangents.empty()) {
 			glGenBuffers(1, &m_vbo_tangents);
 			check_gl_error();
@@ -165,7 +162,7 @@ void MeshRenderer::onAttach(Entity* e) {
 		}
 
 		// Create VBO for tangents
-		std::vector<glm::vec3> bitangents = meshController->mesh()->bitangents();
+		std::vector<glm::vec3> bitangents = m_meshController->mesh()->bitangents();
 		if (!bitangents.empty()) {
 			glGenBuffers(1, &m_vbo_bitangents);
 			check_gl_error();
@@ -182,7 +179,7 @@ void MeshRenderer::onAttach(Entity* e) {
 			glDisableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 		}
 
-		m_texture = meshController->mesh()->material() != nullptr ? meshController->mesh()->material()->texture() : nullptr;
+		m_texture = m_meshController->mesh()->material() != nullptr ? m_meshController->mesh()->material()->texture() : nullptr;
 	}
 
 	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
@@ -203,10 +200,8 @@ void MeshRenderer::onDetach(Entity* e) {
 
 void MeshRenderer::render()
 {	
-	const ecs::MeshController* meshController = entity()->getComponent<ecs::MeshController>();
-
 	// Use shader
-	pShader->use();
+	m_shader->use();
 
 	// Get matrices
 	glm::mat4 viewMatrix		= Engine::instance()->camera()->view();
@@ -218,22 +213,22 @@ void MeshRenderer::render()
 	glm::vec3 viewPos = Engine::instance()->camera()->position();
 
 	
-	glm::vec4 diffuseColor = meshController->mesh()->material()->const_diffuseColor();
-	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
+	glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
+	m_shader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 	
 	// Set matrix uniforms
-	pShader->setUniformMatrix4fv("ViewMatrix", 1, glm::value_ptr(viewMatrix), false);
-	pShader->setUniformMatrix4fv("ViewProjMatrix", 1, glm::value_ptr(modelMatrix), false);
-	pShader->setUniformMatrix4fv("ModelMatrix", 1, glm::value_ptr(normalMatrix), false);
-	pShader->setUniformMatrix4fv("ModelViewMatrix", 1, glm::value_ptr(modelViewMatrix), false);
-	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
-	pShader->setUniformMatrix3fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
+	m_shader->setUniformMatrix4fv("ViewMatrix", 1, glm::value_ptr(viewMatrix), false);
+	m_shader->setUniformMatrix4fv("ViewProjMatrix", 1, glm::value_ptr(modelMatrix), false);
+	m_shader->setUniformMatrix4fv("ModelMatrix", 1, glm::value_ptr(normalMatrix), false);
+	m_shader->setUniformMatrix4fv("ModelViewMatrix", 1, glm::value_ptr(modelViewMatrix), false);
+	m_shader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
+	m_shader->setUniformMatrix3fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
 
 	// Set other uniforms
-	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
-	pShader->setUniform1f("Shininess", m_shininess);
-	pShader->setUniform1f("SpecularCoeff", m_specularCoeff);
-	pShader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
+	m_shader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
+	m_shader->setUniform1f("Shininess", m_shininess);
+	m_shader->setUniform1f("SpecularCoeff", m_specularCoeff);
+	m_shader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
 
 	glBindVertexArray(m_vao);
 
@@ -261,16 +256,16 @@ void MeshRenderer::render()
 	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 
-	pShader->setUniform1i("RenderNormals", m_renderNormals);
+	m_shader->setUniform1i("RenderNormals", m_renderNormals);
 
 	if (m_texture != nullptr)
 	{
-		pShader->setUniform1i("HasTexture", 1);
+		m_shader->setUniform1i("HasTexture", 1);
 		m_texture->bind();
 	}
 	else
 	{
-		pShader->setUniform1i("HasTexture", 0);
+		m_shader->setUniform1i("HasTexture", 0);
 	}
 
 	glEnable(GL_CULL_FACE);
@@ -279,5 +274,5 @@ void MeshRenderer::render()
 	if(m_indexBuffer!=0)
 		glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
 	else
-		glDrawArrays(GL_TRIANGLES, 0, meshController->mesh()->vertices().size());
+		glDrawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
 }

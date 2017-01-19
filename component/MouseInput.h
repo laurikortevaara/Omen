@@ -26,7 +26,7 @@ namespace omen {
         typedef omen::Signal<std::function<void(int, int, int)> > ButtonPress_t;
 		typedef omen::Signal<std::function<void(int, int, int)> > ButtonRelease_t;
 		typedef omen::Signal<std::function<void(omen::floatprec, omen::floatprec)> > MouseScrolled_t;
-        CursorPos_t signal_cursorpos_changed;
+        static CursorPos_t signal_cursorpos_changed;
         ButtonPress_t signal_mousebutton_pressed;
 		ButtonRelease_t signal_mousebutton_released;
 		MouseScrolled_t signal_mouse_scrolled;

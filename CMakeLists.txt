@@ -10,6 +10,24 @@
 cmake_minimum_required(VERSION 3.3)
 project(Omen)
 
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
+
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "Build original Bullet CPU demos")
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "Set when you want to build the Bullet 2 demos")
+set(BUILD_BULLET3_DEMOS OFF CACHE BOOL "Set when you want to build the Bullet 3 demos")
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build GLFW Docs")
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build GLFW Examples")
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build GLFW Unit Tests")
+set(GLFW_INSTALL OFF CACHE BOOL "Install GLFW")
+set(USE_GRAPHICAL_BENCHMARK OFF CACHE BOOL "Use Graphical Benchmark")
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "Build CPU Demos")
+set(BUILD_EXTRAS OFF CACHE BOOL "Build extras")
+set(BUILD_BULLET3 OFF CACHE BOOL "Build Bullet3")
+set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "Build OpenGL 3 Demos")
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "Build Bullet 2 Demos")
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "Build Unit tests")
+
 ######################################################################
 # Set the working directory for debugging
 ######################################################################
@@ -59,6 +77,7 @@ else()
 endif(APPLE)
 include_directories(thirdparty/glew/include)
 
+
 ######################################################################
 # GLFW - Multiplatform OpenGL Window management library
 ######################################################################
@@ -72,6 +91,7 @@ if (APPLE)
 else()
     add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glfw)
 endif()
+
 
 ######################################################################
 # STB Image loading library

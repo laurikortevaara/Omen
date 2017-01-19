@@ -33,7 +33,7 @@ TextRenderer::TextRenderer() :
 }
 
 void TextRenderer::render() {
-	renderText(m_text, 10, 1, 0.25, glm::vec4(1));
+	//renderText(m_text, 10, 1, 0.25, glm::vec4(1));
 }
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)

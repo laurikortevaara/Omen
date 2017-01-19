@@ -3,6 +3,7 @@
 
 #include "Material.h"
 #include "Mesh.h"
+#include <list>
 
 namespace omen {
 	class MeshProvider
@@ -11,10 +12,10 @@ namespace omen {
 		MeshProvider();
 		~MeshProvider();
 
-		static std::unique_ptr<Mesh> createPlane();
+		static std::unique_ptr<Mesh> createPlane(float size = 10.0, int subdiv = 1);
 		static std::unique_ptr<Mesh> createCube();
 		static std::unique_ptr<Mesh> createSphere();
-		static std::unique_ptr<Mesh> loadObject(const std::string& filename);
+		static std::list< std::unique_ptr<Mesh> > loadObject(const std::string& filename);
 	};
 }
 

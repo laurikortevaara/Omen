@@ -29,6 +29,7 @@
 #include "MultipassShader.h"
 #include "MathUtils.h"
 #include "component/KeyboardInput.h"
+#include "Terrain.h"
 
 using namespace omen;
 
@@ -59,7 +60,7 @@ Scene::Scene() {
 	renderBuffer2 = new RenderBuffer();
 
 	ms = new MultipassShader();
-	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		bgTexture->bind();
 		int w, h;
 		glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
@@ -86,11 +87,11 @@ Scene::Scene() {
 		glDisable(GL_CULL_FACE);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	}));
-	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	}));*/
+	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 		gs->render();
-	}));
+	}));*/
 	
 
 	
@@ -156,11 +157,12 @@ std::unique_ptr<Model> Scene::loadModel(const std::string filename) {
 		name += i;
 		//std::unique_ptr<ecs::GameObject> obj = std::make_unique<ecs::GameObject>(name);
 		std::unique_ptr<ecs::GameObject> obj = std::make_unique<ecs::GameObject>("OBJECT");
-		std::unique_ptr<ecs::MeshController> meshController = std::make_unique<ecs::MeshController>();
-		meshController->setMesh(std::move(mesh));
-		obj->addComponent(std::move(meshController));
-		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
+		std::unique_ptr<ecs::MeshController> mc = std::make_unique<ecs::MeshController>();
+		mc->setMesh(std::move(mesh));
+		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
 		obj->addCompnent(std::move(mr));
+		obj->addComponent(std::move(mc));
+		
 		//addEntity(std::move(obj));
 		
 		i++;
@@ -175,14 +177,18 @@ Scene::~Scene() {
 std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename ) {
 	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
 
-	std::unique_ptr<Mesh> mesh = provider->loadObject(filename);
 	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
-	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
-	mc->setMesh(std::move(mesh));
-	obj->addCompnent(std::move(mc));
+	std::list< std::unique_ptr<Mesh> > meshes = provider->loadObject(filename);
+	for (auto& mesh : meshes)
+	{
+		std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+		mc->setMesh(std::move(mesh));
+		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
+		obj->addCompnent(std::move(mr));
+		obj->addCompnent(std::move(mc));
 
-	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
-	obj->addCompnent(std::move(mr));
+		
+	}
 	
 	return obj;
 }
@@ -245,24 +251,29 @@ void omen::Scene::initialize()
 	addEntity(std::move(tv));
 
 
-	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
+	//std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
 
-	std::unique_ptr<Mesh> mesh = provider->createPlane();
+	/*std::unique_ptr<Mesh> mesh = provider->createPlane();
 	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("plane");
 	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
 	mc->setMesh(std::move(mesh));
+
+	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
+	obj->addCompnent(std::move(mr));
 	obj->addCompnent(std::move(mc));
 
-	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>();
-	obj->addCompnent(std::move(mr));
-	addEntity(std::move(obj));
 	
+
+	addEntity(std::move(obj));*/
+	addEntity(std::make_unique<Terrain>());
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
 {
 	//renderBackground();
-	ms->render();
+	//ms->render();
+	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
+	gs->render();
 	check_gl_error();
 	//renderArrow();
 }

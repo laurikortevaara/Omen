@@ -44,7 +44,9 @@ void MultipassShader::render() {
 	int i_pass = 0;
 	for (auto& renderPass : m_renderPasses) {
 		renderPass.shader->use();
+		check_gl_error();
 		renderPass.pass(this, renderPass.shader, i_pass);
+		check_gl_error();
 		i_pass++;
 	}
 }

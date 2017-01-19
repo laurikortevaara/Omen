@@ -32,6 +32,11 @@
 #include "component/TextRenderer.h"
 #include "system/GraphicsSystem.h"
 
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX  0x9049
+#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX            0x904A
+#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX            0x904B
 
 using namespace omen;
 
@@ -146,6 +151,12 @@ Engine::Engine() :
 		}), 3.0, true);
 
 	});
+
+	MouseInput::signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) -> void {
+		m_mouse_x = x;
+		m_mouse_y = y;
+	});
+
 }
 
 Engine::~Engine()
@@ -274,8 +285,48 @@ void Engine::initializeSystems() {
 
 }
 
+void Engine::getTextureMemoryInfo()
+{
+	int dedicated_video_memory = 0;
+	int total_available_memory = 0;
+	int current_available_video_memory = 0;
+	int eviction_count = 0;
+	int evicted_memory = 0;
+
+	glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &dedicated_video_memory);
+	glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_available_memory);
+	glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &current_available_video_memory);
+	glGetIntegerv(GPU_MEMORY_INFO_EVICTION_COUNT_NVX, &eviction_count);
+	glGetIntegerv(GPU_MEMORY_INFO_EVICTED_MEMORY_NVX, &evicted_memory);
+
+	/*std::cout << "Dedicated Video Memory: " << dedicated_video_memory / 1024 << " Mb." << std::endl;
+	std::cout << "Total Video Memory: " << total_available_memory / 1024 << " Mb." << std::endl;
+	std::cout << "Current Available Video Memory: " << current_available_video_memory / 1024 << " Mb." << std::endl;
+	std::cout << "Eviction Count: " << eviction_count << std::endl;
+	std::cout << "Evicted Memory: " << evicted_memory / 1024 << " Mb." << std::endl;*/
+	int i = 0;
+}
+
+void Engine::ray_cast_mouse()
+{
+	float x = (2.0f * m_mouse_x) / m_window->width() - 1.0f;
+	float y = 1.0f - (2.0f * m_mouse_y) / m_window->width();
+	float z = 1.0f;
+	glm::vec3 ray_nds = glm::vec3(x, y, z);
+	
+	glm::vec4 ray_clip = glm::vec4(glm::vec2(ray_nds), -1.0, 1.0);
+	glm::vec4 ray_eye = glm::inverse(m_camera->projection()) * ray_clip;
+	ray_eye = glm::vec4(glm::vec2(ray_eye), -1.0, 0.0);
+	glm::vec3 ray_wor = glm::vec3(glm::inverse(m_camera->view()) * ray_eye);
+	// don't forget to normalise the vector at some point
+	ray_wor = glm::normalize(ray_wor);
+	std::cout << "Ray: " << ray_wor.x << ", " << ray_wor.y << ", " << ray_wor.z << std::endl;
+}
 
 void Engine::update() {
+	//getTextureMemoryInfo();
+	ray_cast_mouse();
+
 	m_timeDelta = static_cast<omen::floatprec>(glfwGetTime()) - m_time;
 	m_time = static_cast<omen::floatprec>(glfwGetTime());
 	
@@ -659,7 +710,6 @@ void Engine::renderText() {
 	m_fps = static_cast<omen::floatprec>(1.0) / m_timeDelta;
 	m_avg_fps = avg_fps;
 	glm::mat4 viewmat = m_camera->view();
-	MouseInput *mi = findComponent<MouseInput>();
 
 	int samples;
 	glGetIntegerv(GL_SAMPLES, &samples);
@@ -696,7 +746,7 @@ void Engine::renderText() {
 			os << "\n";
 		}*/
 	std::wstring text(os.str());
-	m_text->renderText(text, -1 + 8 * sx, 1 - 14 * sy, sx, glm::vec4(1, 1, 1, 1));
+	//m_text->renderText(text, -1 + 8 * sx, 1 - 14 * sy, sx, glm::vec4(1, 1, 1, 1));
 }
 
 GLenum Engine::getPolygonMode() {

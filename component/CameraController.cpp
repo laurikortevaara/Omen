@@ -65,7 +65,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 		// velo = m/s
 		// acceleration = m/s^2
 		if (m_camera != nullptr && !ki->keyModifierPressed(GLFW_MOD_SHIFT)) {
-			m_camera->acceleration() = glm::vec3(1.35f);
+			m_camera->acceleration() = glm::vec3(10.35f);
 
 			
 			if (ki->keyPressed(GLFW_KEY_W)) {

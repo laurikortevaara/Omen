@@ -45,6 +45,8 @@ namespace omen {
         Scene *scene();
 
         GLenum getPolygonMode();
+		static void getTextureMemoryInfo();
+		void ray_cast_mouse();
 
     public:
         typedef Signal< std::function<void (omen::floatprec time, omen::floatprec delta_time)> > Update;
@@ -161,6 +163,7 @@ namespace omen {
         btRigidBody*                            m_groundRigidBody;
         btDefaultMotionState*                   m_fallMotionState;
         btRigidBody*                            m_fallRigidBody;
+		omen::floatprec							m_mouse_x, m_mouse_y;
 
         void initPhysics();
 

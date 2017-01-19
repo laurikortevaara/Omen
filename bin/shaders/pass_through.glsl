@@ -104,13 +104,23 @@ void main() {
       normalCameraSpace
 	));
 
-    vec3 lpos = vec3(100,100,0);
-    vec3 l = normalize(lpos-fragPos);
+	vec3 lpos = vec3(0,100,-100);
+    vec3 lpos2 = vec3(-100,50,100);
+	vec3 lpos3 = vec3(100,500,10);
+    vec3 l = normalize(lpos-vpos);
+	vec3 l2 = normalize(lpos2-vpos);
+	vec3 l3 = normalize(lpos3-vpos);
 
 	vec3 LightDirection_tangentspace = TBN * dataIn.LightDirection_cameraspace;
 	vec3 EyeDirection_tangentspace =  TBN * dataIn.EyeDirection_cameraspace;
 
-    float ldot = abs(dot(normal,l));
+    float ldot = max(0.0,dot(normal,l));
+	float ldot2 = max(0.0,dot(normal,l2));
+	float ldot3 = max(0.0,dot(normal,l3));
+
+	vec4 MaterialDiff = MaterialDiffuse;
+	float fa = 0.12;
+	vec4 Ambient = vec4(fa,fa,fa,1.0);
 
 	if(RenderNormals)
 		out_color = vec4(abs(normal),1);
@@ -118,7 +128,7 @@ void main() {
 	if(HasTexture)
 		out_color = /*ldot **/ texture(tex,tcoord);
 	else
-		out_color = ldot * MaterialDiffuse;
+		out_color = Ambient + ldot*MaterialDiff + ldot2 * MaterialDiff;
 	out_color.a = 1;
 }
 

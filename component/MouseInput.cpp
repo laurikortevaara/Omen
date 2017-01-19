@@ -11,6 +11,8 @@ using namespace omen;
 
 std::map<GLFWwindow *, omen::MouseInput &> MouseInput::mouseinput_callbacks;
 
+MouseInput::CursorPos_t MouseInput::signal_cursorpos_changed;
+
 MouseInput::MouseInput() : Component() {
     // KeyHit signal handler
     // Add a static C-function callback wrapper with pointer to this
