@@ -30,6 +30,7 @@
 #include "MathUtils.h"
 #include "component/KeyboardInput.h"
 #include "Terrain.h"
+#include "Sky.h"
 
 using namespace omen;
 
@@ -265,7 +266,8 @@ void omen::Scene::initialize()
 	
 
 	addEntity(std::move(obj));*/
-	addEntity(std::make_unique<Terrain>());
+	//addEntity(std::make_unique<Terrain>());
+	addEntity(std::make_unique<Sky>());
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 

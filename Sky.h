@@ -1,34 +1,13 @@
-//
-// Created by Lauri Kortevaara(Intopalo) on 11/01/16.
-//
+#pragma once
 
-#ifndef OMEN_SKY_H
-#define OMEN_SKY_H
-
-#include "Omen_OpenGL.h"
-#include <vector>
-#include "Shader.h"
-#include "Renderable.h"
+#include "GameObject.h"
 
 namespace omen {
-    class Sky : public Renderable {
-    public:
-        Sky();
-        virtual ~Sky();
+	class Sky : public ecs::GameObject
+	{
+	public:
+		Sky();
+		~Sky();
+	};
+}
 
-        virtual void render();
-
-	protected:
-		virtual void initializeShader() {};
-		virtual void initializeTexture() {};
-
-    private:
-        std::vector<GLshort> m_indices;
-        GLuint m_vao;
-        GLuint m_vbo;
-        GLuint m_ibo;
-        Shader *m_shader;
-    };
-} // namespace omen
-
-#endif //OMEN_SKY_H
