@@ -226,8 +226,10 @@ void MeshRenderer::render(Shader* shader)
 
 	/*Setup the DepthMVP*/
 	// Compute the MVP matrix from the light's point of view
-	glm::vec3 lightInvDir = glm::vec3(-20, 20, -20);
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, 0, 100);
+	float t = Engine::instance()->time();
+	glm::vec3 lightInvDir = glm::vec3(-15*cos(t), abs(sin(t))*20, -15*sin(t));
+	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightInvDir));
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-20, 20, -20, 20, 0, 100);
 	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	// or, for spot light :
 	//glm::vec3 lightPos(5, 20, 20);

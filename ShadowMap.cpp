@@ -26,7 +26,7 @@ bool ShadowMap::init()
 	engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap = depthTexture;
 
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 4096, 4096, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -50,14 +50,15 @@ void ShadowMap::render()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 	check_gl_error();
-	glViewport(0, 0, 1024, 1024);
+	glViewport(0, 0, 4096, 4096);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the depth buffer
 
 	m_shader->use();
-	glm::vec3 lightInvDir = glm::vec3(-20, 20, -20);
-	depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, 0, 100);
+	float t = Engine::instance()->time();
+	glm::vec3 lightInvDir = glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
+	depthProjectionMatrix = glm::ortho<float>(-20, 20, -20, 20, 0, 100);
 	depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 	// or, for spot light :
