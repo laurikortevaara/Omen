@@ -278,7 +278,7 @@ void MeshRenderer::render(Shader* shader)
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
 
-	/*if (m_vbo_texture != 0) {
+	if (m_vbo_texture != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
 		glEnableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 	}
@@ -296,7 +296,7 @@ void MeshRenderer::render(Shader* shader)
 	if (m_vbo_bitangents != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_bitangents);
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
-	}*/
+	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT, GL_FILL);
