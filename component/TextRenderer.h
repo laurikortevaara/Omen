@@ -18,7 +18,7 @@ namespace omen {
 			virtual void onDetach(ecs::Entity* e) {};
         public:
 			TextRenderer();
-            virtual void render();
+            virtual void render(Shader* shader = nullptr);
 			void renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color);
 
 			const std::wstring& text() const { return m_text; }

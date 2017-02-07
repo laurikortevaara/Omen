@@ -19,7 +19,7 @@ void omen::ecs::SpriteRenderer::onDetach(Entity* e) {
 
 }
 
-void omen::ecs::SpriteRenderer::render()
+void omen::ecs::SpriteRenderer::render(Shader* shader)
 {
 	int w, h;
 	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);

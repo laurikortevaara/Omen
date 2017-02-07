@@ -32,7 +32,7 @@ TextRenderer::TextRenderer() :
 	initializeFreeType();
 }
 
-void TextRenderer::render() {
+void TextRenderer::render(Shader* shader) {
 	//renderText(m_text, 10, 1, 0.25, glm::vec4(1));
 }
 

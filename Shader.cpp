@@ -215,6 +215,8 @@ bool Shader::readShaderFile(const std::string &shader_file) {
 
 void Shader::use() {
 	check_gl_error();
+	if (!glIsProgram(m_shader_program))
+		abort();
 	glUseProgram(m_shader_program);
 	setUniform1f("iGlobalTime", Engine::instance()->time());
 	glm::vec2 mousePos = Engine::instance()->findComponent<MouseInput>()->cursorPos();
@@ -234,130 +236,154 @@ void Shader::use() {
  */
 void Shader::setUniform1i(const std::string &uniform, GLint value) {
 	if (getUniformLocation(uniform) >= 0) {
-		GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-		glUniform1i(uniform_loc, value);
+		GLint uniform_loc = getUniformLocation(uniform);
+		if (uniform_loc >= 0)
+			glUniform1i(uniform_loc, value);
 	}
 }
 
 void Shader::setUniform1iv(const std::string &uniform, int count, int *value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1iv(uniform_loc, count, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1iv(uniform_loc, count, value);
 }
 
 void Shader::setUniform1ui(const std::string &uniform, unsigned int value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1ui(uniform_loc, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1ui(uniform_loc, value);
 }
 
 void Shader::setUniform1uiv(const std::string &uniform, int count, unsigned int *value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1uiv(uniform_loc, count, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1uiv(uniform_loc, count, value);
 }
 
 void Shader::setUniform1f(const std::string &uniform, float value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1f(uniform_loc, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1f(uniform_loc, value);
 }
 
 void Shader::setUniform1fv(const std::string &uniform, int count, float *value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1fv(uniform_loc, count, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1fv(uniform_loc, count, value);
 }
 
 void Shader::setUniform1d(const std::string &uniform, double value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1d(uniform_loc, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1d(uniform_loc, value);
 }
 
 void Shader::setUniform1dv(const std::string &uniform, int count, double *value) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform1dv(uniform_loc, count, value);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform1dv(uniform_loc, count, value);
 }
 
 /**
  * 2D
  */
 void Shader::setUniform2i(const std::string &uniform, int x, int y) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2i(uniform_loc, x, y);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2i(uniform_loc, x, y);
 }
 
 void Shader::setUniform2iv(const std::string &uniform, int count, int *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2iv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2iv(uniform_loc, count, values);
 }
 
 void Shader::setUniform2ui(const std::string &uniform, unsigned int x, unsigned int y) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2ui(uniform_loc, x, y);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2ui(uniform_loc, x, y);
 }
 
 void Shader::setUniform2uiv(const std::string &uniform, int count, unsigned int *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2uiv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2uiv(uniform_loc, count, values);
 }
 
 void Shader::setUniform2f(const std::string &uniform, float x, float y) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2f(uniform_loc, x, y);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2f(uniform_loc, x, y);
 }
 
 void Shader::setUniform2fv(const std::string &uniform, int count, float *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2fv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2fv(uniform_loc, count, values);
 }
 
 void Shader::setUniform2d(const std::string &uniform, double x, double y) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2d(uniform_loc, x, y);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2d(uniform_loc, x, y);
 }
 
 void Shader::setUniform2dv(const std::string &uniform, int count, double *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform2dv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform2dv(uniform_loc, count, values);
 }
 
 /**
  * 3D
  */
 void Shader::setUniform3i(const std::string &uniform, int x, int y, int z) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3i(uniform_loc, x, y, z);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3i(uniform_loc, x, y, z);
 }
 
 void Shader::setUniform3iv(const std::string &uniform, int count, int *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3iv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3iv(uniform_loc, count, values);
 }
 
 void Shader::setUniform3ui(const std::string &uniform, unsigned int x, unsigned int y, unsigned int z) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3ui(uniform_loc, x, y, z);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3ui(uniform_loc, x, y, z);
 }
 
 void Shader::setUniform3uiv(const std::string &uniform, int count, unsigned int *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3uiv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3uiv(uniform_loc, count, values);
 }
 
 void Shader::setUniform3f(const std::string &uniform, float x, float y, float z) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3f(uniform_loc, x, y, z);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3f(uniform_loc, x, y, z);
 }
 
 void Shader::setUniform3fv(const std::string &uniform, int count, float *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3fv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3fv(uniform_loc, count, values);
 }
 
 void Shader::setUniform3d(const std::string &uniform, double x, double y, double z) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3d(uniform_loc, x, y, z);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3d(uniform_loc, x, y, z);
 }
 
 void Shader::setUniform3dv(const std::string &uniform, int count, double *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform3dv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform3dv(uniform_loc, count, values);
 }
 
 
@@ -365,43 +391,51 @@ void Shader::setUniform3dv(const std::string &uniform, int count, double *values
  * 4D
  */
 void Shader::setUniform4i(const std::string &uniform, int x, int y, int z, int w) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4i(uniform_loc, x, y, z, w);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4i(uniform_loc, x, y, z, w);
 }
 
 void Shader::setUniform4iv(const std::string &uniform, int count, int *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4iv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4iv(uniform_loc, count, values);
 }
 
 void Shader::setUniform4ui(const std::string &uniform, unsigned int x, unsigned int y, unsigned int z, unsigned int w) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4ui(uniform_loc, x, y, z, w);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4ui(uniform_loc, x, y, z, w);
 }
 
 void Shader::setUniform4uiv(const std::string &uniform, int count, unsigned int *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4uiv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4uiv(uniform_loc, count, values);
 }
 
 void Shader::setUniform4f(const std::string &uniform, float x, float y, float z, float w) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4f(uniform_loc, x, y, z, w);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4f(uniform_loc, x, y, z, w);
 }
 
 void Shader::setUniform4fv(const std::string &uniform, int count, float *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4fv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4fv(uniform_loc, count, values);
 }
 
 void Shader::setUniform4d(const std::string &uniform, double x, double y, double z, double w) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4d(uniform_loc, x, y, z, w);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4d(uniform_loc, x, y, z, w);
 }
 
 void Shader::setUniform4dv(const std::string &uniform, int count, double *values) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniform4dv(uniform_loc, count, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniform4dv(uniform_loc, count, values);
 }
 
 
@@ -410,7 +444,8 @@ void Shader::setUniform4dv(const std::string &uniform, int count, double *values
  */
 void Shader::setUniformBlockBinding(const std::string &uniform_block, int block_binding) {
 	GLint block_index = glGetUniformBlockIndex(m_shader_program, uniform_block.c_str());
-	glUniformBlockBinding(m_shader_program, block_index, block_binding);
+	if(block_index >= 0 )
+		glUniformBlockBinding(m_shader_program, block_index, block_binding);
 }
 
 
@@ -418,33 +453,39 @@ void Shader::setUniformBlockBinding(const std::string &uniform_block, int block_
  * Matrix uniforms
  */
 void Shader::setUniformMatrix2fv(const std::string &uniform, int count, float *values, bool bTranspose) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniformMatrix2fv(uniform_loc, count, bTranspose, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniformMatrix2fv(uniform_loc, count, bTranspose, values);
 }
 
 void Shader::setUniformMatrix2dv(const std::string &uniform, int count, double *values, bool bTranspose) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniformMatrix2dv(uniform_loc, count, bTranspose, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniformMatrix2dv(uniform_loc, count, bTranspose, values);
 }
 
 void Shader::setUniformMatrix3fv(const std::string &uniform, int count, float *values, bool bTranspose) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniformMatrix3fv(uniform_loc, count, bTranspose, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniformMatrix3fv(uniform_loc, count, bTranspose, values);
 }
 
 void Shader::setUniformMatrix3dv(const std::string &uniform, int count, double *values, bool bTranspose) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniformMatrix3dv(uniform_loc, count, bTranspose, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniformMatrix3dv(uniform_loc, count, bTranspose, values);
 }
 
 void Shader::setUniformMatrix4fv(const std::string &uniform, int count, float *values, bool bTranspose) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniformMatrix4fv(uniform_loc, count, bTranspose, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if (uniform_loc >= 0)
+		glUniformMatrix4fv(uniform_loc, count, bTranspose, values);
 }
 
 void Shader::setUniformMatrix4dv(const std::string &uniform, int count, double *values, bool bTranspose) {
-	GLint uniform_loc = glGetUniformLocation(m_shader_program, uniform.c_str());
-	glUniformMatrix4dv(uniform_loc, count, bTranspose, values);
+	GLint uniform_loc = getUniformLocation(uniform);
+	if(uniform_loc >= 0)
+		glUniformMatrix4dv(uniform_loc, count, bTranspose, values);
 }
 
 
@@ -453,7 +494,15 @@ GLint Shader::getAttribLocation(const std::string &attribName) {
 }
 
 GLint Shader::getUniformLocation(const std::string &uniformName) {
-	int loc = glGetUniformLocation(m_shader_program, uniformName.c_str());
+	//std::map<std::string, GLint>::iterator iter = uniformLocations.find(uniformName);
+	GLint loc = glGetUniformLocation(m_shader_program, uniformName.c_str());
+	/*if (iter == uniformLocations.end()) {
+		loc = glGetUniformLocation(m_shader_program, uniformName.c_str());
+		uniformLocations[uniformName] = loc;
+	}
+	else
+		loc = uniformLocations[uniformName];*/
+
 	return loc;
 }
 
@@ -462,7 +511,8 @@ void Shader::setTexture(int textureIndex, const std::string &textureName, Textur
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	int loc = glGetUniformLocation(m_shader_program, "Texture");
-	glUniform1i(loc, GL_TEXTURE0);
+	if (loc >= 0)
+		glUniform1i(loc, GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture->id());
 }
 

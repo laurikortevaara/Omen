@@ -16,6 +16,7 @@ namespace omen {
     class Shader {
 		std::string m_shaderFile;
 		std::vector<std::string> includedShaders;
+		std::map<std::string, GLint> uniformLocations;
 		std::string readSubShader(const std::string& relativePath, const std::string &shader_file);
 		std::string include_sub_shaders(const std::string& relativePath, const std::string& shader_source);
     public:

@@ -19,7 +19,7 @@ namespace omen {
 			SkyRenderer(MeshController*);
 			virtual ~SkyRenderer();
 
-			virtual void render();
+			virtual void render(Shader* shader = nullptr);
 
 		protected:
 			virtual void initializeShader() {};

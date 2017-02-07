@@ -5,13 +5,15 @@
 #include "Component.h"
 
 namespace omen {
+	class Shader;
+
 	namespace ecs {
 		class Renderer : public Component {
 		protected:
 			virtual void onAttach(ecs::Entity* e) = 0;
 			virtual void onDetach(ecs::Entity* e) = 0;
 		public:
-			virtual void render() = 0;
+			virtual void render(omen::Shader* shader = nullptr) = 0;
 
 			Renderer& setShader(std::unique_ptr<Shader> shader) { m_shader = std::move(shader); return *this; }
 			Shader* shader() const { return m_shader.get(); }

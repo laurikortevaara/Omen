@@ -30,7 +30,7 @@ namespace omen {
 				return *this;
 			}
 
-			virtual void render();
+			virtual void render(Shader* shader = nullptr);
 			
 			void setShininess(float value) { m_shininess = value; }
 

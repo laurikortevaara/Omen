@@ -9,13 +9,14 @@
 #include "System.h"
 
 namespace omen {
-    namespace ecs {
+	class Shader;
+	namespace ecs {
         class GraphicsSystem : public ecs::System {
 
         public:
 			virtual void add(Component *component);
-            void render();
-
+            void render(omen::Shader* pShader = nullptr);
+			int depthMap;
         };
     }
 }

@@ -120,14 +120,20 @@ Engine::Engine() :
 
 	Window::signal_window_created.connect([this](Window* window) {
 		initializeSystems();
+		check_gl_error();
 
 		m_camera = new Camera("Camera1", { 0, 0, 0 }, { 0, 0, 0 }, 90.0f);
+		check_gl_error();
 		findComponent<CameraController>()->setCamera(m_camera);
+		check_gl_error();
 		m_scene = std::make_unique<Scene>();
+		check_gl_error();
 		m_scene->initialize();
-		m_text = std::make_unique<ecs::TextRenderer>();
+		check_gl_error();
+		//m_text = std::make_unique<ecs::TextRenderer>();
 
 		createFramebuffer();
+		check_gl_error();
 
 		/* omen::MD3Loader loader;
 		 loader.loadModel("models/sphere.md3");
@@ -145,7 +151,7 @@ Engine::Engine() :
 		 }
 		 */
 		initPhysics();
-
+		check_gl_error();
 		post(std::function<void()>([&](void) {
 			std::cout << "FPS: " << m_avg_fps << std::endl;
 		}), 3.0, true);

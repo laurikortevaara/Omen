@@ -28,7 +28,7 @@ MeshRenderer::MeshRenderer(MeshController* meshController) :
 	m_renderNormals(false),
 	m_meshController(meshController)
 {
-	m_shader = std::make_unique<omen::Shader>("shaders/pass_through.glsl");
+	m_shader = std::make_unique<omen::Shader>("shaders/pass_through_with_shadow.glsl");
 }
 
 void MeshRenderer::connectSlider(ui::Slider* slider) {
@@ -198,10 +198,14 @@ void MeshRenderer::onDetach(Entity* e) {
 
 }
 
-void MeshRenderer::render()
+void MeshRenderer::render(Shader* shader)
 {	
-	// Use shader
-	m_shader->use();
+	// Initialize shader with global parameters
+	Shader* pShader = shader;
+	if (pShader == nullptr) {
+		pShader = m_shader.get();
+		pShader->use();
+	}
 
 	// Get matrices
 	glm::mat4 viewMatrix		= Engine::instance()->camera()->view();
@@ -211,31 +215,70 @@ void MeshRenderer::render()
 	glm::mat4 MVP = viewprojMatrix * modelMatrix;
 	glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos = Engine::instance()->camera()->position();
-
-	
+		
 	glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
-	m_shader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
+	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 	
 	// Set matrix uniforms
-	m_shader->setUniformMatrix4fv("ViewMatrix", 1, glm::value_ptr(viewMatrix), false);
-	m_shader->setUniformMatrix4fv("ViewProjMatrix", 1, glm::value_ptr(modelMatrix), false);
-	m_shader->setUniformMatrix4fv("ModelMatrix", 1, glm::value_ptr(normalMatrix), false);
-	m_shader->setUniformMatrix4fv("ModelViewMatrix", 1, glm::value_ptr(modelViewMatrix), false);
-	m_shader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
-	m_shader->setUniformMatrix3fv("NormalMatrix", 1, glm::value_ptr(normalMatrix), false);
+	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
 
 	// Set other uniforms
-	m_shader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
-	m_shader->setUniform1f("Shininess", m_shininess);
-	m_shader->setUniform1f("SpecularCoeff", m_specularCoeff);
-	m_shader->setUniform3fv("LightDir", 1, glm::value_ptr(m_lightDir));
 
+	/*Setup the DepthMVP*/
+	// Compute the MVP matrix from the light's point of view
+	glm::vec3 lightInvDir = glm::vec3(-20, 20, -20);
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, 0, 100);
+	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	// or, for spot light :
+	//glm::vec3 lightPos(5, 20, 20);
+	//glm::mat4 depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
+	//glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));
+
+	glm::mat4 depthModelMatrix = glm::mat4(1.0);
+	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+	glm::mat4 biasMatrix(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+		);
+
+	glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
+
+	// Send our transformation to the currently bound shader, 
+	// in the "MVP" uniform
+	pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
+	/********************/
+
+	pShader->setUniform1i("RenderNormals", m_renderNormals);
+
+	if (m_texture != nullptr)
+	{
+		pShader->setUniform1i("HasTexture", 1);
+		m_texture->bind();
+	}
+	else
+	{
+		pShader->setUniform1i("HasTexture", 0);
+		glActiveTexture(GL_TEXTURE0);
+		omen::Engine* engine = omen::Engine::instance();
+		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		//shader->setUniform1i("shadowMap", 1);
+		/*GLuint ShadowMapID = glGetUniformLocation(m_shader->m_shader_program, "shadowMap");
+		if (ShadowMapID > 0) {
+			glUniform1i(ShadowMapID, 1);
+		}*/
+
+	}
+
+	// Setup buffers for rendering
 	glBindVertexArray(m_vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
 
-	if (m_vbo_texture != 0) {
+	/*if (m_vbo_texture != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
 		glEnableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 	}
@@ -253,21 +296,8 @@ void MeshRenderer::render()
 	if (m_vbo_bitangents != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_bitangents);
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
-	}
+	}*/
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-
-	m_shader->setUniform1i("RenderNormals", m_renderNormals);
-
-	if (m_texture != nullptr)
-	{
-		m_shader->setUniform1i("HasTexture", 1);
-		m_texture->bind();
-	}
-	else
-	{
-		m_shader->setUniform1i("HasTexture", 0);
-	}
-
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	//glPolygonMode(GL_BACK, GL_LINE);

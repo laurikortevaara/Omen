@@ -36,7 +36,7 @@ SkyRenderer::~SkyRenderer() {
 	delete m_shader;
 }
 
-void SkyRenderer::render() {
+void SkyRenderer::render(Shader* shader) {
 	omen::Window::_size s = Engine::instance()->window()->size();
 
 	m_shader->use();

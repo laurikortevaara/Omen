@@ -31,9 +31,11 @@
 #include "component/KeyboardInput.h"
 #include "Terrain.h"
 #include "Sky.h"
+#include "ShadowMap.h"
 
 using namespace omen;
 
+Shader* quadShader = nullptr;
 Shader* lineShader = nullptr;
 Shader* bgShaderPass1 = nullptr;
 Shader* bgShaderPass2 = nullptr;
@@ -43,6 +45,7 @@ RenderBuffer* renderBuffer = nullptr;
 RenderBuffer* renderBuffer2 = nullptr;
 MultipassShader* ms = nullptr;
 float blur = 0.0f;
+ShadowMap* shadowMap = nullptr;
 
 namespace fs = std::experimental::filesystem;
 
@@ -52,6 +55,7 @@ Scene::Scene() {
 	Window* w = e->window();
 
 	// Two pass gauss blur for the background
+	quadShader = new Shader("shaders/quad.glsl");
 	lineShader = new Shader("shaders/line_shader.glsl");
 	bgShaderPass1 = new Shader("shaders/texture_quad.glsl");
 	bgShaderPass2 = new Shader("shaders/ring_twisterdistance_field_text.glsl");
@@ -105,7 +109,7 @@ Scene::Scene() {
 		bgFiles.push_back(os.str());
 	}
 	//bgTexture = new Texture(bgFiles.at(omen::random(0,bgFiles.size()-1)));
-	bgTexture = new Texture("textures/bg_gradient.jpg");
+	bgTexture = new Texture("textures/sirius.jpg");
 	
 	Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
@@ -232,7 +236,7 @@ void omen::Scene::initialize()
 		}
 	});
 
-	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "FPS_COUNTER");
+	//std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "FPS_COUNTER");
 	Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
 		ui::TextView* obj = dynamic_cast<ui::TextView*>(Engine::instance()->scene()->findEntity("FPS_COUNTER"));
 		if (obj != nullptr) {
@@ -249,7 +253,7 @@ void omen::Scene::initialize()
 			obj->setText(fps_str.c_str());
 		}
 	});
-	addEntity(std::move(tv));
+	//addEntity(std::move(tv));
 
 
 	//std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
@@ -267,17 +271,76 @@ void omen::Scene::initialize()
 
 	addEntity(std::move(obj));*/
 	//addEntity(std::make_unique<Terrain>());
-	addEntity(std::make_unique<Sky>());
+	//addEntity(std::make_unique<Sky>());
+	shadowMap = new ShadowMap();
+	shadowMap->init();
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
 {
+	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 	//renderBackground();
 	//ms->render();
-	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
+	shadowMap->render();
+	glEnable(GL_DEPTH_TEST);
+	gs->render(shadowMap->m_shader);
+	shadowMap->finish();
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gs->render();
 	check_gl_error();
 	//renderArrow();
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	check_gl_error();
+	glViewport(0, 0, 500, 500);
+	check_gl_error();
+	quadShader->use();
+	check_gl_error();
+
+	glEnable(GL_TEXTURE_2D);
+	check_gl_error();
+	glActiveTexture(GL_TEXTURE0);
+	/*check_gl_error();
+	int loc = glGetUniformLocation(quadShader->m_shader_program, "Texture");
+	check_gl_error();
+	if (loc >= 0)
+		glUniform1i(loc, GL_TEXTURE0);
+	check_gl_error();*/
+	glBindTexture(GL_TEXTURE_2D, shadowMap->depthTexture);
+	check_gl_error();
+	
+	GLuint vao;
+	glCreateVertexArrays(1, &vao);
+	check_gl_error();
+	glBindVertexArray(vao);
+	check_gl_error();
+	glDisable(GL_CULL_FACE);
+	check_gl_error();
+	GLfloat vertices[8] = { -1,-1,
+							1,-1,
+							1,1,
+							-1,1};
+	GLuint vbo;
+	glCreateBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), (GLfloat*)(&vertices), GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glDrawArrays(GL_QUADS, 0, 4);
+	check_gl_error();
+	glDisableVertexAttribArray(0);
+	check_gl_error();
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	check_gl_error();
+	glBindVertexArray(0);
+	check_gl_error();
+	glDeleteBuffers(1, &vbo);
+	check_gl_error();
+	glDeleteVertexArrays(1, &vao);
+	check_gl_error();
 }
 
 void Scene::renderArrow()

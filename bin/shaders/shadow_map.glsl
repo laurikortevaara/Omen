@@ -10,7 +10,7 @@ uniform mat4 depthMVP;
  *
  */
 #ifdef VERTEX_SHADER
-layout(location=0) in vec4 position;
+layout(location=0) in vec3 position;
 
 void main() {
     gl_Position =  depthMVP * vec4(position,1);
@@ -24,10 +24,12 @@ void main() {
  */
 
 // Ouput data
-layout(location = 0) out float fragmentdepth;
+out float fragmentdepth;
+//out vec3 color;
 
 void main() {
-    fragmentdepth = gl_FragCoord.z;
+    fragmentdepth = 0; //gl_FragCoord.z;
+	//color = vec3(1,0,0);
 }
 
 #endif

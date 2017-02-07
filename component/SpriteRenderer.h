@@ -12,7 +12,7 @@ namespace omen {
 			virtual void onDetach(ecs::Entity* e);
 		public:
 			SpriteRenderer(std::unique_ptr<Sprite> sprite);
-			virtual void render();
+			virtual void render(Shader* shader = nullptr);
 
 			Sprite* sprite() const { return m_sprite.get(); }
 
