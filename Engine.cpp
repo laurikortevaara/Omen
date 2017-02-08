@@ -46,6 +46,11 @@ static long Engine_left_bytes = 0;
 static long Engine_left_kbytes = 0;
 static long Engine_left_mbytes = 0;
 
+GLfloat Engine::ShadowFrustumNear = 0.0f;
+GLfloat Engine::ShadowFrustumFar = 100.0f;
+GLuint Engine::ShadowFrustumSize = 20.0f;
+glm::vec3 Engine::LightPos(-15, 20, -15);
+
 std::mutex Engine::t_future_task::task_mutex;
 
 #define size_alloc 1024*1024*300
@@ -330,6 +335,8 @@ void Engine::ray_cast_mouse()
 }
 
 void Engine::update() {
+	float t = time();
+	LightPos = glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
 	//getTextureMemoryInfo();
 	ray_cast_mouse();
 

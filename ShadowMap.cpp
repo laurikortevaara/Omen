@@ -56,10 +56,8 @@ void ShadowMap::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the depth buffer
 
 	m_shader->use();
-	float t = Engine::instance()->time();
-	glm::vec3 lightInvDir = glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
-	depthProjectionMatrix = glm::ortho<float>(-20, 20, -20, 20, 0, 100);
-	depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	depthProjectionMatrix = glm::ortho<float>(-Engine::ShadowFrustumSize, Engine::ShadowFrustumSize, -Engine::ShadowFrustumSize, Engine::ShadowFrustumSize, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+	depthViewMatrix = glm::lookAt(Engine::LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 	// or, for spot light :
 	//glm::vec3 lightPos(5, 20, 20);

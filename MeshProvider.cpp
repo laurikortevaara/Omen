@@ -1,5 +1,9 @@
 #include "MeshProvider.h"
 #include "MathUtils.h"
+#include "Entity.h"
+#include "GameObject.h"
+#include "component/MeshController.h"
+#include "component/MeshRenderer.h"
 
 #include <fbxsdk.h>
 #include <fbxsdk/core/fbxpropertytypes.h>
@@ -1322,7 +1326,7 @@ void DisplayListCurveKeys(FbxAnimCurve* pCurve, FbxProperty* pProperty)
 }
 /*ANIAMTION*/
 
-std::list< std::unique_ptr<Mesh> > MeshProvider::loadObject(const std::string& filename)
+std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(const std::string& filename)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
@@ -1346,11 +1350,12 @@ std::list< std::unique_ptr<Mesh> > MeshProvider::loadObject(const std::string& f
 	
 	//get root node of the fbx scene
 	FbxNode* lRootNode = lScene->GetRootNode();
-	std::list< std::unique_ptr<Mesh> > meshes;
+	std::list< std::unique_ptr<omen::ecs::GameObject> > meshes;
 
 	DisplayAnimation(lScene);
 
-	for (int i = 0; i < lRootNode->GetChildCount(); ++i) {
+	int childCount = lRootNode->GetChildCount();
+	for (int i = 0; i < childCount; ++i) {
 		std::vector<Mesh::Vertex> vertices = {};
 		std::vector<glm::vec3> normals = {};
 		std::vector<glm::vec2> uv = {};
@@ -1366,7 +1371,7 @@ std::list< std::unique_ptr<Mesh> > MeshProvider::loadObject(const std::string& f
 
 	
 		FbxNode* pNode = lRootNode->GetChild(i);
-
+		const char* name = pNode->GetName();
 		GetVertexIndices(pNode, indices, vertices, normals);
 		GetSkeleton(pNode);
 		//GetNormals(pNode, normals);
@@ -1399,7 +1404,24 @@ std::list< std::unique_ptr<Mesh> > MeshProvider::loadObject(const std::string& f
 		mesh->setNormals(normals);
 		mesh->setUVs(uv);
 
-		meshes.push_back(std::move(mesh));
+		/**/
+		std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>(name);
+
+		std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+		mc->setMesh(std::move(mesh));
+		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
+		obj->addCompnent(std::move(mr));
+		obj->addCompnent(std::move(mc));
+
+		FbxVector4 pos = pNode->EvaluateLocalTranslation()*0.01;
+		obj->transform()->pos().x = pos[0];
+		obj->transform()->pos().y = pos[1];
+		obj->transform()->pos().z = pos[2];
+		obj->setName(name);
+
+		/**/
+
+		meshes.push_back(std::move(obj));
 	}
 	//Destroy all objects created by the FBX SDK.
 	DestroySdkObjects(lSdkManager, lResult);

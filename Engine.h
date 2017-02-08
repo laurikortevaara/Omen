@@ -36,6 +36,11 @@ namespace omen {
 		~Engine();
 
     public:
+
+
+		static GLfloat ShadowFrustumNear, ShadowFrustumFar;
+		static GLuint ShadowFrustumSize;
+		static glm::vec3 LightPos;
 		/*static long left_bytes;
 		static long left_kbytes;
 		static long left_mbytes;*/

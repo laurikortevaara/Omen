@@ -122,16 +122,28 @@ Scene::Scene() {
 			if (file.find(".FBX") != std::string::npos
 				|| file.find(".fbx") != std::string::npos) {
 				std::unique_ptr<ecs::GameObject> obj = createObject(file);
-				obj->transform()->pos().x = 0;
-				obj->transform()->pos().y = 0;
-				obj->transform()->pos().z = 0;
-				obj->setName(file);
-				/*Engine::instance()->signal_engine_update.connect([file](float time, float delta_time) {
+
+				if(false)
+				{
+					std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
+
+					std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+					mc->setMesh(std::move(MeshProvider::createPlane(10000)));
+					std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
+					obj->addCompnent(std::move(mr));
+					obj->addCompnent(std::move(mc));
+
+					obj->transform()->pos().x = -5000;
+					obj->transform()->pos().y = -2;
+					obj->transform()->pos().z = -5000;
+					obj->setName("plane");
+					/*Engine::instance()->signal_engine_update.connect([file](float time, float delta_time) {
 					ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity(file));
 					obj->transform()->rotate(time, glm::vec3(0.75, 0, 0));
 					obj->transform()->rotate(time, glm::vec3(0, 0.34, 0));
-				});*/
-				addEntity(std::move(obj));
+					});*/
+					addEntity(std::move(obj));
+				}
 			}
 	});
 
@@ -182,20 +194,19 @@ Scene::~Scene() {
 std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename ) {
 	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
 
-	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
-	std::list< std::unique_ptr<Mesh> > meshes = provider->loadObject(filename);
-	for (auto& mesh : meshes)
+	std::list< std::unique_ptr<omen::ecs::GameObject> > meshes = provider->loadObject(filename);
+	int i = 0;
+	for (auto& obj : meshes)
 	{
-		std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
-		mc->setMesh(std::move(mesh));
-		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
-		obj->addCompnent(std::move(mr));
-		obj->addCompnent(std::move(mc));
-
-		
+		/*Engine::instance()->signal_engine_update.connect([file](float time, float delta_time) {
+		ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity(file));
+		obj->transform()->rotate(time, glm::vec3(0.75, 0, 0));
+		obj->transform()->rotate(time, glm::vec3(0, 0.34, 0));
+		});*/
+		addEntity(std::move(obj));
 	}
 	
-	return obj;
+	return nullptr;
 }
 void omen::Scene::initialize()
 {
