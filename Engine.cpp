@@ -336,7 +336,7 @@ void Engine::ray_cast_mouse()
 
 void Engine::update() {
 	float t = time();
-	LightPos = glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
+	LightPos = glm::vec3(t*0.001, t*0.1, 0.0); // glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
 	//getTextureMemoryInfo();
 	ray_cast_mouse();
 
@@ -475,7 +475,7 @@ const std::unique_ptr<Window>& Engine::createWindow(unsigned int width, unsigned
 	check_gl_error();
 	glFrontFace(GL_CCW);
 	check_gl_error();
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	check_gl_error();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);

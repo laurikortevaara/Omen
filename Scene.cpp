@@ -46,6 +46,7 @@ RenderBuffer* renderBuffer2 = nullptr;
 MultipassShader* ms = nullptr;
 float blur = 0.0f;
 ShadowMap* shadowMap = nullptr;
+ecs::GameObject* lightobj = nullptr;
 
 namespace fs = std::experimental::filesystem;
 
@@ -249,6 +250,9 @@ void omen::Scene::initialize()
 
 	//std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "FPS_COUNTER");
 	Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
+		if (lightobj != nullptr) {
+			lightobj->transform()->pos() = Engine::LightPos;
+		}
 		ui::TextView* obj = dynamic_cast<ui::TextView*>(Engine::instance()->scene()->findEntity("FPS_COUNTER"));
 		if (obj != nullptr) {
 			std::setprecision(2);
@@ -285,6 +289,12 @@ void omen::Scene::initialize()
 	//addEntity(std::make_unique<Sky>());
 	shadowMap = new ShadowMap();
 	shadowMap->init();
+
+	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
+	std::unique_ptr<ecs::GameObject> l = std::move(provider->loadObject("models/light.fbx").begin().operator*());
+	lightobj = l.get();
+	lightobj->getComponent<omen::ecs::MeshController>()->setCastShadow(false);
+	addEntity(std::move(l));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 

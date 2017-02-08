@@ -206,6 +206,10 @@ void MeshRenderer::render(Shader* shader)
 		pShader = m_shader.get();
 		pShader->use();
 	}
+	else {
+		if (!m_meshController->castShadow())
+			return;
+	}
 
 	// Get matrices
 	glm::mat4 viewMatrix		= Engine::instance()->camera()->view();
@@ -226,16 +230,16 @@ void MeshRenderer::render(Shader* shader)
 
 	/*Setup the DepthMVP*/
 	// Compute the MVP matrix from the light's point of view
-	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(Engine::LightPos));
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-Engine::ShadowFrustumSize, Engine::ShadowFrustumSize, -Engine::ShadowFrustumSize, Engine::ShadowFrustumSize, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
-	glm::mat4 depthViewMatrix = glm::lookAt(Engine::LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
+	glm::vec3 lightInvDir = Engine::LightPos;
+	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightInvDir));
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-20, 20, -20, 20, 0, 50);
+	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	// or, for spot light :
 	//glm::vec3 lightPos(5, 20, 20);
 	//glm::mat4 depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
 	//glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));
 
-	glm::mat4 depthModelMatrix = glm::mat4(1.0);
+	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
 	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 	glm::mat4 biasMatrix(
 		0.5, 0.0, 0.0, 0.0,
@@ -248,6 +252,10 @@ void MeshRenderer::render(Shader* shader)
 
 	// Send our transformation to the currently bound shader, 
 	// in the "MVP" uniform
+	
+	// Send our transformation to the currently bound shader, 
+	// in the "MVP" uniform
+	pShader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
 	pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
 	/********************/
 
@@ -299,7 +307,7 @@ void MeshRenderer::render(Shader* shader)
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	//glPolygonMode(GL_BACK, GL_LINE);
 	if(m_indexBuffer!=0)

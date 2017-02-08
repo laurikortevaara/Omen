@@ -168,7 +168,7 @@ void TerrainRenderer::render()
 	check_gl_error();
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	check_gl_error();
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	//glPolygonMode(GL_FRONT, GL_LINE);
 	//glPolygonMode(GL_BACK, GL_LINE);
 	if (m_indexBuffer != 0)

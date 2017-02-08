@@ -56,20 +56,6 @@ void ShadowMap::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the depth buffer
 
 	m_shader->use();
-	depthProjectionMatrix = glm::ortho<float>(-Engine::ShadowFrustumSize, Engine::ShadowFrustumSize, -Engine::ShadowFrustumSize, Engine::ShadowFrustumSize, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
-	depthViewMatrix = glm::lookAt(Engine::LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-	// or, for spot light :
-	//glm::vec3 lightPos(5, 20, 20);
-	//glm::mat4 depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
-	//glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));
-
-	glm::mat4 depthModelMatrix = glm::mat4(1.0);
-	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
-
-	// Send our transformation to the currently bound shader, 
-	// in the "MVP" uniform
-	m_shader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
 }
 
 void ShadowMap::finish()
