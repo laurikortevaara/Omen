@@ -27,6 +27,7 @@ namespace omen {
         Transform(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale):
                 m_position(position),m_rotation(rotation), m_scale(scale){}
         glm::vec3& pos() { return m_position; }
+		glm::vec3& scale() { return m_scale;  }
 
 
         explicit Transform(const Transform& tr) {

@@ -589,9 +589,8 @@ void GetSmoothing(FbxManager* pSdkManager, FbxNode* pNode, bool pCompute, bool p
 	}
 }
 
-void GetVertexIndices(FbxNode* pNode, std::vector<GLsizei>& indices, std::vector<Mesh::Vertex>& vertices, std::vector<glm::vec3>& normals)
+void GetVertexIndices(FbxNode* pNode, FbxMesh* pMesh, std::vector<GLsizei>& indices, std::vector<Mesh::Vertex>& vertices, std::vector<glm::vec3>& normals)
 {
-	FbxMesh* pMesh = pNode->GetMesh();
 	if (!pMesh)
 		return;
 	const char * name = pMesh->GetName();
@@ -610,6 +609,9 @@ void GetVertexIndices(FbxNode* pNode, std::vector<GLsizei>& indices, std::vector
 		{
 			indices.push_back(pMesh->GetPolygonVertex(pi, pii));
 			FbxVector4 v = vp[indices.back()];
+			FbxDouble3 lScaling = pNode->LclScaling.Get();
+			v *= lScaling;
+			v *= 0.01;
 			vertices[indices.back()] = glm::vec3({ v[0],v[2],v[1] });
 			FbxVector4 n;
 			pMesh->GetPolygonVertexNormal(pi, pii, n);
@@ -1355,73 +1357,94 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 	DisplayAnimation(lScene);
 
 	int childCount = lRootNode->GetChildCount();
-	for (int i = 0; i < childCount; ++i) {
-		std::vector<Mesh::Vertex> vertices = {};
-		std::vector<glm::vec3> normals = {};
-		std::vector<glm::vec2> uv = {};
-		std::vector<int> indices = {};
-		std::vector<glm::vec3> tangents = {};
-		std::vector<glm::vec3> bitangents = {};
-
-		FbxColor Ambient;
-		FbxColor Diffuse;
-		FbxColor Specular;
-
-		std::string textureFile = "";
-
-	
+	for (int i = 0; i < childCount; ++i) 
+	{
 		FbxNode* pNode = lRootNode->GetChild(i);
-		const char* name = pNode->GetName();
-		GetVertexIndices(pNode, indices, vertices, normals);
-		GetSkeleton(pNode);
-		//GetNormals(pNode, normals);
-		GetMaterials(pNode, Ambient, Diffuse, Specular, textureFile);
-		GetUVCoordinates(pNode, uv);
-		for (int j = 0; j < pNode->GetChildCount(); ++j)
+
+		for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
 		{
-			FbxNode* childNode = pNode->GetChild(j);
-			const char* name = childNode->GetName();
-			std::cout << "Child Node: " << name << std::endl;
-		}
-	
-		// Create new Mesh
-		std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+			FbxNodeAttribute* pAttrib = pNode->GetNodeAttributeByIndex(i);
+			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMesh)
+			{
+				const char* nodeName = pNode->GetName();
+				FbxMesh* pMesh = (FbxMesh*)pAttrib;
 
-		// Set Texturemap
-		std::unique_ptr<Material> material = std::make_unique<Material>();
-		material->setDiffuseColor(glm::vec4(Diffuse.mRed, Diffuse.mGreen, Diffuse.mBlue, Diffuse.mAlpha));
-		material->setSpecularColor(glm::vec4(Specular.mRed, Specular.mGreen, Specular.mBlue, Specular.mAlpha));
-		if (!textureFile.empty())
-		{
-			Texture* t = new Texture(textureFile);
-			material->setTexture(t);
-		}
-	
-		mesh->setMaterial(std::move(material));
-	
-		mesh->setVertexIndices(indices);
-		mesh->setVertices(vertices);
-		mesh->setNormals(normals);
-		mesh->setUVs(uv);
+				std::vector<Mesh::Vertex> vertices = {};
+				std::vector<glm::vec3> normals = {};
+				std::vector<glm::vec2> uv = {};
+				std::vector<int> indices = {};
+				std::vector<glm::vec3> tangents = {};
+				std::vector<glm::vec3> bitangents = {};
 
-		/**/
-		std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>(name);
+				FbxColor Ambient;
+				FbxColor Diffuse;
+				FbxColor Specular;
 
-		std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
-		mc->setMesh(std::move(mesh));
-		std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
-		obj->addCompnent(std::move(mr));
-		obj->addCompnent(std::move(mc));
+				std::string textureFile = "";
 
-		FbxVector4 pos = pNode->EvaluateLocalTranslation()*0.01;
-		obj->transform()->pos().x = pos[0];
-		obj->transform()->pos().y = pos[1];
-		obj->transform()->pos().z = pos[2];
-		obj->setName(name);
 
-		/**/
+				const char* name = pNode->GetName();
+				GetVertexIndices(pNode, pMesh, indices, vertices, normals);
+				GetSkeleton(pNode);
+				//GetNormals(pNode, normals);
+				GetMaterials(pNode, Ambient, Diffuse, Specular, textureFile);
+				GetUVCoordinates(pNode, uv);
+				for (int j = 0; j < pNode->GetChildCount(); ++j)
+				{
+					FbxNode* childNode = pNode->GetChild(j);
+					const char* name = childNode->GetName();
+					std::cout << "Child Node: " << name << std::endl;
+				}
 
-		meshes.push_back(std::move(obj));
+				// Create new Mesh
+				std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+
+				// Set Texturemap
+				std::unique_ptr<Material> material = std::make_unique<Material>();
+				material->setDiffuseColor(glm::vec4(Diffuse.mRed, Diffuse.mGreen, Diffuse.mBlue, Diffuse.mAlpha));
+				material->setSpecularColor(glm::vec4(Specular.mRed, Specular.mGreen, Specular.mBlue, Specular.mAlpha));
+				if (!textureFile.empty())
+				{
+					Texture* t = new Texture(textureFile);
+					material->setTexture(t);
+				}
+
+				mesh->setMaterial(std::move(material));
+
+				mesh->setVertexIndices(indices);
+				mesh->setVertices(vertices);
+				mesh->setNormals(normals);
+				mesh->setUVs(uv);
+
+				/**/
+				std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>(name);
+
+				std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
+				mc->setMesh(std::move(mesh));
+				std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
+				obj->addCompnent(std::move(mr));
+				obj->addCompnent(std::move(mc));
+
+				FbxDouble3 lTranslation = pNode->LclTranslation.Get();
+				FbxDouble3 lRotation = pNode->LclRotation.Get();
+				FbxDouble3 lScaling = pNode->LclScaling.Get();
+
+				obj->transform()->pos().x = lTranslation[0] * 0.01;
+				obj->transform()->pos().y = lTranslation[1] * 0.01;
+				obj->transform()->pos().z = lTranslation[2] * 0.01;
+
+				/*
+				obj->transform()->scale().x = lScaling[0] * 0.01;
+				obj->transform()->scale().y = lScaling[1] * 0.01;
+				obj->transform()->scale().z = lScaling[2] * 0.01;
+				*/
+				obj->setName(name);
+
+				/**/
+
+				meshes.push_back(std::move(obj));
+			}
+		}		
 	}
 	//Destroy all objects created by the FBX SDK.
 	DestroySdkObjects(lSdkManager, lResult);
