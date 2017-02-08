@@ -336,7 +336,7 @@ void Engine::ray_cast_mouse()
 
 void Engine::update() {
 	float t = time();
-	LightPos = glm::vec3(t*0.001, t*0.1, 0.0); // glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
+	LightPos = glm::vec3(1000*sin(t), 500, 1000 * cos(t)); // glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
 	//getTextureMemoryInfo();
 	ray_cast_mouse();
 

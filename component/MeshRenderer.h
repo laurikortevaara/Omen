@@ -50,6 +50,7 @@ namespace omen {
 			omen::ecs::MeshController* m_meshController;
 			glm::vec3 m_lightDir;
 			bool	m_renderNormals;
+			int		m_shaderBlur;
 		};
 
 	}

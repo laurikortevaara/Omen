@@ -726,7 +726,11 @@ void GetNormals(FbxNode* pNode, std::vector<glm::vec3>& normals)
 /**
  * Read the material information
 */
-void GetMaterials(FbxNode* pNode, FbxColor& Ambient, FbxColor& Diffuse, FbxColor& Specular, std::string& textureFile)
+void GetMaterials(FbxNode* pNode, 
+	std::vector<FbxColor>& Ambients,
+	std::vector<FbxColor>& Diffuses,
+	std::vector<FbxColor>& Speculars,
+	std::vector<std::string>& textureFiles)
 {
 	if (!pNode)
 		return;
@@ -744,13 +748,19 @@ void GetMaterials(FbxNode* pNode, FbxColor& Ambient, FbxColor& Diffuse, FbxColor
 			FbxPropertyT<FbxDouble3> lKFbxDouble3;
 
 			lKFbxDouble3 = materialPhong->Ambient;
+			FbxColor Ambient;
 			Ambient.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+			Ambients.push_back(Ambient);
 
 			lKFbxDouble3 = materialPhong->Diffuse;
+			FbxColor Diffuse;
 			Diffuse.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+			Diffuses.push_back(Diffuse);
 
 			lKFbxDouble3 = materialPhong->Specular;
+			FbxColor Specular;
 			Specular.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+			Speculars.push_back(Specular);
 
 			for (int is = 0; is < materialPhong->Diffuse.GetSrcObjectCount(); ++is) {
 				FbxObject* pobj = materialPhong->Diffuse.GetSrcObject<FbxObject>(is);
@@ -758,8 +768,10 @@ void GetMaterials(FbxNode* pNode, FbxColor& Ambient, FbxColor& Diffuse, FbxColor
 				if (fTexture != nullptr) {
 					const char* fname = fTexture->GetFileName();
 					std::cout << "Texture found: " << fname << std::endl;
-					textureFile = fname;
+					textureFiles.push_back(fname);
 				}
+				else
+					textureFiles.push_back("no_texture");
 			}
 		}
 	}
@@ -1360,10 +1372,16 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 	for (int i = 0; i < childCount; ++i) 
 	{
 		FbxNode* pNode = lRootNode->GetChild(i);
-
+		std::vector<FbxColor> Ambients;
+		std::vector<FbxColor> Diffuses;
+		std::vector<FbxColor> Speculars;
+		std::vector<std::string> textureFiles;
+		GetMaterials(pNode, Ambients, Diffuses, Speculars, textureFiles);
+		int iMesh = 0;
 		for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
 		{
 			FbxNodeAttribute* pAttrib = pNode->GetNodeAttributeByIndex(i);
+
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
 				const char* nodeName = pNode->GetName();
@@ -1376,18 +1394,18 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				std::vector<glm::vec3> tangents = {};
 				std::vector<glm::vec3> bitangents = {};
 
-				FbxColor Ambient;
-				FbxColor Diffuse;
-				FbxColor Specular;
+				FbxColor Ambient = iMesh + 1 > Ambients.size() ? FbxColor(0.5, 0.5, 0.5,1.0) : Ambients[iMesh];
+				FbxColor Diffuse = iMesh + 1 > Diffuses.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Diffuses[iMesh];
+				FbxColor Specular = iMesh + 1 > Speculars.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Speculars[iMesh];
 
-				std::string textureFile = "";
-
+				std::string textureFile = iMesh+1 > textureFiles.size() ? "" : textureFiles[iMesh];
+				if (textureFile.compare("no_texture") == 0)
+					textureFile = "";
 
 				const char* name = pNode->GetName();
 				GetVertexIndices(pNode, pMesh, indices, vertices, normals);
 				GetSkeleton(pNode);
 				//GetNormals(pNode, normals);
-				GetMaterials(pNode, Ambient, Diffuse, Specular, textureFile);
 				GetUVCoordinates(pNode, uv);
 				for (int j = 0; j < pNode->GetChildCount(); ++j)
 				{
@@ -1443,6 +1461,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				/**/
 
 				meshes.push_back(std::move(obj));
+				iMesh++;
 			}
 		}		
 	}

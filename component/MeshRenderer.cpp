@@ -26,7 +26,8 @@ MeshRenderer::MeshRenderer(MeshController* meshController) :
 	m_lightDir({ 0,1,0 }), 
 	m_texture(nullptr), 
 	m_renderNormals(false),
-	m_meshController(meshController)
+	m_meshController(meshController),
+	m_shaderBlur(1)
 {
 	m_shader = std::make_unique<omen::Shader>("shaders/pass_through_with_shadow.glsl");
 }
@@ -191,6 +192,10 @@ void MeshRenderer::onAttach(Entity* e) {
 		{
 			m_renderNormals = !m_renderNormals;
 		}
+
+		if (key == GLFW_KEY_PAGE_UP) m_shaderBlur++;
+		if (key == GLFW_KEY_PAGE_DOWN) m_shaderBlur--;
+		m_shaderBlur = glm::clamp(m_shaderBlur, 1,20);
 	});
 }
 
@@ -232,7 +237,7 @@ void MeshRenderer::render(Shader* shader)
 	// Compute the MVP matrix from the light's point of view
 	glm::vec3 lightInvDir = Engine::LightPos;
 	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightInvDir));
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-20, 20, -20, 20, 0, 50);
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-500, 500, -500, 500, 0, 1500);
 	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	// or, for spot light :
 	//glm::vec3 lightPos(5, 20, 20);
@@ -260,26 +265,39 @@ void MeshRenderer::render(Shader* shader)
 	/********************/
 
 	pShader->setUniform1i("RenderNormals", m_renderNormals);
+	pShader->setUniform1i("ShadowBlur", m_shaderBlur);
 
-	if (m_texture != nullptr)
+	if (m_texture != nullptr && pShader == m_shader.get())
 	{
 		pShader->setUniform1i("HasTexture", 1);
-		m_texture->bind();
-	}
-	else
-	{
-		pShader->setUniform1i("HasTexture", 0);
+
+		int textureLoc = pShader->getUniformLocation("textureMap");
+		glUniform1i(textureLoc, 0);
+
+		int shadowLoc = pShader->getUniformLocation("shadowMap");
+		glUniform1i(shadowLoc, 1);
+
 		glActiveTexture(GL_TEXTURE0);
+		m_texture->bind();
+
 		omen::Engine* engine = omen::Engine::instance();
 		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		//shader->setUniform1i("shadowMap", 1);
-		/*GLuint ShadowMapID = glGetUniformLocation(m_shader->m_shader_program, "shadowMap");
-		if (ShadowMapID > 0) {
-			glUniform1i(ShadowMapID, 1);
-		}*/
-
 	}
+	/*else
+	{
+		pShader->setUniform1i("HasTexture", 0);
+		
+		int shadowLoc = pShader->getUniformLocation("shadowMap");
+		glUniform1f(shadowLoc, 0);
+
+		omen::Engine* engine = omen::Engine::instance();
+		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+	}*/
 
 	// Setup buffers for rendering
 	glBindVertexArray(m_vao);

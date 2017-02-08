@@ -66,8 +66,14 @@ Scene::Scene() {
 	renderBuffer2 = new RenderBuffer();
 
 	ms = new MultipassShader();
-	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		int textureMapLoc = shader->getUniformLocation("Texture");
+		glUniform1i(textureMapLoc, 0);
+		glActiveTexture(GL_TEXTURE0);
 		bgTexture->bind();
+
 		int w, h;
 		glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
 		glViewport(0, 0, w, h);
@@ -86,18 +92,18 @@ Scene::Scene() {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-
+		
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	}));*/
-	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	}));
+	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+		glClear(GL_DEPTH_BUFFER_BIT);
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 		gs->render();
-	}));*/
+	}));
 	
 
 	
@@ -110,7 +116,7 @@ Scene::Scene() {
 		bgFiles.push_back(os.str());
 	}
 	//bgTexture = new Texture(bgFiles.at(omen::random(0,bgFiles.size()-1)));
-	bgTexture = new Texture("textures/sirius.jpg");
+	bgTexture = new Texture("textures/bg_gradient2.jpg");
 	
 	Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
@@ -301,17 +307,16 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view)
 {
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 	//renderBackground();
-	//ms->render();
-	shadowMap->render();
+		shadowMap->render();
 	glEnable(GL_DEPTH_TEST);
 	gs->render(shadowMap->m_shader);
 	shadowMap->finish();
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	gs->render();
+	ms->render();
 	check_gl_error();
 	//renderArrow();
-
+	return;
+	// Render the shadow buffer on screen
 	glClear(GL_DEPTH_BUFFER_BIT);
 	check_gl_error();
 	glViewport(0, 0, 500, 500);

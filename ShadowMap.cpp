@@ -51,7 +51,8 @@ void ShadowMap::render()
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 	check_gl_error();
 	glViewport(0, 0, 4096, 4096);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the depth buffer
 
