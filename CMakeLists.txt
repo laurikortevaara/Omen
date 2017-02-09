@@ -10,6 +10,8 @@
 cmake_minimum_required(VERSION 3.3)
 project(Omen)
 
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
 
@@ -234,10 +236,13 @@ if (WINDOWS)
     find_package(GLEW REQUIRED)
     if (GLEW_FOUND)
         include_directories(${GLEW_INCLUDE_DIRS})
+	message(FATAL_ERROR "Glew found at ${GLEW_INCLUDE_DIRS}")
         link_libraries(${GLEW_LIBRARIES})
     endif()
     SET(LIBRARIES Boxer glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${FREETYPE} ${BULLET_LIBRARIES})
 endif(WINDOWS)
+
+message(STATUS "Glew found at "${GLEW_INCLUDE_DIRS})
 
 
 include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
