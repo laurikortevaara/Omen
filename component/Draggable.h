@@ -20,9 +20,13 @@ namespace omen {
 
 			typedef omen::Signal<std::function<void(float value)> > Dragged_t;
 			Dragged_t signal_dragged;
+
         public:
             Draggable();
             virtual ~Draggable();
+
+			void setPos(float pos);
+			float pos() const;
         private:
 			glm::vec2 m_deltaPos;
             glm::vec2 m_cursorPos;

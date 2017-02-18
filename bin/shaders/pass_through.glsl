@@ -33,18 +33,18 @@ out Data{
   vec3 fragPosCameraSpace;
   vec3 position;
   vec2 texcoord;
-    smooth vec3 normal;
-    vec3 normalCameraSpace;
+  smooth vec3 normal;
+  vec3 normalCameraSpace;
   vec3 tangentCameraSpace;
   vec3 bitangentCameraSpace;
-    float distToCamera;
+  float distToCamera;
   vec3 LightPosition_cameraspace;
   vec3 LightDirection_cameraspace;
   vec3 EyeDirection_cameraspace;
 } dataOut;
 
 void main() {
-    gl_Position = ModelViewProjection * vec4(position,1);
+  gl_Position = ModelViewProjection * vec4(position,1);
 
   // Vector that goes from the vertex to the camera, in camera space.
   // In camera space, the camera is at the origin (0,0,0).
@@ -57,13 +57,13 @@ void main() {
   dataOut.LightDirection_cameraspace = dataOut.LightPosition_cameraspace + dataOut.EyeDirection_cameraspace;
 
   dataOut.fragPosCameraSpace = vec3( ModelMatrix * vec4(position,1) );
-    dataOut.position = position;
+  dataOut.position = position;
   dataOut.texcoord = texcoord;
   dataOut.normal = normal;
-    dataOut.normalCameraSpace = vec3( NormalMatrix * normal );
+  dataOut.normalCameraSpace = vec3( NormalMatrix * normal );
   dataOut.tangentCameraSpace = vec3( NormalMatrix * tangent );
   dataOut.bitangentCameraSpace = vec3( NormalMatrix * bitangent );
-    dataOut.distToCamera = gl_Position.w;
+  dataOut.distToCamera = gl_Position.w;
 }
 #endif
 
@@ -76,11 +76,11 @@ in Data {
   vec3 fragPosCameraSpace;
   vec3 position;
   vec2 texcoord;
-    smooth vec3 normal;
-    vec3 normalCameraSpace;
+  smooth vec3 normal;
+  vec3 normalCameraSpace;
   vec3 tangentCameraSpace;
   vec3 bitangentCameraSpace;
-    float distToCamera;
+  float distToCamera;
   vec3 LightPosition_cameraspace;
   vec3 LightDirection_cameraspace;
   vec3 EyeDirection_cameraspace;
@@ -93,7 +93,7 @@ void main() {
 	vec3 vpos = dataIn.position;
 	vec2 tcoord = dataIn.texcoord;
 	vec3 normal = dataIn.normal;
-    vec3 n = dataIn.normalCameraSpace; //normalize(vec3( Model * vec4(-dataIn.normal, 1) ));
+  vec3 n = dataIn.normalCameraSpace; //normalize(vec3( Model * vec4(-dataIn.normal, 1) ));
 	vec3 tangentCameraSpace = dataIn.tangentCameraSpace;
 	vec3 bitangentCameraSpace = dataIn.bitangentCameraSpace;
 	vec3 normalCameraSpace = dataIn.normalCameraSpace;
@@ -105,16 +105,16 @@ void main() {
 	));
 
 	vec3 lpos = vec3(0,100,-100);
-    vec3 lpos2 = vec3(-100,50,100);
+  vec3 lpos2 = vec3(-100,50,100);
 	vec3 lpos3 = vec3(100,500,10);
-    vec3 l = normalize(lpos-vpos);
+  vec3 l = normalize(lpos-vpos);
 	vec3 l2 = normalize(lpos2-vpos);
 	vec3 l3 = normalize(lpos3-vpos);
 
 	vec3 LightDirection_tangentspace = TBN * dataIn.LightDirection_cameraspace;
 	vec3 EyeDirection_tangentspace =  TBN * dataIn.EyeDirection_cameraspace;
 
-    float ldot = max(0.0,dot(normal,l));
+  float ldot = max(0.0,dot(normal,l));
 	float ldot2 = max(0.0,dot(normal,l2));
 	float ldot3 = max(0.0,dot(normal,l3));
 

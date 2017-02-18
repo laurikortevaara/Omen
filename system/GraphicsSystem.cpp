@@ -15,7 +15,7 @@ void GraphicsSystem::add(Component* component)
 	m_components.push_back(component); 
 }
 
-void GraphicsSystem::render(omen::Shader* shader) {
+void GraphicsSystem::render(omen::Shader* shader, int layer) {
 	int w, h;
 	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
 	//glViewport(0, 0, w, h);
@@ -29,7 +29,14 @@ void GraphicsSystem::render(omen::Shader* shader) {
 	//glDisable(GL_BLEND);*/
 	//glDepthFunc()
     for(auto c : m_components){
+		if (layer != -1 && layer != c->entity()->layer())
+			continue;
+
         Renderer* r = dynamic_cast<Renderer*>(c);
+		MeshRenderer* mr = dynamic_cast<MeshRenderer*>(c);
+		// Don't render anything if no mesh renderer and given shader
+		if (mr == nullptr && shader != nullptr)
+			continue;
 		if (r != nullptr)
 			//renderers.push_back(r);
 			r->render(shader);

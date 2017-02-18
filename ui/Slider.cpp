@@ -19,7 +19,7 @@ Slider::~Slider() = default;
 Slider::Slider(View* parentView, const std::string &name,const std::string &spriteName, const glm::vec2& pos,  int width,  int height) :
         View(parentView, name)
 {
-	setPos(pos);
+	View::setPos(pos);
 	setSize(glm::vec2(width, height));
 	std::unique_ptr<Transform> tr = std::make_unique<Transform>();
 	tr->pos().x = pos.x;
@@ -36,16 +36,7 @@ Slider::Slider(View* parentView, const std::string &name,const std::string &spri
 	//else
 	//	sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, width, height);
 
-	glm::vec2 knotPos = pos;
-	knotPos.y -= 4;
-	std::unique_ptr<omen::ui::ImageView> knot = std::make_unique<omen::ui::ImageView>(this, "Knot", "textures/slider_knot.png", knotPos);
-	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>();
-	dragKnot->signal_dragged.connect([this](float value) -> void {
-		signal_slider_dragged.notify(this, value);
-	});
-	knot->addComponent(std::move(dragKnot));
-	addChild(std::move(knot));
-	
+
 	std::unique_ptr<omen::ecs::SpriteRenderer> sr = std::make_unique<omen::ecs::SpriteRenderer>(std::move(sprite));
 	addComponent(std::move(sr));
 	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
@@ -57,6 +48,16 @@ Slider::Slider(View* parentView, const std::string &name,const std::string &spri
         }
 
     });
+
+	glm::vec2 knotPos = pos;
+	knotPos.y -= 4;
+	std::unique_ptr<omen::ui::ImageView> knot = std::make_unique<omen::ui::ImageView>(this, "Knot", "textures/slider_knot.png", knotPos);
+	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>();
+	dragKnot->signal_dragged.connect([this](float value) -> void {
+		signal_slider_dragged.notify(this, value);
+	});
+	knot->addComponent(std::move(dragKnot));
+	addChild(std::move(knot));
 }
 
 void Slider::updateLayout() {
@@ -65,4 +66,16 @@ void Slider::updateLayout() {
 
 void Slider::onMeasure(float maxwidth, float maxheight) {
 
+}
+
+void Slider::setPos(float pos) {
+	Entity* knot = findChild("Knot");
+	omen::ecs::Draggable* d = knot->getComponent<omen::ecs::Draggable>();
+	//d->setPos(pos);
+}
+
+float Slider::pos() const {
+	Entity const* knot = findChild_const("Knot");
+	omen::ecs::Draggable const* d = getComponent_const<omen::ecs::Draggable>();
+	return d->pos();
 }

@@ -83,6 +83,64 @@ Draggable::Draggable() :
     });
 }
 
+
+float Draggable::pos() const {
+	omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
+	glm::vec3 bmin, bmax;
+	tr->getBounds(bmin, bmax);
+
+	omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity());
+	float minX, maxX;
+	float minY, maxY;
+
+	omen::Transform* parentTr = nullptr;
+	glm::vec3 pbmin, pbmax;
+
+	if (v != nullptr) {
+		omen::ui::View* parentView = v->parentView();
+		if (parentView != nullptr) {
+			parentTr = const_cast<Transform*>(parentView->getComponent<Transform>());
+			parentTr->getBounds(pbmin, pbmax);
+			minX = parentTr->pos().x + pbmin.x;
+			maxX = parentTr->pos().x + pbmax.x - bmax.x;
+		}
+	}
+	return (tr->pos().x - minX ) / (minX - maxX);
+}
+
+/**
+  pos between 0..1
+*/
+void Draggable::setPos(float pos) {
+	omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
+	glm::vec3 bmin, bmax;
+	tr->getBounds(bmin, bmax);
+
+	omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity());
+	float minX, maxX;
+	float minY, maxY;
+
+	omen::Transform* parentTr = nullptr;
+	glm::vec3 pbmin, pbmax;
+
+	if (v != nullptr) {
+		omen::ui::View* parentView = v->parentView();
+		if (parentView != nullptr) {
+			parentTr = const_cast<Transform*>(parentView->getComponent<Transform>());
+			parentTr->getBounds(pbmin, pbmax);
+			minX = parentTr->pos().x + pbmin.x;
+			maxX = parentTr->pos().x + pbmax.x - bmax.x;
+		}
+	}
+	glm::vec2 newPos;
+	newPos.x = minX + (maxX - minX)*pos;
+
+	newPos.x = max(newPos.x, minX);
+	newPos.x = min(newPos.x, maxX);
+	tr->pos().x = newPos.x;
+	tr->pos().y = parentTr->pos().y + (pbmax - pbmin).y / 2 - bmax.y / 2;
+}
+
 Draggable::~Draggable() {
 
 }

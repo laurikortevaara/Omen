@@ -27,6 +27,9 @@ namespace omen {
             Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, int width = -1,
                    int height = -1);
 			virtual ~Slider();
+
+			void setPos(float pos);
+			float pos() const;
         protected:
             virtual void updateLayout();
             virtual void onMeasure(float maxwidth, float maxheight);

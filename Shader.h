@@ -24,6 +24,8 @@ namespace omen {
 
         void use() const;
 
+		void listAttribs();
+
         bool readShaderFile(const std::string &shader_file);
 
         GLuint m_shader_program;

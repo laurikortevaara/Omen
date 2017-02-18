@@ -9,10 +9,11 @@ using namespace omen;
 using namespace ui;
 
 View::View(View *parentView, const std::string& name) :
-    ecs::Entity(name),
-    m_parentView(parentView) {
+	ecs::Entity(name),
+	m_parentView(parentView) {
     if(m_parentView!= nullptr)
         m_parentView->addChildView(this);
+	setLayer(1);
 }
 
 

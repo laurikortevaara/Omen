@@ -20,6 +20,7 @@ namespace omen {
 			Entity* m_parent;
 			std::vector<std::unique_ptr<Entity>> m_children;
 			std::vector<std::unique_ptr<Component>> m_components;
+			int m_layer;
 
 		public:
 			Entity(const std::string &name);
@@ -32,6 +33,10 @@ namespace omen {
             bool removeComponent(std::unique_ptr<Component> c);
 
 			Entity* findChild(const std::string& name);
+			Entity const* findChild_const(const std::string& name) const;
+
+			void setLayer(int layer) { m_layer = layer; }
+			int layer() const { return m_layer; }
 
         public:
             template<class type>
@@ -40,6 +45,17 @@ namespace omen {
 					if (c.get() != nullptr) {
 						type* ptr = dynamic_cast<type*>(c.get());
 						if(ptr != nullptr)
+							return ptr;
+					}
+				return nullptr;
+			}
+
+			template<class type>
+			type const* getComponent_const(const std::string &component_name = "") const {
+				for (auto const& c : m_components)
+					if (c.get() != nullptr) {
+						type const* ptr = dynamic_cast<type const*>(c.get());
+						if (ptr != nullptr)
 							return ptr;
 					}
 				return nullptr;

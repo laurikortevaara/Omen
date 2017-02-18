@@ -7,6 +7,7 @@
 
 #include "../Omen_OpenGL.h"
 #include "TextRenderer.h"
+#include "../component/Transform.h"
 #include "../GL_error.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -33,11 +34,12 @@ TextRenderer::TextRenderer() :
 }
 
 void TextRenderer::render(Shader* shader) {
-	//renderText(m_text, 10, 1, 0.25, glm::vec4(1));
+	renderText(m_text, 10, -200, 1.0, glm::vec4(1));
 }
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)
 {
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -117,7 +119,7 @@ bool TextRenderer::initializeFreeType() {
 	// Disable byte-alignment restriction
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    FT_Set_Pixel_Sizes(m_fontFace, 0, 128);
+    FT_Set_Pixel_Sizes(m_fontFace, 0, 24);
 
     if (FT_Load_Char(m_fontFace, 'X', FT_LOAD_RENDER)) {
         std::cerr << "Could not load character 'X'" << std::endl;

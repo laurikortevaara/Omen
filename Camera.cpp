@@ -23,7 +23,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	GameObject(name),
 	m_pos(pos),
 	m_near(1.0f), m_far(10000.0f),
-	m_yaw(.0f), m_pitch(.0f), m_roll(.0f),
+	m_yaw(.0f), m_pitch(90.0f), m_roll(.0f),
 	m_lookAt(lookAt),
 	m_fov(fov*glm::pi<float>() / 180.0f),
 	m_bIsValid(false),

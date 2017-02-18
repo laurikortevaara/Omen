@@ -65,6 +65,8 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 	full_source += "uniform float iGlobalTime;"; // Floating point global time in seconds
 	full_source += "uniform vec4 iMouse;"; // MouseCoord(x,y), MouseButtons(Left,Right);
 	full_source += "uniform vec2 iResolution;"; // WindowSize(width,height);
+	full_source += "uniform vec3 iMousePickRay;"; // WindowSize(width,height);
+	full_source += "uniform vec3 iCameraPosition;"; // WindowSize(width,height);
 	full_source += shader_source;
 	full_source += "\0";
 
@@ -160,6 +162,7 @@ std::string Shader::include_sub_shaders(const std::string& relativePath, const s
 }
 
 bool Shader::readShaderFile(const std::string &shader_file) {
+	std::cout << "Loading shader from file: " << shader_file << std::endl;
 	std::ifstream is(shader_file, std::ifstream::binary);
 	if (is) {
 		std::ostringstream sout;
@@ -209,7 +212,8 @@ bool Shader::readShaderFile(const std::string &shader_file) {
 		}
 	}
 
-
+	listAttribs();
+	std::cout << "--- Done Loading shader from file: " << shader_file << "---" << std::endl;
 	return true;
 }
 
@@ -226,6 +230,12 @@ void Shader::use() {
 
 	glm::vec2 windowSize(Engine::instance()->window()->width(), Engine::instance()->window()->height());
 	setUniform2fv("iResolution", 1, glm::value_ptr(windowSize));
+
+	setUniform3fv("iMousePickRay", 1, glm::value_ptr(Engine::MousePickRay));
+
+	glm::vec3 cameraPosition = Engine::instance()->camera()->position();
+	cameraPosition.x *= -1.0f;
+	setUniform3fv("iCameraPosition", 1, glm::value_ptr(cameraPosition));
 
 	check_gl_error();
 }
@@ -493,6 +503,50 @@ GLint Shader::getAttribLocation(const std::string &attribName) {
 	return glGetAttribLocation(m_shader_program, attribName.c_str());
 }
 
+void Shader::listAttribs()
+{
+	GLint i;
+	GLint count;
+
+	GLint size; // size of the variable
+	GLenum type; // type of the variable (float, vec3 or mat4, etc)
+
+	const GLsizei bufSize = 16; // maximum name length
+	GLchar name[bufSize]; // variable name in GLSL
+	GLsizei length; // name length
+
+	// Attributes
+	glGetProgramiv(m_shader_program, GL_ACTIVE_ATTRIBUTES, &count);
+	printf("Active Attributes: %d\n", count);
+
+	for (i = 0; i < count; i++)
+	{
+		glGetActiveAttrib(m_shader_program, (GLuint)i, bufSize, &length, &size, &type, name);
+
+		printf("Attribute #%d Type: %u Name: %s\n", i, type, name);
+	}
+
+	// Uniforms
+	glGetProgramiv(m_shader_program, GL_ACTIVE_UNIFORMS, &count);
+	printf("Active Uniforms: %d\n", count);
+
+	for (i = 0; i < count; i++)
+	{
+		glGetActiveUniform(m_shader_program, (GLuint)i, bufSize, &length, &size, &type, name);
+
+		std::string strType = "";
+		switch (type)
+		{
+		case GL_SAMPLER_2D:
+			strType = "GL_SAMPLER_2D";
+			break;
+		default:
+			strType = std::to_string(type);
+		}
+
+		printf("Uniform #%d Type: %u Name: %s\n", i, strType.c_str(), name);
+	}
+}
 GLint Shader::getUniformLocation(const std::string &uniformName) {
 	//std::map<std::string, GLint>::iterator iter = uniformLocations.find(uniformName);
 	GLint loc = glGetUniformLocation(m_shader_program, uniformName.c_str());

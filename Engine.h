@@ -30,6 +30,7 @@ namespace omen {
 	}
 
     class Engine {
+#define post_function Engine::instance()->post(std::make_unique<std::function<void()>>(std::function<void()>([&](void)
         /** Singleton interface **/
         static Engine* m_instance;
         Engine();
@@ -38,9 +39,18 @@ namespace omen {
     public:
 
 
-		static GLfloat ShadowFrustumNear, ShadowFrustumFar;
-		static GLuint ShadowFrustumSize;
+		static GLuint ShadowBlur;
+		static GLfloat ShadowFrustumNear, ShadowFrustumFar, LightDistance;
+		static GLfloat ShadowFrustumSize;
+		static GLint blend_mode;
+		static glm::vec3 MousePickRay;
 		static glm::vec3 LightPos;
+
+		static float     AmbientFactor;
+		static float     MaterialShininess;
+		static float     LightIntensity;
+		static float	 LightAzimuthAngle;
+		static float	 LightZenithAngle;
 		/*static long left_bytes;
 		static long left_kbytes;
 		static long left_mbytes;*/
@@ -88,8 +98,8 @@ namespace omen {
 
         class t_future_task {
         public:
-			t_future_task(std::function<void()>& f, std::chrono::duration<omen::floatprec> timeout, bool repeat)
-			: fun(f), delay(timeout), repeating(repeat){
+			t_future_task( std::unique_ptr<std::function<void()>> f, std::chrono::duration<omen::floatprec> timeout, bool repeat)
+			: fun(std::move(f)), delay(timeout), repeating(repeat){
 
 			}
 			static std::mutex task_mutex;
@@ -97,10 +107,10 @@ namespace omen {
             std::chrono::duration<omen::floatprec> delay;
 			bool repeating;
             std::shared_future<void> task;
-			std::function<void()> fun;
+			std::unique_ptr<std::function<void()>> fun;
 
 			void run() {
-				task = std::async(std::launch::async, fun);
+				task = std::async(std::launch::async, *fun);
 				task.get();
 			}
 			void reset() { 
@@ -112,7 +122,7 @@ namespace omen {
 			}
         } ;
         std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
-        void post(std::function<void()>& task, omen::floatprec delay = 0.0, bool repeating = false );
+        void post(std::unique_ptr<std::function<void()>> task, omen::floatprec delay = 0.0, bool repeating = false );
 
 		const omen::floatprec fps() const { return m_fps; }
 		const omen::floatprec averageFps() const { return m_avg_fps; }

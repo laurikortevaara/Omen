@@ -76,6 +76,11 @@ namespace omen {
 			return *this;
 		}
 
+		Mesh& setBiTangents(const std::vector<glm::vec3> &bitangents) {
+			m_bitangents = bitangents;
+			return *this;
+		}
+
 		Mesh& setUVs(const std::vector<glm::vec2> &uv) { 
 			m_uv = uv; 
 			return *this; 

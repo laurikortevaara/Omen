@@ -102,7 +102,14 @@ Scene::Scene() {
 	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
-		gs->render();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		gs->render(nullptr, 0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		gs->render(nullptr, 1);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		gs->render(nullptr, 2);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		gs->render(nullptr, 3);
 	}));
 	
 
@@ -151,6 +158,10 @@ Scene::Scene() {
 					});*/
 					addEntity(std::move(obj));
 				}
+			}
+			else if (file.find(".JPG") != std::string::npos
+				|| file.find(".jpg") != std::string::npos) {
+				Texture* t = new Texture(file);
 			}
 	});
 
@@ -219,22 +230,78 @@ void omen::Scene::initialize()
 {
 	float distributionFactor = 10.0f;
 
-	/*for (int i = 0; i < 5; ++i){
-		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i), "textures/slider_groove.png", glm::vec2(10, 100+i*20), 100,10);
-		addEntity(std::move(slider));
+	for (int i = 0; i < 10; ++i){
+		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i+1), "textures/slider_groove.png", glm::vec2(10, 100+i*20), 500,10);
+		addEntity(std::move(slider), 1);
 	}
-	
+
 	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView");
-	//Engine::instance()->v->setText(L"Textii :D");
-	ui::TextView* ptr = tv.get();
+	tv->setText(L"Textii :D");
+	addEntity(std::move(tv), 3);
+
 	ui::Slider* e = dynamic_cast<ui::Slider*>(findEntity("Slider1"));
-	if(e!=nullptr) e->signal_slider_dragged.connect([ptr](ui::Slider* slider, float value) -> void {
-		std::wstring str = L"Slider Dragged:";
-		str += omen::to_wstring_with_precision(value, 2);
-		ptr->setText(str);
+	e->setPos(Engine::ShadowFrustumNear/10.0f);
+	if(e!=nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		//std::wstring str = L"Slider Dragged:";
+		//str += omen::to_wstring_with_precision(value, 2);
+		//ptr->setText(str);
+		Engine::ShadowFrustumNear = 10.0f*value;
 	});
-	addEntity(std::move(tv));
-	*/
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider2"));
+	e->setPos(Engine::ShadowFrustumFar / 8000.0f);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::ShadowFrustumFar = 8000.0f*value;
+	});
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider3"));
+	e->setPos(Engine::ShadowFrustumSize / 2000.0f);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::ShadowFrustumSize = 2000.0f*value;
+	});
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider4"));
+	e->setPos(Engine::LightDistance);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::LightDistance = value;
+	});
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider5"));
+	e->setPos(Engine::LightDistance);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::ShadowBlur = value*10.0f;
+	});
+	
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider6"));
+	e->setPos(Engine::LightIntensity);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::LightIntensity = value*10.0;
+	});
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider7"));
+	e->setPos(Engine::AmbientFactor);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::AmbientFactor = value;
+	});
+	
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider8"));
+	e->setPos(Engine::MaterialShininess);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::MaterialShininess = value*100.0f;
+	});
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider9"));
+	e->setPos(Engine::MaterialShininess);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::LightAzimuthAngle = value*360.0f;
+	});
+
+	e = dynamic_cast<ui::Slider*>(findEntity("Slider10"));
+	e->setPos(Engine::MaterialShininess);
+	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
+		Engine::LightZenithAngle = value*90.0f;
+	});
+
 
 	/*
 	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider", "textures/slider_groove.png", glm::vec2(100, 100), 100, 100);
@@ -259,6 +326,16 @@ void omen::Scene::initialize()
 		if (lightobj != nullptr) {
 			lightobj->transform()->pos() = Engine::LightPos;
 		}
+
+		ecs::GameObject* sphere = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity("Sphere"));
+		if (sphere != nullptr)
+		{
+			Transform* tr = sphere->getComponent<Transform>();
+			float t = Engine::instance()->time();
+			float d = 10.0 + sin(cos(t*0.5)*3.14)*cos(t*0.5)*15.0;
+			tr->pos() = glm::vec3(sin(t)*d, 0.4+sin(t), cos(t)*d);
+		}
+
 		ui::TextView* obj = dynamic_cast<ui::TextView*>(Engine::instance()->scene()->findEntity("FPS_COUNTER"));
 		if (obj != nullptr) {
 			std::setprecision(2);
@@ -296,20 +373,20 @@ void omen::Scene::initialize()
 	shadowMap = new ShadowMap();
 	shadowMap->init();
 
-	std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
+	/*std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
 	std::unique_ptr<ecs::GameObject> l = std::move(provider->loadObject("models/light.fbx").begin().operator*());
 	lightobj = l.get();
 	lightobj->getComponent<omen::ecs::MeshController>()->setCastShadow(false);
-	addEntity(std::move(l));
+	addEntity(std::move(l));*/
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
 {
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
-	//renderBackground();
-		shadowMap->render();
+
+	shadowMap->render();
 	glEnable(GL_DEPTH_TEST);
-	gs->render(shadowMap->m_shader);
+	gs->render(shadowMap->m_shader, 0);
 	shadowMap->finish();
 
 	ms->render();
@@ -486,16 +563,18 @@ void Scene::renderBackground()
 	*/
 }
 
-void omen::Scene::addEntity(std::unique_ptr<ecs::Entity> entity)
+void omen::Scene::addEntity(std::unique_ptr<ecs::Entity> entity, GLuint layer)
 {
 	ecs::Entity* eptr = entity.get();
-	m_entities.push_back(std::move(entity));
+	entity->setLayer(layer);
+	m_entities[layer].push_back(std::move(entity));
 	signal_entity_added.notify(eptr);
 }
 
 ecs::Entity* Scene::findEntity(const std::string& name)
 {
-	for (const auto& e : entities()) {
+	for(const auto& key : m_entities)
+	for (const auto& e : entities(key.first)) {
 		if (e->name() == name)
 			return e.get();
 		ecs::Entity* c = e->findChild(name);

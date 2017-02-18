@@ -38,6 +38,7 @@ void KeyboardInput::keyHit(GLFWwindow *window, int key, int scanCode, int action
     // First notify about specializaed key-press and -relese events
     switch (action) {
         case GLFW_PRESS:
+			std::cout << "Press" << std::endl;
             signal_key_press.notify(key, scanCode, action, mods);
             break;
         case GLFW_RELEASE:

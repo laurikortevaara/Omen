@@ -17,6 +17,9 @@ namespace omen {
         glm::vec4 m_specular_color;
         GLfloat m_spec_coeff;
         Texture *m_texture;
+		Texture *m_texture_normal;
+		Texture *m_texture_specular;
+		Texture *m_texture_displacement;
         Texture *m_matcapTexture;
         bool m_isTwoSided;
     public:
@@ -42,6 +45,10 @@ namespace omen {
         Texture *texture() const { return m_texture; }
 
         void setTexture(Texture *texture) { m_texture = texture; }
+
+		Texture *texture_normal() const { return m_texture_normal; }
+
+		void setTextureNormal(Texture *texture_normal) { m_texture_normal = texture_normal; }
 
         Texture *matcapTexture() { return m_matcapTexture; }
 

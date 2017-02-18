@@ -18,13 +18,14 @@ using namespace omen;
 
 std::map<std::string, Texture::_texture_cache_item> Texture::texture_cache;
 
-Texture::Texture(const std::string &bitmap_path) {
+Texture::Texture(const std::string &bitmap_path, GLenum textureTarget) 
+	: m_textureTarget(textureTarget)
+{
 	initialize();
 	loadTexture(bitmap_path);
 }
 
 void Texture::initialize() {
-	m_textureTarget = GL_TEXTURE_2D;
 }
 
 int x, y;
@@ -144,7 +145,29 @@ GLuint read_png_file(char* file_name, int* w, int* h)
 		memcpy(outData + (row_bytes * (height - 1 - i)), row_pointers[i], row_bytes);
 	}
 
-	int bitmap_type = ((png_row_info*)info_ptr)->pixel_depth == 32 ? GL_RGBA : GL_RGB;
+	int gray = PNG_COLOR_TYPE_GRAY;
+	int palette = PNG_COLOR_TYPE_PALETTE;
+	int rgb = PNG_COLOR_TYPE_RGB;
+	int rgba = PNG_COLOR_TYPE_RGB_ALPHA;
+	int gray_alpha = PNG_COLOR_TYPE_GRAY_ALPHA;
+
+	int bitmap_type = GL_RGBA;
+	int _bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+	int _color_type = png_get_color_type(png_ptr, info_ptr);
+	switch (_color_type) 
+	{
+	case PNG_COLOR_TYPE_GRAY:
+		bitmap_type = GL_ALPHA;
+		break;
+	case PNG_COLOR_TYPE_RGB:
+		bitmap_type = GL_RGB;
+		break;
+	case PNG_COLOR_TYPE_RGB_ALPHA:
+		bitmap_type = GL_RGBA;
+		break;
+	default:
+		abort();
+	}
 
 	/* Clean up after the read,
 	* and free any memory allocated */
@@ -353,14 +376,17 @@ void Texture::loadTexture(const std::string &bitmap_path) {
 			m_height = y;
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			unsigned char* buf = new unsigned char(x*y*btm);
+			memcpy(buf, image, x*y*btm*sizeof(unsigned char));
 			glTexImage2D(m_textureTarget, 0, btm == 3 ? GL_RGB : GL_RGBA, x, y, 0, btm == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE,
-				(const void *)image);
+				(const void *)buf);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			check_gl_error();
 			stbi_image_free(image);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			texture_cache[bitmap_path] = { "", m_textureID, m_width, m_height, m_textureTarget };
+			delete buf;
 		}
 		else
 		{

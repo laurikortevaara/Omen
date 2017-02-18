@@ -597,7 +597,8 @@ void GetVertexIndices(FbxNode* pNode, FbxMesh* pMesh, std::vector<GLsizei>& indi
 	const char * nodename = pNode->GetName();
 	FbxGeometryElementNormal* lNormalElement = pMesh->GetElementNormal();
 	fbxsdk::FbxVector4* vp = pMesh->GetControlPoints();
-	for (int i = 0; i < pMesh->GetPolygonVertexCount(); ++i) {
+	int cpCount = pMesh->GetControlPointsCount();
+	for (int i = 0; i < cpCount; ++i) {
 		vertices.push_back(glm::vec3({ 0 }));
 		normals.push_back(glm::vec3({ 0 }));
 	}
@@ -726,6 +727,177 @@ void GetNormals(FbxNode* pNode, std::vector<glm::vec3>& normals)
 /**
  * Read the material information
 */
+
+FbxLayerElementTexture *GetTextures(FbxMesh *p_Mesh, FbxLayerElement::EType p_Type)
+{
+	// Get first available layer
+	for (int i = 0; i < p_Mesh->GetLayerCount(); i++)
+	{
+		FbxLayer* l = p_Mesh->GetLayer(i);
+		if (p_Mesh->GetLayer(i)->GetTextures(p_Type))
+			return p_Mesh->GetLayer(i)->GetTextures(p_Type);
+	}
+
+	return NULL;
+}
+
+
+void DisplayTextureInfo(FbxTexture* pTexture, int pBlendMode, std::list<std::string>& files)
+{
+	FbxFileTexture *lFileTexture = FbxCast<FbxFileTexture>(pTexture);
+	FbxProceduralTexture *lProceduralTexture = FbxCast<FbxProceduralTexture>(pTexture);
+
+	DisplayString("            Name: \"", (char *)pTexture->GetName(), "\"");
+	if (lFileTexture)
+	{
+		DisplayString("            Type: File Texture");
+		DisplayString("            File Name: \"", (char *)lFileTexture->GetFileName(), "\"");
+		files.push_back((char *)lFileTexture->GetFileName());
+	}
+	else if (lProceduralTexture)
+	{
+		DisplayString("            Type: Procedural Texture");
+	}
+	DisplayDouble("            Scale U: ", pTexture->GetScaleU());
+	DisplayDouble("            Scale V: ", pTexture->GetScaleV());
+	DisplayDouble("            Translation U: ", pTexture->GetTranslationU());
+	DisplayDouble("            Translation V: ", pTexture->GetTranslationV());
+	DisplayBool("            Swap UV: ", pTexture->GetSwapUV());
+	DisplayDouble("            Rotation U: ", pTexture->GetRotationU());
+	DisplayDouble("            Rotation V: ", pTexture->GetRotationV());
+	DisplayDouble("            Rotation W: ", pTexture->GetRotationW());
+
+	const char* lAlphaSources[] = { "None", "RGB Intensity", "Black" };
+
+	DisplayString("            Alpha Source: ", lAlphaSources[pTexture->GetAlphaSource()]);
+	DisplayDouble("            Cropping Left: ", pTexture->GetCroppingLeft());
+	DisplayDouble("            Cropping Top: ", pTexture->GetCroppingTop());
+	DisplayDouble("            Cropping Right: ", pTexture->GetCroppingRight());
+	DisplayDouble("            Cropping Bottom: ", pTexture->GetCroppingBottom());
+
+	const char* lMappingTypes[] = { "Null", "Planar", "Spherical", "Cylindrical",
+		"Box", "Face", "UV", "Environment" };
+
+	DisplayString("            Mapping Type: ", lMappingTypes[pTexture->GetMappingType()]);
+
+	if (pTexture->GetMappingType() == FbxTexture::ePlanar)
+	{
+		const char* lPlanarMappingNormals[] = { "X", "Y", "Z" };
+
+		DisplayString("            Planar Mapping Normal: ", lPlanarMappingNormals[pTexture->GetPlanarMappingNormal()]);
+	}
+
+	const char* lBlendModes[] = { "Translucent", "Add", "Modulate", "Modulate2" };
+	if (pBlendMode >= 0)
+		DisplayString("            Blend Mode: ", lBlendModes[pBlendMode]);
+	DisplayDouble("            Alpha: ", pTexture->GetDefaultAlpha());
+
+	if (lFileTexture)
+	{
+		const char* lMaterialUses[] = { "Model Material", "Default Material" };
+		DisplayString("            Material Use: ", lMaterialUses[lFileTexture->GetMaterialUse()]);
+	}
+
+	const char* pTextureUses[] = { "Standard", "Shadow Map", "Light Map",
+		"Spherical Reflexion Map", "Sphere Reflexion Map", "Bump Normal Map" };
+
+	DisplayString("            Texture Use: ", pTextureUses[pTexture->GetTextureUse()]);
+	DisplayString("");
+
+}
+
+void FindAndDisplayTextureInfoByProperty(FbxProperty pProperty, bool& pDisplayHeader, int pMaterialIndex, std::map<std::string, std::list<std::string>>& textures) {
+
+	std::list<std::string> files;
+	if (pProperty.IsValid())
+	{
+		int lTextureCount = pProperty.GetSrcObjectCount<FbxTexture>();
+
+		for (int j = 0; j < lTextureCount; ++j)
+		{
+			//Here we have to check if it's layeredtextures, or just textures:
+			FbxLayeredTexture *lLayeredTexture = pProperty.GetSrcObject<FbxLayeredTexture>(j);
+			if (lLayeredTexture)
+			{
+				DisplayInt("    Layered Texture: ", j);
+				FbxLayeredTexture *lLayeredTexture = pProperty.GetSrcObject<FbxLayeredTexture>(j);
+				int lNbTextures = lLayeredTexture->GetSrcObjectCount<FbxTexture>();
+				for (int k = 0; k<lNbTextures; ++k)
+				{
+					FbxTexture* lTexture = lLayeredTexture->GetSrcObject<FbxTexture>(k);
+					if (lTexture)
+					{
+
+						if (pDisplayHeader) {
+							DisplayInt("    Textures connected to Material ", pMaterialIndex);
+							pDisplayHeader = false;
+						}
+
+						//NOTE the blend mode is ALWAYS on the LayeredTexture and NOT the one on the texture.
+						//Why is that?  because one texture can be shared on different layered textures and might
+						//have different blend modes.
+
+						FbxLayeredTexture::EBlendMode lBlendMode;
+						lLayeredTexture->GetTextureBlendMode(k, lBlendMode);
+						DisplayString("    Textures for ", pProperty.GetName());
+						DisplayInt("        Texture ", k);
+						DisplayTextureInfo(lTexture, (int)lBlendMode, files);
+						
+						textures.insert( std::pair<std::string,std::list<std::string> > (std::string(pProperty.GetName()),files) );
+					}
+
+				}
+			}
+			else
+			{
+				//no layered texture simply get on the property
+				FbxTexture* lTexture = pProperty.GetSrcObject<FbxTexture>(j);
+				if (lTexture)
+				{
+					//display connected Material header only at the first time
+					if (pDisplayHeader) {
+						DisplayInt("    Textures connected to Material ", pMaterialIndex);
+						pDisplayHeader = false;
+					}
+
+					DisplayString("    Textures for ", pProperty.GetName());
+					DisplayInt("        Texture ", j);
+					DisplayTextureInfo(lTexture, -1, files);
+					textures.insert(std::pair<std::string, std::list<std::string> >(std::string(pProperty.GetName()), files));
+				}
+			}
+		}
+	}//end if pProperty
+
+}
+
+
+void DisplayTexture(FbxGeometry* pGeometry, std::map<std::string, std::list<std::string>>& textures)
+{
+	int lMaterialIndex;
+	FbxProperty lProperty;
+	if (pGeometry->GetNode() == NULL)
+		return;
+	int lNbMat = pGeometry->GetNode()->GetSrcObjectCount<FbxSurfaceMaterial>();
+	for (lMaterialIndex = 0; lMaterialIndex < lNbMat; lMaterialIndex++) {
+		FbxSurfaceMaterial *lMaterial = pGeometry->GetNode()->GetSrcObject<FbxSurfaceMaterial>(lMaterialIndex);
+		bool lDisplayHeader = true;
+
+		//go through all the possible textures
+		if (lMaterial) {
+
+			int lTextureIndex;
+			FBXSDK_FOR_EACH_TEXTURE(lTextureIndex)
+			{
+				lProperty = lMaterial->FindProperty(FbxLayerElement::sTextureChannelNames[lTextureIndex]);
+				FindAndDisplayTextureInfoByProperty(lProperty, lDisplayHeader, lMaterialIndex, textures);
+			}
+
+		}//end if(lMaterial)
+
+	}// end for lMaterialIndex     
+}
+
 void GetMaterials(FbxNode* pNode, 
 	std::vector<FbxColor>& Ambients,
 	std::vector<FbxColor>& Diffuses,
@@ -734,7 +906,7 @@ void GetMaterials(FbxNode* pNode,
 {
 	if (!pNode)
 		return;
-
+		
 	for (int iSrcObj = 0; iSrcObj < pNode->GetSrcObjectCount(); ++iSrcObj) 
 	{
 		FbxObject* obj = pNode->GetSrcObject<FbxObject>(iSrcObj);
@@ -855,7 +1027,7 @@ void GetUVCoordinates(FbxNode* pNode, std::vector< glm::vec2 >& uv)
 
 						lUVValue = UVElement->GetDirectArray().GetAt(lUVIndex);
 						int lPolyVertIndex = lMesh->GetPolygonVertex(lPolyIndex, lVertIndex);
-						uv[lPolyVertIndex] = glm::vec2(lUVValue.mData[0], 1.0-lUVValue.mData[1]);
+						uv[lPolyVertIndex] = glm::vec2(lUVValue.mData[0], lUVValue.mData[1]);
 
 						lPolyIndexCounter++;
 					}
@@ -884,6 +1056,7 @@ void GetSkeleton(FbxNode* pNode)
 			lClusterCount += lSkin->GetClusterCount();
 
 			FbxGeometry *geom = lSkin->GetGeometry();
+			
 			int cpCount = lSkin->GetControlPointIndicesCount();
 			int* iCPs = lSkin->GetControlPointIndices();
 			double* blendWeights = lSkin->GetControlPointBlendWeights();
@@ -903,12 +1076,6 @@ void GetSkeleton(FbxNode* pNode)
 
 	for (int i = 0; i < pNode->GetChildCount(); ++i)
 		GetSkeleton(pNode->GetChild(i));
-}
-
-
-void DisplayString(const char* pHeader, const char* pValue = "", const char* pSuffix = "")
-{
-	std::cout << pHeader << " " << pValue << " " << pSuffix;
 }
 
 /*ANIMATION*/
@@ -1382,11 +1549,23 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 		{
 			FbxNodeAttribute* pAttrib = pNode->GetNodeAttributeByIndex(i);
 
+			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eLight)
+			{
+				FbxDouble3 lTranslation = pNode->LclTranslation.Get();
+				FbxDouble3 lRotation = pNode->LclRotation.Get();
+				FbxDouble3 lScaling = pNode->LclScaling.Get();
+
+				Engine::LightPos = glm::vec3(lTranslation.mData[0], lTranslation.mData[1], lTranslation.mData[2])*0.01f;
+			}
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
+				FbxGeometry* geom = (FbxGeometry*)pAttrib;
+				std::map<std::string, std::list<std::string>> textures;
+				DisplayTexture(geom, textures);
+
 				const char* nodeName = pNode->GetName();
 				FbxMesh* pMesh = (FbxMesh*)pAttrib;
-
+				
 				std::vector<Mesh::Vertex> vertices = {};
 				std::vector<glm::vec3> normals = {};
 				std::vector<glm::vec2> uv = {};
@@ -1399,6 +1578,9 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxColor Specular = iMesh + 1 > Speculars.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Speculars[iMesh];
 
 				std::string textureFile = iMesh+1 > textureFiles.size() ? "" : textureFiles[iMesh];
+				if(!textures.empty() && !textures["DiffuseColor"].empty())
+					textureFile = *textures["DiffuseColor"].begin();
+
 				if (textureFile.compare("no_texture") == 0)
 					textureFile = "";
 
@@ -1407,6 +1589,54 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				GetSkeleton(pNode);
 				//GetNormals(pNode, normals);
 				GetUVCoordinates(pNode, uv);
+
+				normals.clear();
+				for (int ti = 0; ti < vertices.size(); ++ti) {
+					normals.push_back({ 0,0,0 });
+					tangents.push_back({ 0,0,0 });
+					bitangents.push_back({ 0,0,0 });
+				}
+				
+				for (int ti = 0; ti < indices.size(); ti+=3)
+				{
+					int ti1 = indices[ti + 0];
+					int ti2 = indices[ti + 1];
+					int ti3 = indices[ti + 2];
+					Mesh::Vertex& v0 = vertices[ti1];
+					Mesh::Vertex& v1 = vertices[ti2];
+					Mesh::Vertex& v2 = vertices[ti3];
+
+					// Compute Normals
+					glm::vec3 dp1 = v1.pos - v0.pos;
+					glm::vec3 dp2 = v2.pos - v0.pos;
+
+					glm::vec3 normal = glm::normalize(glm::cross(dp1, dp2));
+					// 3x normal
+					normals[ti1] = normal; normals[ti2] = normal; normals[ti3] = normal;
+
+					// Compute Tangents and Bitangents from uv coordinates
+					if (!uv.empty())
+					{
+						glm::vec2& uv0 = uv[min(ti1, uv.size()-1)];
+						glm::vec2& uv1 = uv[min(ti2, uv.size()-1)];
+						glm::vec2& uv2 = uv[min(ti3, uv.size()-1)];
+
+						glm::vec2 duv1 = uv1 - uv0;
+						glm::vec2 duv2 = uv2 - uv0;
+
+						// Note: no normalization of tangents and bi-tangents, due to their relative effect to the
+						// size of the triangle
+						float r = 1.0f / (duv1.x * duv2.y - duv1.y * duv2.x);
+						glm::vec3 tangent = (dp1 * duv2.y - dp2*duv1.y) * r;
+						glm::vec3 bitangent = (dp2 * duv1.x - dp1*duv2.x) * r;
+
+						// 3x tangent
+						tangents[ti1] = tangent; tangents[ti2] = tangent; tangents[ti3] = tangent;
+						// 3x bitangent
+						bitangents[ti1] = bitangent; bitangents[ti2] = bitangent; bitangents[ti3] = bitangent;
+					}
+				}
+
 				for (int j = 0; j < pNode->GetChildCount(); ++j)
 				{
 					FbxNode* childNode = pNode->GetChild(j);
@@ -1423,8 +1653,14 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				material->setSpecularColor(glm::vec4(Specular.mRed, Specular.mGreen, Specular.mBlue, Specular.mAlpha));
 				if (!textureFile.empty())
 				{
+					std::cout << "Loading texture: " << textureFile << std::endl;
 					Texture* t = new Texture(textureFile);
+					std::cout << "Loading texture OK ";
 					material->setTexture(t);
+					std::string ext = textureFile.substr(textureFile.find_first_of("."));
+					std::string textureFile_normal = textureFile.substr(0, textureFile.find_first_of(".")) + "_normal" + ext;
+					Texture* t_normal = new Texture(textureFile_normal);
+					material->setTextureNormal(t_normal);
 				}
 
 				mesh->setMaterial(std::move(material));
@@ -1433,6 +1669,8 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				mesh->setVertices(vertices);
 				mesh->setNormals(normals);
 				mesh->setUVs(uv);
+				mesh->setTangents(tangents); 
+				mesh->setBiTangents(bitangents); 
 
 				/**/
 				std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>(name);
@@ -1447,9 +1685,13 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxDouble3 lRotation = pNode->LclRotation.Get();
 				FbxDouble3 lScaling = pNode->LclScaling.Get();
 
-				obj->transform()->pos().x = lTranslation[0] * 0.01;
-				obj->transform()->pos().y = lTranslation[1] * 0.01;
-				obj->transform()->pos().z = lTranslation[2] * 0.01;
+				obj->transform()->pos().x = lTranslation[0] / lScaling[0];
+				obj->transform()->pos().y = lTranslation[1] / lScaling[1];
+				obj->transform()->pos().z = lTranslation[2] / lScaling[2];
+
+				obj->transform()->rotate(lRotation[0], glm::vec3(1, 0, 0));
+				obj->transform()->rotate(lRotation[1], glm::vec3(0, 1, 0));
+				obj->transform()->rotate(lRotation[2], glm::vec3(0, 0, 1));
 
 				/*
 				obj->transform()->scale().x = lScaling[0] * 0.01;

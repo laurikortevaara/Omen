@@ -44,7 +44,7 @@ namespace omen {
         Texture() { };
 
     public:
-        Texture(const std::string &bitmap_path);
+        Texture(const std::string &bitmap_path, GLenum textureTarget = GL_TEXTURE_2D );
 
         void bind();
 

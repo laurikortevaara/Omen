@@ -33,13 +33,13 @@ namespace omen {
         void render(const glm::mat4 &viewProjection, const glm::mat4 &view);
         std::vector<std::unique_ptr<Light> >& lights() {return m_lights;}
 
-		const std::vector<std::unique_ptr<ecs::Entity>>& entities() { return m_entities; }
+		const std::vector<std::unique_ptr<ecs::Entity>>& entities(GLuint layer = 0 ) { return m_entities[layer]; }
 
-		void addEntity(std::unique_ptr<ecs::Entity> entity);
+		void addEntity(std::unique_ptr<ecs::Entity> entity, GLuint layer = 0);
 		ecs::Entity* findEntity(const std::string& name);
 
     private:
-        std::vector<std::unique_ptr<ecs::Entity> > m_entities;
+        std::map<GLuint, std::vector<std::unique_ptr<ecs::Entity> > > m_entities;
         std::vector<std::unique_ptr<Light> > m_lights;
         std::vector<std::unique_ptr<omen::Renderable> > m_renderables;
         Sky*    m_sky;

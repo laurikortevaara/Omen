@@ -28,7 +28,7 @@ out float fragmentdepth;
 //out vec3 color;
 
 void main() {
-    fragmentdepth = 0; //gl_FragCoord.z;
+    fragmentdepth = gl_FragCoord.z;
 	//color = vec3(1,0,0);
 }
 

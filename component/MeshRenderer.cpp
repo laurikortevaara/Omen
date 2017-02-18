@@ -16,15 +16,42 @@ float points[] = {
 	0.5f, -0.5f,  -1.0f
 };
 
+
+static GLuint blend_modes[] = {
+	GL_ZERO,
+	GL_ONE,
+	GL_SRC_COLOR,
+	GL_ONE_MINUS_SRC_COLOR,
+	GL_DST_COLOR,
+	GL_ONE_MINUS_DST_COLOR,
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA,
+	GL_DST_ALPHA,
+	GL_ONE_MINUS_DST_ALPHA,
+	GL_CONSTANT_COLOR,
+	GL_ONE_MINUS_CONSTANT_COLOR,
+	GL_CONSTANT_ALPHA,
+	GL_ONE_MINUS_CONSTANT_ALPHA
+};
+
+float spotlight_distance = 0.1f;
+float spotlight_angle = 45.0f;
+float spotlight_near = 0.55f;
+float spotlight_far = 100.0f;
+float depth_bias = 0.01f;
+
+int selector = 1;
+
+
 using namespace omen;
 using namespace ecs;
 
-MeshRenderer::MeshRenderer(MeshController* meshController) : 
-	Renderer(), 
-	m_specularCoeff(512), 
-	m_shininess(5), 
-	m_lightDir({ 0,1,0 }), 
-	m_texture(nullptr), 
+MeshRenderer::MeshRenderer(MeshController* meshController) :
+	Renderer(),
+	m_specularCoeff(512),
+	m_shininess(5),
+	m_lightDir({ 0,1,0 }),
+	m_texture(nullptr),
 	m_renderNormals(false),
 	m_meshController(meshController),
 	m_shaderBlur(1)
@@ -52,7 +79,7 @@ void MeshRenderer::onAttach(Entity* e) {
 				if (e->name() == "Slider0")
 					lambda = [this](float value) -> void {setShininess(value); };
 				if (e->name() == "Slider1")
-					lambda = [this](float value) -> void {m_lightDir.x = -1.0f + 2.0f*value;};
+					lambda = [this](float value) -> void {m_lightDir.x = -1.0f + 2.0f*value; };
 				if (e->name() == "Slider2")
 					lambda = [this](float value) -> void {m_lightDir.y = value; };
 				if (e->name() == "Slider3")
@@ -61,21 +88,21 @@ void MeshRenderer::onAttach(Entity* e) {
 					lambda = [this](float value) -> void {m_specularCoeff = 1024.0f*value; };
 
 				slider->signal_slider_dragged.connect([lambda](ui::Slider* slider, float value)->void {
-					if(lambda!=nullptr)
+					if (lambda != nullptr)
 						lambda(value);
 				});
 			}
 		});
 	}
-	
+
 	// Create Texture
 	/*Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
-		if( !files.empty() && files.begin()->find(".md3") == std::string::npos )
-			m_texture = new Texture(*files.begin());
+	if( !files.empty() && files.begin()->find(".md3") == std::string::npos )
+	m_texture = new Texture(*files.begin());
 	});*/
-	m_texture = new Texture("textures/checker.jpg");
-	m_textureNormal = new Texture("textures/brick_normal.png");
+	/*m_texture = new Texture("textures/checker.jpg");
+	m_textureNormal = new Texture("textures/brick_normal.png");*/
 	if (m_meshController) {
 		// Create VAO
 		check_gl_error();
@@ -110,14 +137,14 @@ void MeshRenderer::onAttach(Entity* e) {
 		}
 		// Create VBO for texture
 		std::vector<glm::vec2> uvs = m_meshController->mesh()->uv();
-		if(!uvs.empty()){
+		if (!uvs.empty()) {
 			glGenBuffers(1, &m_vbo_texture);
 			check_gl_error();
 			glEnableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 			check_gl_error();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture);
 			check_gl_error();
-		
+
 			check_gl_error();
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*uvs.size(), uvs.data(), GL_STATIC_DRAW);
 			check_gl_error();
@@ -125,7 +152,7 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glDisableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 		}
-		
+
 		// Create VBO for normals
 		std::vector<glm::vec3> normals = m_meshController->mesh()->normals();
 		if (!normals.empty()) {
@@ -135,7 +162,7 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo_normals);
 			check_gl_error();
-		
+
 			check_gl_error();
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*normals.size(), normals.data(), GL_STATIC_DRAW);
 			check_gl_error();
@@ -185,6 +212,9 @@ void MeshRenderer::onAttach(Entity* e) {
 
 	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
 	{
+		std::cout << "MeshRenderer:signa_key_press" << std::endl;
+		if (action == GLFW_KEY_DOWN)
+			return;
 		int isN = key == GLFW_KEY_N;
 		int isShift = mods & GLFW_MOD_SHIFT;
 
@@ -193,9 +223,62 @@ void MeshRenderer::onAttach(Entity* e) {
 			m_renderNormals = !m_renderNormals;
 		}
 
-		if (key == GLFW_KEY_PAGE_UP) m_shaderBlur++;
-		if (key == GLFW_KEY_PAGE_DOWN) m_shaderBlur--;
-		m_shaderBlur = glm::clamp(m_shaderBlur, 1,20);
+		if (key == GLFW_KEY_1)
+			selector = 1;
+
+		if (key == GLFW_KEY_2)
+			selector = 2;
+
+		if (key == GLFW_KEY_3)
+			selector = 3;
+
+		if (key == GLFW_KEY_4)
+			selector = 4;
+
+		if (key == GLFW_KEY_5)
+			selector = 5;
+
+		switch (selector)
+		{
+		case 1:
+			if (key == GLFW_KEY_PAGE_UP)
+				spotlight_distance += 0.001;
+			if (key == GLFW_KEY_PAGE_DOWN)
+				spotlight_distance -= 0.001;
+			break;
+		case 2:
+			if (key == GLFW_KEY_PAGE_UP)
+				spotlight_angle += 5.0;
+			if (key == GLFW_KEY_PAGE_DOWN)
+				spotlight_angle -= 5.0;
+			break;
+		case 3:
+			if (key == GLFW_KEY_PAGE_UP)
+				spotlight_near += 0.01;
+			if (key == GLFW_KEY_PAGE_DOWN)
+				spotlight_near -= 0.01;
+			break;
+		case 4:
+			if (key == GLFW_KEY_PAGE_UP)
+				spotlight_far += 0.1;
+			if (key == GLFW_KEY_PAGE_DOWN)
+				spotlight_far -= 0.1;
+			break;
+		case 5:
+			if (key == GLFW_KEY_PAGE_UP)
+				depth_bias += 0.01;
+			if (key == GLFW_KEY_PAGE_DOWN)
+				depth_bias -= 0.01;
+			break;
+		}
+
+		spotlight_angle = glm::min(180.0f, spotlight_angle);
+		spotlight_angle = glm::max(0.0f, spotlight_angle);
+		spotlight_near = glm::max(0.0f, spotlight_near);
+		spotlight_far = glm::max(spotlight_near, spotlight_far);
+		depth_bias = glm::max(0.0f, depth_bias);
+
+		m_shaderBlur = glm::clamp(m_shaderBlur, 1, 20);
 	});
 }
 
@@ -204,7 +287,7 @@ void MeshRenderer::onDetach(Entity* e) {
 }
 
 void MeshRenderer::render(Shader* shader)
-{	
+{
 	// Initialize shader with global parameters
 	Shader* pShader = shader;
 	if (pShader == nullptr) {
@@ -217,32 +300,40 @@ void MeshRenderer::render(Shader* shader)
 	}
 
 	// Get matrices
-	glm::mat4 viewMatrix		= Engine::instance()->camera()->view();
-	glm::mat4 viewprojMatrix	= Engine::instance()->camera()->viewProjection();
-	glm::mat4 modelMatrix		= entity()->getComponent<Transform>()->tr();
-	glm::mat4 modelViewMatrix	= viewMatrix * modelMatrix;
+	glm::mat4 viewMatrix = Engine::instance()->camera()->view();
+	glm::mat4 viewprojMatrix = Engine::instance()->camera()->viewProjection();
+	glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
+	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
+	glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
 	glm::mat4 MVP = viewprojMatrix * modelMatrix;
 	glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos = Engine::instance()->camera()->position();
-		
+
 	glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
 	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
-	
+
 	// Set matrix uniforms
 	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
-
+	pShader->setUniformMatrix4fv("InverseViewProjection", 1, glm::value_ptr(inverseViewProjMatrix), false);
+	pShader->setUniform1f("DepthBias", depth_bias);
 	// Set other uniforms
 
 	/*Setup the DepthMVP*/
 	// Compute the MVP matrix from the light's point of view
-	glm::vec3 lightInvDir = Engine::LightPos;
-	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightInvDir));
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-500, 500, -500, 500, 0, 1500);
-	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
+	//Engine::LightPos + Engine::instance()->time()*normalize(-lightPos)*0.01f; // Engine::instance()->camera()->position();
+	glm::vec3 lightInvDir = normalize(-lightPos);
+	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
+	float size = Engine::ShadowFrustumSize;
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+	//depthProjectionMatrix = glm::perspective<float>(glm::radians(spotlight_angle), 1.0f, spotlight_near, spotlight_far);
+	glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+
 	// or, for spot light :
-	//glm::vec3 lightPos(5, 20, 20);
-	//glm::mat4 depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
-	//glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));
+	//depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 0.1f, 200);
+	//depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0), glm::vec3(0,1,0));
+
+	MVP = depthProjectionMatrix  * depthViewMatrix * modelMatrix;
 
 	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
 	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
@@ -257,46 +348,53 @@ void MeshRenderer::render(Shader* shader)
 
 	// Send our transformation to the currently bound shader, 
 	// in the "MVP" uniform
-	
+
 	// Send our transformation to the currently bound shader, 
 	// in the "MVP" uniform
 	pShader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
 	pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
+	pShader->setUniform3fv("CameraPosition", 1, glm::value_ptr(viewPos));
 	/********************/
 
 	pShader->setUniform1i("RenderNormals", m_renderNormals);
-	pShader->setUniform1i("ShadowBlur", m_shaderBlur);
+	pShader->setUniform1i("ShadowBlur", Engine::ShadowBlur);
+	pShader->setUniform1f("MaterialShininess", Engine::MaterialShininess);
+	pShader->setUniform1f("LightIntensity", Engine::LightIntensity);
+	pShader->setUniform1f("AmbientFactor", Engine::AmbientFactor);
 
 	if (m_texture != nullptr && pShader == m_shader.get())
 	{
-		pShader->setUniform1i("HasTexture", 1);
+		pShader->setUniform1i("HasTexture", true);
 
-		int textureLoc = pShader->getUniformLocation("textureMap");
+		int textureLoc = pShader->getUniformLocation("TextureMap");
 		glUniform1i(textureLoc, 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		m_texture->bind();
+	}
+	{
+		//pShader->setUniform1i("HasTexture", false);
+		omen::Engine* engine = omen::Engine::instance();
+		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
 
 		int shadowLoc = pShader->getUniformLocation("shadowMap");
 		glUniform1i(shadowLoc, 1);
 
-		glActiveTexture(GL_TEXTURE0);
-		m_texture->bind();
-
-		omen::Engine* engine = omen::Engine::instance();
-		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 	}
 	/*else
 	{
-		pShader->setUniform1i("HasTexture", 0);
-		
-		int shadowLoc = pShader->getUniformLocation("shadowMap");
-		glUniform1f(shadowLoc, 0);
+	pShader->setUniform1i("HasTexture", 0);
 
-		omen::Engine* engine = omen::Engine::instance();
-		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
+	int shadowLoc = pShader->getUniformLocation("shadowMap");
+	glUniform1f(shadowLoc, 0);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+	omen::Engine* engine = omen::Engine::instance();
+	GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
 	}*/
 
 	// Setup buffers for rendering
@@ -325,10 +423,19 @@ void MeshRenderer::render(Shader* shader)
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 	}
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	//glEnable(GL_CULL_FACE);
-	glPolygonMode(GL_FRONT, GL_FILL);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_CONSTANT_ALPHA); //	 blend_modes[Engine::blend_mode]);
+	//glDisable(GL_BLEND);
+
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_CULL_FACE);
+	if(shader == nullptr)
+		glFrontFace(GL_CCW);
+	else
+		glFrontFace(GL_CW);
+	glPolygonMode(GL_FRONT, Engine::instance()->getPolygonMode());
 	//glPolygonMode(GL_BACK, GL_LINE);
-	if(m_indexBuffer!=0)
+	if (m_indexBuffer != 0)
 		glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
 	else
 		glDrawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());

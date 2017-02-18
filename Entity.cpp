@@ -53,7 +53,7 @@ bool Entity::removeComponent(std::unique_ptr<Component> c) {
 }
 
 Entity::Entity(const std::string &name):
-        Object(name), m_parent(nullptr) {}
+        Object(name), m_parent(nullptr), m_layer(0) {}
 
 /*
 template<class type>
@@ -69,6 +69,17 @@ Entity* Entity::findChild(const std::string& name) {
 		if (child->name() == name)
 			return child.get();
 		Entity* matchingChild = child->findChild(name);
+		if (matchingChild != nullptr)
+			return matchingChild;
+	}
+	return nullptr;
+}
+
+Entity const* Entity::findChild_const(const std::string& name) const {
+	for (const auto& child : m_children) {
+		if (child->name() == name)
+			return child.get();
+		Entity const* matchingChild = child->findChild_const(name);
 		if (matchingChild != nullptr)
 			return matchingChild;
 	}

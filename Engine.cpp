@@ -31,6 +31,7 @@
 #include "component/Sprite.h"
 #include "component/TextRenderer.h"
 #include "system/GraphicsSystem.h"
+#include "ui/TextView.h"
 
 #define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
@@ -46,10 +47,20 @@ static long Engine_left_bytes = 0;
 static long Engine_left_kbytes = 0;
 static long Engine_left_mbytes = 0;
 
+GLint Engine::blend_mode = 3;
+GLuint Engine::ShadowBlur = 3;
 GLfloat Engine::ShadowFrustumNear = 0.0f;
-GLfloat Engine::ShadowFrustumFar = 100.0f;
-GLuint Engine::ShadowFrustumSize = 20.0f;
+GLfloat Engine::ShadowFrustumFar = 1500.0f;
+GLfloat Engine::LightDistance = 0.225;
+GLfloat Engine::ShadowFrustumSize = 1000.0f;
+glm::vec3 Engine::MousePickRay(0, 0, 0);
 glm::vec3 Engine::LightPos(-15, 20, -15);
+
+float     Engine::AmbientFactor = 1.0;
+float     Engine::MaterialShininess = 32;
+float     Engine::LightIntensity = 1.0;
+float	  Engine::LightAzimuthAngle = 0.0f;
+float	  Engine::LightZenithAngle = 0.0f;
 
 std::mutex Engine::t_future_task::task_mutex;
 
@@ -65,6 +76,24 @@ static BYTE* pools[1024] = {};
 static long long allocation_index = 0;
 static BYTE *mempool = (BYTE*)malloc(size_alloc);
 static BYTE* current_p = mempool;
+
+std::string stringify(float f) {
+	std::ostringstream os;
+	os << std::setprecision(3) << std::setw(7) << f;
+	return os.str();
+}
+
+std::wstring wstringify(float f) {
+	std::wstringstream os;
+	os << std::setprecision(3) << std::setw(7) << f;
+	return os.str();
+}
+
+std::wstring wstringify(glm::vec3 v) {
+	std::wstringstream os;
+	os << std::setprecision(4) << std::setw(7) << "[" << v.x << ", " << v.y << ", " << v.z << "]";
+	return os.str();
+}
 
 void * operator new(size_t size)
 {   
@@ -127,7 +156,7 @@ Engine::Engine() :
 		initializeSystems();
 		check_gl_error();
 
-		m_camera = new Camera("Camera1", { 0, 0, 0 }, { 0, 0, 0 }, 90.0f);
+		m_camera = new Camera("Camera1", { 0, 500.0, 0 }, { 0, 0, 0 }, 60.0f);
 		check_gl_error();
 		findComponent<CameraController>()->setCamera(m_camera);
 		check_gl_error();
@@ -157,9 +186,9 @@ Engine::Engine() :
 		 */
 		initPhysics();
 		check_gl_error();
-		post(std::function<void()>([&](void) {
+		post(std::make_unique<std::function<void()>>(std::function<void()>([&](void) {
 			std::cout << "FPS: " << m_avg_fps << std::endl;
-		}), 3.0, true);
+		})), 3.0, true);
 
 	});
 
@@ -271,14 +300,23 @@ void Engine::initializeSystems() {
 	keyboardInput->signal_key_hit.connect([this](int k, int s, int a, int m) {
 		keyHit(k, s, a, m);
 	});
-
-	keyboardInput->signal_key_press.connect([](int k, int s, int a, int m) {
-	});
-
+	
 	keyboardInput->signal_key_release.connect([this](int k, int s, int a, int m) {
 		if (k == GLFW_KEY_T)
 			m_polygonMode = m_polygonMode == GL_FILL ? GL_LINE : GL_FILL;
 	});
+
+	keyboardInput->signal_key_press.connect([this](int key, int shift, int alpha, int mode) {
+		if (key == GLFW_KEY_PAGE_UP) {
+			Engine::blend_mode += 1;
+			Engine::blend_mode = Engine::blend_mode < 14 ? Engine::blend_mode : 13;
+		}
+		if (key == GLFW_KEY_PAGE_DOWN) {
+			Engine::blend_mode -= 1;
+			Engine::blend_mode = Engine::blend_mode > 0 ? Engine::blend_mode : 0;
+		}
+
+	} );
 
 	// Connect key-hit, -press and -release signals to observers
 	m_window->signal_window_size_changed.connect([this](int width, int height) {
@@ -321,8 +359,8 @@ void Engine::getTextureMemoryInfo()
 void Engine::ray_cast_mouse()
 {
 	float x = (2.0f * m_mouse_x) / m_window->width() - 1.0f;
-	float y = 1.0f - (2.0f * m_mouse_y) / m_window->width();
-	float z = 1.0f;
+	float y = 1.0f - (2.0f * m_mouse_y) / m_window->height();
+	float z = 100.0f;
 	glm::vec3 ray_nds = glm::vec3(x, y, z);
 	
 	glm::vec4 ray_clip = glm::vec4(glm::vec2(ray_nds), -1.0, 1.0);
@@ -331,12 +369,41 @@ void Engine::ray_cast_mouse()
 	glm::vec3 ray_wor = glm::vec3(glm::inverse(m_camera->view()) * ray_eye);
 	// don't forget to normalise the vector at some point
 	ray_wor = glm::normalize(ray_wor);
-	std::cout << "Ray: " << ray_wor.x << ", " << ray_wor.y << ", " << ray_wor.z << std::endl;
+	MousePickRay = ray_wor;
+	//std::cout << "Ray: " << ray_wor.x << ", " << ray_wor.y << ", " << ray_wor.z << std::endl;
 }
 
 void Engine::update() {
+
+	ui::TextView* tv = dynamic_cast<ui::TextView*>(scene()->findEntity("TextView"));
+	if (tv != nullptr) {
+		std::wstringstream wstr;
+		wstr << "FPS: " << wstringify(fps()) << "\n";
+		wstr << "FPS(Avg): " << wstringify(averageFps()) << "\n";
+		wstr << "Time: " << wstringify(time()) << "\n";
+		wstr << "LightDistance: " << wstringify(LightDistance) << "\n";
+		wstr << "ShadowFrustum Size: " << wstringify(ShadowFrustumSize) << "\n";
+		wstr << "ShadowFrustum Near: " << wstringify(ShadowFrustumNear) << "\n";
+		wstr << "ShadowFrustum Far: " << wstringify(ShadowFrustumFar) << "\n";
+		wstr << "ShadowFrustum Far: " << wstringify(ShadowFrustumFar) << "\n";
+		wstr << "MousePickRay : " << wstringify(Engine::MousePickRay) << "\n";
+		wstr << "CameraPos: " << wstringify(Engine::instance()->camera()->position()) << "\n";
+		wstr << "CursorPos: " << wstringify(glm::vec3(m_mouse_x, m_mouse_y, 0.0)) << "\n";
+		tv->setText(wstr.str());
+	}
+
 	float t = time();
-	LightPos = glm::vec3(1000*sin(t), 500, 1000 * cos(t)); // glm::vec3(-15 * cos(t), abs(sin(t)) * 20, -15 * sin(t));
+	glm::vec4 l(0, 1, 0, 1);
+	float la = LightAzimuthAngle * ((glm::pi<float>())/ 180.0);
+	float lz = LightZenithAngle * ((glm::pi<float>()) / 180.0);
+	glm::mat4 m;
+	m = glm::rotate(m, la, glm::vec3(0, 1, 0));
+	m = glm::rotate(m, lz, glm::vec3(1, 0, 0));
+	l = normalize(m*l);
+	l *= 10000;
+	LightPos.x = l.x;
+	LightPos.y = l.y;
+	LightPos.z = l.z;
 	//getTextureMemoryInfo();
 	ray_cast_mouse();
 
@@ -359,12 +426,6 @@ omen::floatprec Engine::time() {
 void Engine::renderScene() {
 	if (m_scene != nullptr)
 		m_scene->render(m_camera->viewProjection(), m_camera->view());
-}
-
-std::string stringify(float f) {
-	std::ostringstream os;
-	os << std::setprecision(3) << std::setw(7) << f;
-	return os.str();
 }
 
 bool Engine::createFramebuffer() {
@@ -454,6 +515,7 @@ void Engine::render() {
 	for (auto fps : q_fps)
 		m_avg_fps += fps;
 	
+	m_fps = 1.0 / m_timeDelta;
 	m_avg_fps /= q_fps.size();
 	
 	glClearColor(0, 0, 0, 1);
@@ -625,15 +687,15 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 		}
 
 		if (key == GLFW_KEY_KP_ADD) {
-			post(std::function<void()>([&](void) {
+			post_function {
 				m_sample_coverage = fmin(1.0f, m_sample_coverage + .1f);
-			}));
+			})));
 		}
 
 		if (key == GLFW_KEY_KP_SUBTRACT) {
-			post(std::function<void()>([&](void) {
+			post_function {
 				m_sample_coverage = fmax(0.0f, m_sample_coverage - .1f);
-			}));
+			})));
 		}
 
 		std::cout << "You presssed: " << key << std::endl;
@@ -672,9 +734,9 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 
 }
 
-void Engine::post(std::function<void()>& task, omen::floatprec delay, bool repeating) {
+void Engine::post(std::unique_ptr<std::function<void()>> task, omen::floatprec delay, bool repeating) {
 	std::lock_guard<std::mutex> guard(Engine::t_future_task::task_mutex);
-	m_future_tasks.push_back({ task, std::chrono::duration<omen::floatprec>(delay), repeating });
+	m_future_tasks.push_back({ std::move(task), std::chrono::duration<omen::floatprec>(delay), repeating });
 }
 
 void Engine::handle_task_queue() {
