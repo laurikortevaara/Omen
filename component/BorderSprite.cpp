@@ -3,15 +3,16 @@
 //
 
 #include "BorderSprite.h"
+#include "Renderer.h"
 #include "../GL_error.h"
 #include "../Engine.h"
 
 using namespace omen;
 using namespace ecs;
 
-BorderSprite::BorderSprite(const std::string& sprite, const glm::vec2& pos, float width, float height, int left, int right, int top, int bottom) 
+BorderSprite::BorderSprite(const std::string& sprite, const glm::vec2& pos, const glm::vec2& size, int left, int right, int top, int bottom) 
 	:
-	Sprite(sprite, { pos.x,pos.y }, width, height), 
+	Sprite(sprite, pos, size), 
 	left(left), 
 	right(right), 
 	top(top), 
@@ -72,8 +73,8 @@ void BorderSprite::render() {
 	glm::mat4 model(1);
 	float fw = 2 * m_width / (float)Engine::instance()->window()->width();
 	float fh = 2 * m_height / (float)Engine::instance()->window()->height();
-	float fx = -1.0f + 2 * ((m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
-	float fy = 1.0f - 2 * ((m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
+	float fx = -1.0f + 2 * ((renderer()->entity()->tr()->pos().x + m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
+	float fy = 1.0f - 2 * ((renderer()->entity()->tr()->pos().y + m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);

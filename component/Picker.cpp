@@ -80,7 +80,7 @@ public:
 
 Picker::Picker() {
     Engine::instance()->findComponent<MouseInput>()->
-            signal_mousebutton_pressed.connect([&](int button, int action, int mods) -> void {
+            signal_mousebutton_pressed.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
         if (action != GLFW_PRESS)
             return;
         pick();
@@ -132,7 +132,7 @@ void Picker::pick() {
 		}
 		else if(dynamic_cast< omen::ui::View* >(entity.get())) {
 			omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity.get());
-			glm::vec2 pos = v->pos();
+			glm::vec2 pos = v->pos2D();
 			glm::vec2 size = v->size();
 			if (mi->cursorPos().x >= pos.x && mi->cursorPos().x <= (pos.x + size.x) &&
 				mi->cursorPos().y >= pos.y && mi->cursorPos().y <= (pos.y + size.y)) {

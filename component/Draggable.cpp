@@ -16,7 +16,7 @@ Draggable::Draggable() :
 	m_is_pressed(false)
 {
     Engine::instance()->findComponent<MouseInput>()->
-            signal_mousebutton_pressed.connect([&](int button, int action, int mods) -> void {
+            signal_mousebutton_pressed.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
         if (action != GLFW_PRESS || entity() == nullptr)
             return;
 
@@ -25,11 +25,11 @@ Draggable::Draggable() :
         if(tr!=nullptr){
             glm::vec3 bmin, bmax;
             tr->getBounds(bmin,bmax);
-            if(m_cursorPos.x >= (tr->pos().x+bmin.x) &&
-               m_cursorPos.x <= (tr->pos().x+bmax.x) &&
-               m_cursorPos.y >= (tr->pos().y+bmin.y) &&
-               m_cursorPos.y <= (tr->pos().y+bmax.y)) {
-				m_deltaPos = glm::vec2(m_cursorPos.x-tr->pos().x, m_cursorPos.y-tr->pos().y);
+            if(m_cursorPos.x >= (entity()->pos().x+bmin.x) &&
+               m_cursorPos.x <= (entity()->pos().x+bmax.x) &&
+               m_cursorPos.y >= (entity()->pos().y+bmin.y) &&
+               m_cursorPos.y <= (entity()->pos().y+bmax.y)) {
+				m_deltaPos = glm::vec2(m_cursorPos.x-entity()->pos().x, m_cursorPos.y-entity()->pos().y);
                 signal_clicked.notify(entity(),m_cursorPos);
 				m_is_pressed = true;
             }
@@ -37,7 +37,7 @@ Draggable::Draggable() :
     });
 
 	Engine::instance()->findComponent<MouseInput>()->
-		signal_mousebutton_released.connect([&](int button, int action, int mods) -> void {
+		signal_mousebutton_released.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
 		m_is_pressed = false;
 	});
 
@@ -46,39 +46,29 @@ Draggable::Draggable() :
         m_cursorPos = glm::vec2(x,y);
 		if (m_is_pressed) {
 			omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
-			glm::vec3 bmin, bmax;
+			glm::vec3 pbmin, pbmax; // Parent view bounding volume
+			glm::vec3 bmin, bmax; // Dragged view bounding volume
+			glm::vec3 grooveSize;
 			tr->getBounds(bmin, bmax);
-			
-			glm::vec2 newPos = { x - m_deltaPos.x, tr->pos().y };
-			omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity());
-			float minX, maxX;
-			float minY, maxY;
 
-			omen::Transform* parentTr = nullptr;
-			glm::vec3 pbmin, pbmax;
+			glm::vec2 newPos = { x - m_deltaPos.x - entity()->parent()->pos().x, tr->pos().y };
 
-			if (v != nullptr) {
-				omen::ui::View* parentView = v->parentView();
-				if (parentView != nullptr) {
-					parentTr = const_cast<Transform*>(parentView->getComponent<Transform>());
-					parentTr->getBounds(pbmin, pbmax);
-					minX = parentTr->pos().x + pbmin.x;
-					maxX = parentTr->pos().x + pbmax.x - bmax.x;
-				}
+			if (entity()->parent() != nullptr)
+			{
+				omen::Transform* ptr = const_cast<Transform*>(entity()->parent()->getComponent<Transform>());
+				ptr->getBounds(pbmin, pbmax);
+				grooveSize = (pbmax - pbmin) - (bmax - bmin);
 			}
-			newPos.x = max(newPos.x, minX);
-			newPos.x = min(newPos.x, maxX);
-			tr->pos().x = newPos.x;
-			tr->pos().y = parentTr->pos().y+(pbmax-pbmin).y/2-bmax.y/2;
-			
+			else
+			{
+				grooveSize = glm::vec3(1);
+			}
+
+			newPos.x = glm::clamp(newPos.x, 0.0f, grooveSize.x);
+
 			// Notify about slider change
-			signal_dragged.notify((newPos.x - parentTr->pos().x) / (pbmax.x-bmax.x));
-
-			SpriteRenderer* sr = const_cast<SpriteRenderer*>(entity()->getComponent<SpriteRenderer>());
-			if (sr != nullptr) {
-				Sprite* sprite = sr->sprite();
-				sprite->setPos(newPos);
-			}
+			signal_dragged.notify(newPos.x/grooveSize.x);
+			tr->setPos(glm::vec3(newPos,0));
 		}
     });
 }

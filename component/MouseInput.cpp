@@ -67,14 +67,14 @@ void MouseInput::update(double time, double deltaTime) {
 void MouseInput::mouseButtonPressed(GLFWwindow *window, int button, int action, int mods) {
 	updateMouseButtonStates();
 	if (m_isEnabled)
-		signal_mousebutton_pressed.notify(button, action, mods);
+		signal_mousebutton_pressed.notify(button, action, mods, m_cursorPos);
 
 }
 
 void MouseInput::mouseButtonReleased(GLFWwindow *window, int button, int action, int mods) {
 	updateMouseButtonStates();
 	if (m_isEnabled)
-		signal_mousebutton_released.notify(button, action, mods);
+		signal_mousebutton_released.notify(button, action, mods, m_cursorPos);
 }
 
 void MouseInput::mouseScrolled(GLFWwindow *window, omen::floatprec x, omen::floatprec y) {

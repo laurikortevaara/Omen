@@ -8,7 +8,7 @@
 #include "../Entity.h"
 #include "../component/Sprite.h"
 #include "../component/Clickable.h"
-#include "View.h"
+#include "ImageView.h"
 
 namespace omen {
 	namespace ecs {
@@ -16,14 +16,13 @@ namespace omen {
 	}
 
     namespace ui {
-        class Button : public View {
+        class Button : public ImageView {
         public:
-            typedef omen::Signal<std::function<void(Button *, glm::vec2)> > ButtonClicked_t;
+			typedef omen::Signal<std::function<void(Button *, glm::vec2)> > ButtonClicked_t;
 
             ButtonClicked_t signal_button_clicked;
         public:
-            Button(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, int width = -1,
-                   int height = -1);
+			Button(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2& pos = { 0,0 }, const glm::vec2& size = { -1,-1 });
 			virtual ~Button();
         protected:
             virtual void updateLayout();

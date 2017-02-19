@@ -17,6 +17,7 @@ namespace omen {
         public:
             typedef omen::Signal<std::function<void(Entity*, glm::vec2)> > EntityClicked_t;
             EntityClicked_t signal_entity_clicked;
+
         public:
             Clickable();
             virtual ~Clickable();

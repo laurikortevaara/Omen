@@ -9,6 +9,7 @@ omen::ecs::SpriteRenderer::SpriteRenderer(std::unique_ptr<omen::ecs::Sprite> spr
 	Renderer(),
 	m_sprite(std::move(sprite))
 {
+	m_sprite->setRenderer(this);
 }
 
 void omen::ecs::SpriteRenderer::onAttach(Entity* e) {
@@ -26,4 +27,15 @@ void omen::ecs::SpriteRenderer::render(Shader* shader)
 	glViewport(0, 0, w, h);
 		
 	m_sprite->render();
+}
+
+
+glm::vec2 omen::ecs::SpriteRenderer::pivot() const
+{
+	return m_sprite->pivot();
+}
+
+void omen::ecs::SpriteRenderer::setPivot(const glm::vec2& pivot)
+{
+	m_sprite->setPivot(pivot);
 }

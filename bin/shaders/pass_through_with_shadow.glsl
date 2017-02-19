@@ -58,7 +58,8 @@ out Data
 
 void main()
 {
-    gl_Position = ModelViewProjection * vec4(position,1);
+    gl_Position =  ModelViewProjection * (vec4(position,1) + vec4((gl_InstanceID/20)*1000.0,0,(gl_InstanceID%20)*1000.0,0));
+
 
     /** Calculate Stuff *************************************************************************************************/
 
@@ -223,8 +224,8 @@ void main() {
     if(i.hit == 1.0 &&  dist < 30.0 && dist > 28.0 )
        out_color = vec4(1,0,0,1);
 
-    if(i2.hit == 1.0 &&  dist < 30.0 && dist > 28.0 )
-      out_color = vec4(1,0,0,1);
+    if(i2.hit == 1.0 &&  dist < 50.0 && dist > 52.0 )
+      out_color = vec4(0,1,0,1);
 
     //out_color = vec4(vec3(specularCoefficient*lightIntensity),1);
 }

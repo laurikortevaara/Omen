@@ -24,8 +24,7 @@ namespace omen {
 			typedef omen::Signal<std::function<void(Slider *, float)> > SliderDragged_t;
 			SliderDragged_t signal_slider_dragged;
         public:
-            Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, int width = -1,
-                   int height = -1);
+            Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, const glm::vec2& size);
 			virtual ~Slider();
 
 			void setPos(float pos);

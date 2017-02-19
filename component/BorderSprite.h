@@ -13,7 +13,7 @@ namespace omen {
         protected:
 
         public:
-            BorderSprite(const std::string &sprite,const glm::vec2& pos, float width, float height, int left, int right, int top, int bottom );
+            BorderSprite(const std::string &sprite,const glm::vec2& pos, const glm::vec2& size, int left, int right, int top, int bottom );
 
             virtual ~BorderSprite();
 

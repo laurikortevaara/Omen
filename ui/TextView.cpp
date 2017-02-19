@@ -9,8 +9,8 @@
 using namespace omen;
 using namespace ui;
 
-TextView::TextView(View *parentView, const std::string& name) : 
-	View(parentView, name)
+TextView::TextView(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size) : 
+	View(parentView, name, pos, size)
 { 
 	std::unique_ptr<ecs::TextRenderer> textRenderer = std::make_unique<ecs::TextRenderer>();
 	addComponent(std::move(textRenderer));

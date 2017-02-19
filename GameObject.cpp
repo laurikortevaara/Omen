@@ -10,10 +10,7 @@ using namespace omen;
 using namespace ecs;
 
 GameObject::GameObject(const std::string &name) :
-        Entity(name){
-    std::unique_ptr<Transform> tr = std::make_unique<Transform>();
-	m_tr = tr.get();
-    addCompnent(std::move(tr));
+	Entity(name) {
 }
 
 void GameObject::addCompnent(std::unique_ptr<omen::ecs::Component> component) {

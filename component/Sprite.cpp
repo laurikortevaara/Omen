@@ -5,12 +5,13 @@
 #include "Sprite.h"
 #include "../GL_error.h"
 #include "../Engine.h"
+#include "Renderer.h"
 
 using namespace omen;
 using namespace ecs;
 
-Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, float width, float height) :
-	Renderable({ pos.x,pos.y,0 }, width, height, 0), m_sprite(sprite) {
+Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, const glm::vec2& size) :
+	Renderable({ pos.x,pos.y,0 }, size.x, size.y, 0), m_sprite(sprite) {
 	setShader(new Shader("shaders/sprite.glsl"));
 	setTexture(new Texture(sprite));
 	if (m_width == -1) {
@@ -49,6 +50,7 @@ Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, float width, flo
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size()*sizeof(GLshort), m_indices.data(), GL_STATIC_DRAW);
 	glBindVertexArray(0);
+		
 }
 
 
@@ -65,11 +67,12 @@ void Sprite::render() {
 
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
+
 	glm::mat4 model(1);
 	float fw = 2 * m_width / (float)Engine::instance()->window()->width();
 	float fh = 2 * m_height / (float)Engine::instance()->window()->height();
-	float fx = -1.0f + 2 * ((m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
-	float fy = 1.0f - 2 * ((m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
+	float fx = -1.0f + 2 * ((renderer()->entity()->pos().x + m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
+	float fy = 1.0f - 2 * ((renderer()->entity()->pos().y + m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);

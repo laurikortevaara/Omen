@@ -12,7 +12,7 @@ namespace omen {
         class TextView : public View {
 
         public:
-			TextView(View *parentView, const std::string& name);
+			TextView(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size);
 			const std::wstring& text() const { return m_text; }
 			void setText(const std::wstring& text);
         protected:

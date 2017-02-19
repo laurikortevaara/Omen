@@ -16,6 +16,9 @@ namespace omen {
 
 			Sprite* sprite() const { return m_sprite.get(); }
 
+			glm::vec2 pivot() const;
+			void setPivot(const glm::vec2& pivot);
+
 		protected:
 		private:
 			std::unique_ptr<Sprite> m_sprite;

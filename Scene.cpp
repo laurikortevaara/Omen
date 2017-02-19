@@ -22,6 +22,7 @@
 #include "component/MeshRenderer.h"
 #include "ui/Button.h"
 #include "ui/Slider.h"
+#include "ToolView.h"
 #include "ui/TextView.h"
 #include "Texture.h"
 #include "component/MouseInput.h"
@@ -123,7 +124,7 @@ Scene::Scene() {
 		bgFiles.push_back(os.str());
 	}
 	//bgTexture = new Texture(bgFiles.at(omen::random(0,bgFiles.size()-1)));
-	bgTexture = new Texture("textures/bg_gradient2.jpg");
+	bgTexture = new Texture("textures/bg_gradient5.jpg");
 	
 	Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
 	{
@@ -147,14 +148,14 @@ Scene::Scene() {
 					obj->addCompnent(std::move(mr));
 					obj->addCompnent(std::move(mc));
 
-					obj->transform()->pos().x = -5000;
-					obj->transform()->pos().y = -2;
-					obj->transform()->pos().z = -5000;
+					obj->tr()->pos().x = -5000;
+					obj->tr()->pos().y = -2;
+					obj->tr()->pos().z = -5000;
 					obj->setName("plane");
 					/*Engine::instance()->signal_engine_update.connect([file](float time, float delta_time) {
 					ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity(file));
-					obj->transform()->rotate(time, glm::vec3(0.75, 0, 0));
-					obj->transform()->rotate(time, glm::vec3(0, 0.34, 0));
+					obj->tr()->rotate(time, glm::vec3(0.75, 0, 0));
+					obj->tr()->rotate(time, glm::vec3(0, 0.34, 0));
 					});*/
 					addEntity(std::move(obj));
 				}
@@ -218,8 +219,8 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 	{
 		/*Engine::instance()->signal_engine_update.connect([file](float time, float delta_time) {
 		ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity(file));
-		obj->transform()->rotate(time, glm::vec3(0.75, 0, 0));
-		obj->transform()->rotate(time, glm::vec3(0, 0.34, 0));
+		obj->tr()->rotate(time, glm::vec3(0.75, 0, 0));
+		obj->tr()->rotate(time, glm::vec3(0, 0.34, 0));
 		});*/
 		addEntity(std::move(obj));
 	}
@@ -231,11 +232,11 @@ void omen::Scene::initialize()
 	float distributionFactor = 10.0f;
 
 	for (int i = 0; i < 10; ++i){
-		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i+1), "textures/slider_groove.png", glm::vec2(10, 100+i*20), 500,10);
+		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i+1), "textures/slider_groove.png", glm::vec2(10, 100+i*20), glm::vec2(500,10));
 		addEntity(std::move(slider), 1);
 	}
 
-	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView");
+	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView", glm::vec2(0, 150), glm::vec2(200, 200));
 	tv->setText(L"Textii :D");
 	addEntity(std::move(tv), 3);
 
@@ -304,7 +305,7 @@ void omen::Scene::initialize()
 
 
 	/*
-	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider", "textures/slider_groove.png", glm::vec2(100, 100), 100, 100);
+	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider", "textures/slider_groove.png", glm::vec2(100, 100), glm::vec2(100, 100));
 	ui::Slider* ptr = slider.get();
 	ptr->signal_slider_dragged.connect([ptr](ui::Slider* slider, float value) -> void {
 		std::wstring str = L"Slider Dragged:";
@@ -324,7 +325,7 @@ void omen::Scene::initialize()
 	//std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "FPS_COUNTER");
 	Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
 		if (lightobj != nullptr) {
-			lightobj->transform()->pos() = Engine::LightPos;
+			lightobj->tr()->pos() = Engine::LightPos;
 		}
 
 		ecs::GameObject* sphere = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity("Sphere"));
@@ -378,6 +379,8 @@ void omen::Scene::initialize()
 	lightobj = l.get();
 	lightobj->getComponent<omen::ecs::MeshController>()->setCastShadow(false);
 	addEntity(std::move(l));*/
+
+	addEntity(std::make_unique<omen::ui::ToolView>("Tools", "texture/toolbar.jpg", glm::vec2(200, 200), glm::vec2( 200, 200)));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 

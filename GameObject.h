@@ -14,16 +14,12 @@ namespace omen {
 	namespace ecs {
 
 		class GameObject : public ecs::Entity {
-			Transform* m_tr;
 			std::vector< std::unique_ptr<ecs::Component> > m_components;
 		public:
 			GameObject(const std::string &name);
 
 			void addCompnent(std::unique_ptr<ecs::Component> component);
 			void removeComponent(ecs::Component *component);
-
-			Transform* transform() const { return m_tr; }
-
 		};
 	}
 } // namespace omen

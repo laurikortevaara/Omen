@@ -16,23 +16,15 @@ using namespace ui;
 
 Slider::~Slider() = default;
 
-Slider::Slider(View* parentView, const std::string &name,const std::string &spriteName, const glm::vec2& pos,  int width,  int height) :
-        View(parentView, name)
+Slider::Slider(View* parentView, const std::string &name,const std::string &spriteName, const glm::vec2& pos,  const glm::vec2& size) :
+        View(parentView, name, pos, size)
 {
-	View::setPos(pos);
-	setSize(glm::vec2(width, height));
-	std::unique_ptr<Transform> tr = std::make_unique<Transform>();
-	tr->pos().x = pos.x;
-	tr->pos().y = pos.y;
-	tr->setBounds(glm::vec3(0, 0, 0), glm::vec3(width, height, 0));
-	addComponent(std::move(tr));
-
 	std::unique_ptr<omen::ecs::Sprite> sprite = nullptr;
 
 	//if(name == "SliderFill" )
 	//	sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, width, height, 10, 10, 3, 3);
 	//else if (name == "SliderGroove")
-	sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, width, height, 10, 10, 3, 3 );
+	sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, glm::vec2(0,0), size, 10, 10, 3, 3);
 	//else
 	//	sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, width, height);
 
@@ -49,9 +41,9 @@ Slider::Slider(View* parentView, const std::string &name,const std::string &spri
 
     });
 
-	glm::vec2 knotPos = pos;
-	knotPos.y -= 4;
+	glm::vec2 knotPos{0,-2.5};
 	std::unique_ptr<omen::ui::ImageView> knot = std::make_unique<omen::ui::ImageView>(this, "Knot", "textures/slider_knot.png", knotPos);
+	//knot->setPivot(glm::vec2(0, 4));
 	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>();
 	dragKnot->signal_dragged.connect([this](float value) -> void {
 		signal_slider_dragged.notify(this, value);

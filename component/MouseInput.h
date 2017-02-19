@@ -23,8 +23,8 @@ namespace omen {
         virtual void onDetach(ecs::Entity* e);
     public:
         typedef omen::Signal<std::function<void(omen::floatprec, omen::floatprec)> > CursorPos_t;
-        typedef omen::Signal<std::function<void(int, int, int)> > ButtonPress_t;
-		typedef omen::Signal<std::function<void(int, int, int)> > ButtonRelease_t;
+        typedef omen::Signal<std::function<void(int, int, int, const glm::vec2&)> > ButtonPress_t;
+		typedef omen::Signal<std::function<void(int, int, int, const glm::vec2&)> > ButtonRelease_t;
 		typedef omen::Signal<std::function<void(omen::floatprec, omen::floatprec)> > MouseScrolled_t;
         static CursorPos_t signal_cursorpos_changed;
         ButtonPress_t signal_mousebutton_pressed;

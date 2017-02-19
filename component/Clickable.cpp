@@ -16,35 +16,35 @@ Clickable::Clickable() :
 	m_is_pressed(false)
 {
     Engine::instance()->findComponent<MouseInput>()->
-            signal_mousebutton_pressed.connect([&](int button, int action, int mods) -> void {
+            signal_mousebutton_pressed.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
         if (action != GLFW_PRESS || entity() == nullptr)
             return;
 
-	omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
+		omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
 
         if(tr!=nullptr){
+			glm::vec3 pos = entity()->pos();
             glm::vec3 bmin, bmax;
             tr->getBounds(bmin,bmax);
-            if(m_cursorPos.x >= (tr->pos().x+bmin.x) &&
-               m_cursorPos.x <= (tr->pos().x+bmax.x) &&
-               m_cursorPos.y >= (tr->pos().y+bmin.y) &&
-               m_cursorPos.y <= (tr->pos().y+bmax.y)) {
-				m_deltaPos = glm::vec2(m_cursorPos.x-tr->pos().x, m_cursorPos.y-tr->pos().y);
-                signal_entity_clicked.notify(entity(),m_cursorPos);
+            if(cursorPos.x >= (pos.x+bmin.x) &&
+				cursorPos.x <= (pos.x+bmax.x) &&
+				cursorPos.y >= (pos.y+bmin.y) &&
+				cursorPos.y <= (pos.y+bmax.y)) {
+				m_deltaPos = glm::vec2(cursorPos.x-pos.x, cursorPos.y-pos.y);
+                signal_entity_clicked.notify(entity(), cursorPos);
 				m_is_pressed = true;
             }
         }
     });
 
 	Engine::instance()->findComponent<MouseInput>()->
-		signal_mousebutton_released.connect([&](int button, int action, int mods) -> void {
+		signal_mousebutton_released.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
 		m_is_pressed = false;
 	});
 
-    Engine::instance()->findComponent<MouseInput>()->
+	Engine::instance()->findComponent<MouseInput>()->
 		signal_cursorpos_changed.connect([&](float x, float y) -> void {
-			m_cursorPos = glm::vec2(x,y);
-		});
+		m_cursorPos = glm::vec2(x, y); });
 }
 
 Clickable::~Clickable() {

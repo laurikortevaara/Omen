@@ -8,7 +8,7 @@
 using namespace omen;
 using namespace ui;
 
-Layout::Layout(View *parentView, const std::string& name):
-        View(parentView,name) {
+Layout::Layout(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size):
+        View(parentView,name, pos, size) {
 
 }

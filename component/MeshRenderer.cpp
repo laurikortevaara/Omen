@@ -436,7 +436,10 @@ void MeshRenderer::render(Shader* shader)
 	glPolygonMode(GL_FRONT, Engine::instance()->getPolygonMode());
 	//glPolygonMode(GL_BACK, GL_LINE);
 	if (m_indexBuffer != 0)
-		glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
+		//glDrawElements (GLenum mode, GLsizei count, GLenum type, const void *indices);
+		//glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
+		//(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount);
+		glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 200);
 	else
 		glDrawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
 }

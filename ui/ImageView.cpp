@@ -6,7 +6,6 @@
 #include "../component/Sprite.h"
 #include "../component/SpriteRenderer.h"
 #include "../Engine.h"
-#include "../../component/Sprite.h"
 #include "../../component/BorderSprite.h"
 
 using namespace omen;
@@ -14,25 +13,20 @@ using namespace ui;
 
 ImageView::~ImageView() = default;
 
-ImageView::ImageView(View* parentView, const std::string &name,const std::string &spriteName, const glm::vec2& pos,  int width,  int height) :
-        View(parentView, name)
+ImageView::ImageView(View* parentView, const std::string &name,const std::string &spriteName, const glm::vec2& pos, const glm::vec2& size) :
+        View(parentView, name, pos, size)
 {
-	setPos(pos);
-	setSize(glm::vec2(width, height));
-	std::unique_ptr<Transform> tr = std::make_unique<Transform>();
-	tr->pos().x = pos.x;
-	tr->pos().y = pos.y;
-	tr->pos().z = -1;
-	tr->setBounds(glm::vec3(0, 0, 0), glm::vec3(width, height, 0));
-
 	std::unique_ptr<omen::ecs::Sprite> sprite = nullptr;
-	sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, width, height);
-	if (width == -1 && height == -1)
-		tr->setBounds(glm::vec3(0, 0, 0), glm::vec3(sprite->texture()->width(), sprite->texture()->height(), 0));
-	std::unique_ptr<omen::ecs::SpriteRenderer> sr = std::make_unique<omen::ecs::SpriteRenderer>(std::move(sprite));
+	sprite = std::make_unique<omen::ecs::Sprite>(spriteName, pos, size);
+	
+	if (width() == -1 && height() == -1)
+	{
+		setSize(sprite->size());
+		tr()->setBounds(glm::vec3(0, 0, 0), glm::vec3(sprite->width(), sprite->height(), 0));
+	}
 
+	std::unique_ptr<omen::ecs::SpriteRenderer> sr = std::make_unique<omen::ecs::SpriteRenderer>(std::move(sprite));
 	addComponent(std::move(sr));
-	addComponent(std::move(tr));
 }
 
 void ImageView::updateLayout() {
@@ -41,4 +35,16 @@ void ImageView::updateLayout() {
 
 void ImageView::onMeasure(float maxwidth, float maxheight) {
 
+}
+
+glm::vec2 ImageView::pivot() const
+{
+	const omen::ecs::SpriteRenderer* sprite = getComponent_const<omen::ecs::SpriteRenderer>();
+	return sprite->pivot();
+}
+
+void ImageView::setPivot(const glm::vec2& pivot)
+{
+	omen::ecs::SpriteRenderer* sprite = getComponent<omen::ecs::SpriteRenderer>();
+	sprite->setPivot(pivot);
 }

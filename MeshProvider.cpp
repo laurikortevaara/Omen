@@ -1685,18 +1685,18 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxDouble3 lRotation = pNode->LclRotation.Get();
 				FbxDouble3 lScaling = pNode->LclScaling.Get();
 
-				obj->transform()->pos().x = lTranslation[0] / lScaling[0];
-				obj->transform()->pos().y = lTranslation[1] / lScaling[1];
-				obj->transform()->pos().z = lTranslation[2] / lScaling[2];
+				obj->tr()->pos().x = lTranslation[0] / lScaling[0];
+				obj->tr()->pos().y = lTranslation[1] / lScaling[1];
+				obj->tr()->pos().z = lTranslation[2] / lScaling[2];
 
-				obj->transform()->rotate(lRotation[0], glm::vec3(1, 0, 0));
-				obj->transform()->rotate(lRotation[1], glm::vec3(0, 1, 0));
-				obj->transform()->rotate(lRotation[2], glm::vec3(0, 0, 1));
+				obj->tr()->rotate(lRotation[0], glm::vec3(1, 0, 0));
+				obj->tr()->rotate(lRotation[1], glm::vec3(0, 1, 0));
+				obj->tr()->rotate(lRotation[2], glm::vec3(0, 0, 1));
 
 				/*
-				obj->transform()->scale().x = lScaling[0] * 0.01;
-				obj->transform()->scale().y = lScaling[1] * 0.01;
-				obj->transform()->scale().z = lScaling[2] * 0.01;
+				obj->tr()->scale().x = lScaling[0] * 0.01;
+				obj->tr()->scale().y = lScaling[1] * 0.01;
+				obj->tr()->scale().z = lScaling[2] * 0.01;
 				*/
 				obj->setName(name);
 

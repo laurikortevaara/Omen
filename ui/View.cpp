@@ -8,60 +8,25 @@
 using namespace omen;
 using namespace ui;
 
-View::View(View *parentView, const std::string& name) :
+View::View(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size) :
 	ecs::Entity(name),
-	m_parentView(parentView) {
-    if(m_parentView!= nullptr)
-        m_parentView->addChildView(this);
+	m_parentView(parentView) 
+{
 	setLayer(1);
+
+	setLocalPos2D(pos);
+	setSize(size);
+	tr()->pos().x = pos.x;
+	tr()->pos().y = pos.y;
+	tr()->pos().z = -1;
+	tr()->setBounds(glm::vec3(0, 0, 0), glm::vec3(size, 0));
+
+	Engine::instance()->window()->signal_window_size_changed.connect([this](int width, int height) {this->updateLayout();});
 }
 
 
 View::~View() {
 
-}
-
-void View::addChildView(View *pView) {
-	//Engine::instance()->scene()->signal_entity_added.notify(pView);
-	m_childViews.push_back(pView);
-    updateLayout();	
-}
-
-float View::width() {
-    return m_width;
-}
-
-float View::height() {
-    return m_height;
-}
-
-float View::x() {
-    return m_x;
-}
-
-float View::y() {
-    return m_y;
-}
-
-float View::z() {
-    return m_z;
-}
-
-glm::vec2 View::size() {
-    return {m_width,m_height};
-}
-
-glm::vec2 View::pos() {
-    return {m_x,m_y};
-}
-
-void View::setWidth(float width) {
-    m_width = width;
-
-}
-
-void View::setHeight(float height) {
-    m_height = height;
 }
 
 void View::measureSize() {
@@ -82,9 +47,9 @@ void View::measureSize() {
 }
 
 void View::onMeasure(float maxwidth, float maxheight) {
-
+	updateLayout();
 }
 
 void View::onLayout(bool changed, float left, float top, float right, float bottom) {
-
+	updateLayout();
 }

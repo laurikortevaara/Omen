@@ -8,8 +8,8 @@
 using namespace omen;
 using namespace ui;
 
-LinearLayout::LinearLayout(View *parentView, const std::string& name, LinearLayout::LayoutDirection dir) :
-    Layout(parentView, name),
+LinearLayout::LinearLayout(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size, LinearLayout::LayoutDirection dir ) :
+    Layout(parentView, name, pos, size),
     m_layoutDirection(dir)
 {
 
@@ -18,15 +18,15 @@ LinearLayout::LinearLayout(View *parentView, const std::string& name, LinearLayo
 void LinearLayout::updateLayout() {
     float y = 0;
     float x = 0;
-    for(auto childView : m_childViews) {
+    for(const auto& childView : children()) {
         switch(m_layoutDirection){
             case VERTICAL:
+				y += childView->height();
                 break;
             case HORIZONTAL:
+				x += childView->width();
                 break;
         }
-        x += childView->width();
-        y += childView->height();
     }
 }
 
@@ -38,3 +38,22 @@ LinearLayout::LayoutDirection &LinearLayout::layoutDirection() {
     return m_layoutDirection;
 }
 
+bool LinearLayout::addChild(std::unique_ptr<Entity> e)
+{
+	glm::vec2 childPos(0.0, 0.0);
+	for (const auto& child : children())
+	{
+		switch (m_layoutDirection)
+		{
+		case VERTICAL:
+			childPos.y += child->height();
+			break;
+		case HORIZONTAL:
+			childPos.x += child->width();
+			break;
+		}
+	}
+	e->setLocalPos2D(e->localPos2D()+childPos+glm::vec2(m_margins));
+	Entity::addChild(std::move(e));
+	return true;
+}

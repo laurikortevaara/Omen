@@ -33,7 +33,7 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 			setEnabled(obj != nullptr);
 			m_obj = dynamic_cast<omen::ecs::GameObject*>(obj);
 			if (obj) {
-				m_tr = m_obj->transform();
+				m_tr = m_obj->tr();
 			}
 			else
 				m_tr = nullptr;
@@ -74,28 +74,28 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
         if (m_tr != nullptr) {
             deltaTime *= 100.0f;
             if (ki->keyPressed(GLFW_KEY_W)) {
-                //m_obj->transform()->pos().z += deltaTime;
-                m_obj->transform()->translate(glm::vec3(0,0,deltaTime));
+                //m_obj->tr()->pos().z += deltaTime;
+                m_obj->tr()->translate(glm::vec3(0,0,deltaTime));
             }
             if (ki->keyPressed(GLFW_KEY_S)) {
-                //m_obj->transform()->pos().z -= deltaTime;
-                m_obj->transform()->translate(glm::vec3(0,0,-deltaTime));
+                //m_obj->tr()->pos().z -= deltaTime;
+                m_obj->tr()->translate(glm::vec3(0,0,-deltaTime));
             }
 
             if (ki->keyPressed(GLFW_KEY_A)) {
-                //m_obj->transform()->pos().x -= deltaTime;
-                m_obj->transform()->translate(glm::vec3(-deltaTime,0,0));
+                //m_obj->tr()->pos().x -= deltaTime;
+                m_obj->tr()->translate(glm::vec3(-deltaTime,0,0));
             }
             if (ki->keyPressed(GLFW_KEY_D)) {
-                //m_obj->transform()->pos().x += deltaTime;
-                m_obj->transform()->translate(glm::vec3(deltaTime,0,0));
+                //m_obj->tr()->pos().x += deltaTime;
+                m_obj->tr()->translate(glm::vec3(deltaTime,0,0));
             }
 
             if (ki->keyPressed(GLFW_KEY_E)) {
-                m_obj->transform()->pos().y += static_cast<omen::floatprec>(deltaTime);
+                m_obj->tr()->pos().y += static_cast<omen::floatprec>(deltaTime);
             }
             if (ki->keyPressed(GLFW_KEY_C)) {
-                m_obj->transform()->pos().y -= static_cast<omen::floatprec>(deltaTime);
+                m_obj->tr()->pos().y -= static_cast<omen::floatprec>(deltaTime);
             }
 
             if (m_joystick != nullptr) {

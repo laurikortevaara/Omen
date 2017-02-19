@@ -16,51 +16,31 @@ namespace omen {
         class View : public ecs::Entity {
         public:
         protected:
-            float m_x, m_y, m_z;
-            float m_width, m_height;
-
             View *m_parentView;
-            std::vector<View *> m_childViews;
 
-            View(View *parentView, const std::string& name);
+            View(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size);
 
             virtual void updateLayout() = 0;
             virtual void onMeasure(float maxwidth, float maxheight) = 0;
             virtual void onLayout(bool changed, float left, float top, float right, float bottom);
-
         public:
             virtual ~View();
 
             void measureSize();
-            float width();
-
-            float height();
-
-            void setWidth(float width);
-
-            void setHeight(float height);
-
-            void resize(float width, float height);
-
-            float x();
-
-            float y();
-
-            float z();
-
-            glm::vec2 pos();
-			void setPos(const glm::vec2& pos) { m_x = pos.x; m_y = pos.y; }
-
-            glm::vec2 size();
-			void setSize(const glm::vec2& size) { m_width = size.x; m_height = size.y; }
-
-            void addChildView(View *pView);
 
 			View* parentView() const { return m_parentView; }
 
             // Layout
             void layout(float left, float top, float right, float bottom);
-        };
+
+			glm::vec4 margins() const { return m_margins; }
+			void setMargins(const glm::vec4& margins) { m_margins = margins; }
+			
+			glm::vec4 m_margins; // left, top, right, bottom;
+			glm::vec2 m_size;
+			glm::vec2 size() const { return m_size; }
+			void setSize(const glm::vec2& size) { m_size = size; }
+		};
     } // namespace UI
 } // namespace omen
 
