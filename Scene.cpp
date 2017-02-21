@@ -386,7 +386,7 @@ void omen::Scene::initialize()
 	lightobj->getComponent<omen::ecs::MeshController>()->setCastShadow(false);
 	addEntity(std::move(l));*/
 
-	addEntity(std::make_unique<omen::ui::ToolView>("Tools", "texture/toolbar.jpg", glm::vec2(200, 200), glm::vec2( 200, 200)));
+	addEntity(std::make_unique<omen::ui::ToolView>("Tools", "texture/toolbar.jpg", glm::vec2(0, 0), glm::vec2( 200, 200)));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 

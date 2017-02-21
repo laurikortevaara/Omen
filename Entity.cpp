@@ -12,7 +12,7 @@ using namespace omen::ecs;
 
 
 Entity::Entity(const std::string &name) :
-	Object(name), m_parent(nullptr), m_layer(0), m_is_hovered(false)
+	Object(name), m_parent(nullptr), m_layer(0), m_is_hovered(false), m_is_pressed(false)
 {
 	std::unique_ptr<Transform> tr = std::make_unique<Transform>();
 	tr->pos().x = 0;
@@ -46,6 +46,17 @@ Entity::Entity(const std::string &name) :
 				m_is_hovered = false;
 			}
 		}
+	});
+
+	Engine::instance()->findComponent<MouseInput>()->signal_mousebutton_pressed.connect([&](int i1, int i2, int i3, const glm::vec2& cursorPos)
+	{
+		if (this->hovered())
+			this->setPressed(true);
+	});
+
+	Engine::instance()->findComponent<MouseInput>()->signal_mousebutton_released.connect([&](int i1, int i2, int i3, const glm::vec2& cursorPos)
+	{
+		this->setPressed(false);
 	});
 }
 

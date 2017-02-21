@@ -74,7 +74,7 @@ namespace omen {
         Ocean(int N, float A, const glm::vec2& w, const float length);
 
         virtual ~Ocean();
-        Ocean(const Ocean& o) : Renderable({0,0,0},0,0,0){}
+        Ocean(const Ocean& o) : Renderable({0,0},0,0,0){}
         Ocean& operator=(const Ocean& o) {return *this;}
 
         virtual void render();

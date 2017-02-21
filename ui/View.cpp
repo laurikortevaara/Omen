@@ -10,8 +10,9 @@ using namespace ui;
 
 View::View(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size) :
 	ecs::Entity(name),
-	m_parentView(parentView) 
+	m_parentView(parentView)
 {
+	Entity::setParent(parentView);
 	setLayer(1);
 
 	setLocalPos2D(pos);

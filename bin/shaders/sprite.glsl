@@ -4,6 +4,8 @@
 uniform sampler2D Texture;
 uniform mat4      Model;
 uniform bool      Enabled;
+uniform bool      Hovered;
+uniform bool      Pressed;
 
 /**
  * Vertex Shader
@@ -22,7 +24,7 @@ void main() {
     dataOut.position = position;
     dataOut.texcoord = texcoord;
 
-    gl_Position = Model*position;
+    gl_Position = Model*(position);
 }
 #endif
 
@@ -44,7 +46,16 @@ void main() {
 
     out_color = texture(Texture, tcoord);
     if(!Enabled)
-        out_color = out_color*vec4(1.0);	
+        out_color = out_color*vec4(1.0);
+    if(Pressed)
+        out_color.b = 1;
+    else
+    if(Hovered) {
+        out_color.r = max(texture(Texture, tcoord).r,abs(sin(iGlobalTime*10)));
+        if(texture(Texture, tcoord).a > 0)
+            out_color.a = abs(cos(iGlobalTime*10));
+    }
+
 }
 
 
