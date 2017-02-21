@@ -13,12 +13,13 @@ using namespace ecs;
 ToolView::ToolView(const std::string& name, const std::string& sprite, const glm::vec2& pos, const glm::vec2& size) :
 	ui::View(nullptr, name, pos, size)
 {
-	std::unique_ptr<BorderSprite> bs = std::make_unique<BorderSprite>("textures/toolbar.jpg", glm::vec2(10, 10), glm::vec2(150.0f, 150.0f), 2, 2, 2, 2);
+	Entity::setLocalPos2D({ 500, 500 });
+	std::unique_ptr<BorderSprite> bs = std::make_unique<BorderSprite>("textures/toolbar.jpg", glm::vec2(0, 0), glm::vec2(150.0f, 150.0f), 2, 2, 2, 2);
 	std::unique_ptr<omen::ecs::SpriteRenderer> sr = std::make_unique<omen::ecs::SpriteRenderer>(std::move(bs));
 	addComponent(std::move(sr));
 
 	std::unique_ptr<LinearLayout> layout = std::make_unique<LinearLayout>(this, "LayoutTools", glm::vec2(0, 0), glm::vec2(0, 0));
-	layout->setMargins(glm::vec4(10, 50, 50, 50));
+	layout->setMargins(glm::vec4(5, 5, 5, 5));
 
 	std::unique_ptr<omen::ui::Button> button_translate = std::make_unique<omen::ui::Button>(layout.get(), "button_translate", "textures/button_translate.jpg");
 	button_translate->signal_exited.connect([this](Entity* b, glm::vec2 v) {
@@ -43,10 +44,6 @@ ToolView::ToolView(const std::string& name, const std::string& sprite, const glm
 	layout->addChild(std::move(button_scale));
 
 	addChild(std::move(layout));
-
-	Engine::instance()->signal_engine_update.connect([&](float t, float dt) {
-		setLocalPos(glm::vec3(abs(sin(t)) * 300, 200, 0));
-	});
 }
 
 void ToolView::updateLayout()

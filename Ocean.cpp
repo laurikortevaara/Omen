@@ -147,7 +147,7 @@ Complex Ocean::hTilde(float t, int n_prime, int m_prime) {
 }
 
 Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
-        Renderable({0,0,0},0,0,0),
+        Renderable({0,0},0,0,0),
         m_innerTesselationLevel(nullptr),
         m_outerTesselationLevel(nullptr) {
 
@@ -168,11 +168,16 @@ Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
     h_tilde_dz.resize((unsigned long) (N * N));
     fft = new FFT(N);
 
-    glGenVertexArrays(1, &m_vao);
-    glBindVertexArray(m_vao);
+	GLuint vao, vbo, ibo;
+	glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
-    glGenBuffers(1, &m_vbo);
-    glGenBuffers(1, &m_ibo);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ibo);
+
+	setVao(vao);
+	setVbo(vbo);
+	setIbo(ibo);
 
     m_vertices.resize((unsigned long) (Nplus1 * Nplus1));
 
@@ -200,24 +205,25 @@ Ocean::Ocean(int _N, float _A, const glm::vec2 &_w, const float _length) :
         }
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_ocean) * m_vertices.size(), m_vertices.data(), GL_DYNAMIC_DRAW);
 
     indices_count = 0;
-    m_indices.resize((unsigned long) (Nplus1 * Nplus1 * 10));
+	std::vector<GLshort> indices;
+    indices.resize((unsigned long) (Nplus1 * Nplus1 * 10));
     for (int m_prime = 0; m_prime < N; m_prime++) {
         for (int n_prime = 0; n_prime < N; n_prime++) {
             index = (unsigned int) (m_prime * Nplus1 + n_prime);
-            m_indices[indices_count++] = index;               // two triangles
-            m_indices[indices_count++] = index + Nplus1;
-            m_indices[indices_count++] = index + Nplus1 + 1;
-            m_indices[indices_count++] = index;
-            m_indices[indices_count++] = index + Nplus1 + 1;
-            m_indices[indices_count++] = index + 1;
+            indices[indices_count++] = index;               // two triangles
+            indices[indices_count++] = index + Nplus1;
+            indices[indices_count++] = index + Nplus1 + 1;
+            indices[indices_count++] = index;
+            indices[indices_count++] = index + Nplus1 + 1;
+            indices[indices_count++] = index + 1;
         }
     }
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(GLuint), m_indices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
 
     Engine::instance()->findComponent<KeyboardInput>()->signal_key_release.connect([this](int k, int s, int a, int m) {
@@ -324,7 +330,7 @@ void Ocean::render() {
     shader()->setUniform1i("OuterTessellationLevel3", m_outerTessellationLevels[2]);
     shader()->setUniform1i("OuterTessellationLevel4", m_outerTessellationLevels[3]);
 
-    glBindVertexArray(m_vao);
+    glBindVertexArray(vao());
 
     /**/
     static bool b = false;
@@ -334,7 +340,7 @@ void Ocean::render() {
         //for(auto v : m_vertices)
         //    std::cout << "V: " << v.x << ", " << v.y << ", " << v.z << std::endl;
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo());
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertex_ocean) * Nplus1 * Nplus1, m_vertices.data());
         GLint vertex = shader()->getAttribLocation("position");
         GLint normal = shader()->getAttribLocation("normal");
@@ -349,7 +355,7 @@ void Ocean::render() {
 
 
     /**/
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo());
     //for (int x = -10; x < 10; ++x)
     //        for (int z = -10; z < 10; ++z) {
             glm::mat4 Model(1);

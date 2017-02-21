@@ -26,6 +26,7 @@ namespace omen {
 			glm::vec2 m_deltaPos;
 			glm::vec2 m_cursorPos;
 			bool m_is_hovered;
+			bool m_is_pressed;
 
 		public:
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalHovered_t;
@@ -39,6 +40,7 @@ namespace omen {
 		public:
 			Entity(const std::string &name);
 			Entity* parent() const { return m_parent; }
+			void setParent(Entity* parent) { m_parent = parent; }
 
             std::vector<std::unique_ptr<Entity>>& children() {return m_children;}
 			const std::vector<std::unique_ptr<Entity>>& children_const() const { return m_children; }
@@ -71,6 +73,10 @@ namespace omen {
 			virtual float width() const { return tr_const()->boundsMax().x - tr_const()->boundsMin().x; }
 			virtual float height() const { return tr_const()->boundsMax().y - tr_const()->boundsMin().y; }
 			virtual float depth() const { return tr_const()->boundsMax().z - tr_const()->boundsMin().z; }
+
+			bool hovered() const { return m_is_hovered; }
+			bool pressed() const { return m_is_pressed; }
+			void setPressed(bool pressed) { m_is_pressed = pressed;}
 
         public:
             template<class type>

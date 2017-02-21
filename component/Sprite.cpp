@@ -11,34 +11,42 @@ using namespace omen;
 using namespace ecs;
 
 Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, const glm::vec2& size) :
-	Renderable({ pos.x,pos.y,0 }, size.x, size.y, 0), m_sprite(sprite) {
+	Renderable({ pos.x,pos.y }, size.x, size.y, 0), m_sprite(sprite) {
 	setShader(new Shader("shaders/sprite.glsl"));
 	setTexture(new Texture(sprite));
-	if (m_width == -1) {
-		m_width = static_cast<float>(texture()->width());
+	if (width() == -1) {
+		setWidth(static_cast<float>(texture()->width()));
 	}
-	if (m_height == -1) {
-		m_height = static_cast<float>(texture()->height());
+	if (height() == -1) {
+		setHeight(static_cast<float>(texture()->height()));
 	}
-	m_pivot = glm::vec2(m_width / 2.0, m_height / 2.0);
+	setPivot(glm::vec2(width() / 2.0, height() / 2.0));
+	setPivot(glm::vec2(0,0));
 
-	glGenVertexArrays(1, &m_vao);
-	glGenBuffers(1, &m_vbo);
-	glGenBuffers(1, &m_vbo_texcoord);
-	glGenBuffers(1, &m_ibo);
+	GLuint vao, vbo, vbo_texcoord, ibo;
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &vbo_texcoord);
+	glGenBuffers(1, &ibo);
 
-	glBindVertexArray(m_vao);
+	setVao(vao);
+	setVbo(vbo);
+	set_vbo_texcoord(vbo_texcoord);
+	setIbo(ibo);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBindVertexArray(Renderable::vao());
+
+	glBindBuffer(GL_ARRAY_BUFFER, Renderable::vbo());
 	std::vector<glm::vec3> vertices = {
-			{-0.5,-0.5,0}, {0.5,-0.5,0}, {-0.5,0.5,0}, {0.5,0.5,0}
+		//{-0.5,-0.5,0}, {0.5,-0.5,0}, {-0.5,0.5,0}, {0.5,0.5,0}
+		{ 0,-1,0 },{ 1,-1,0 },{ 0,0,0 },{ 1,0,0 }
 	};
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
 		0/*stride*/, 0/*offset*/);
 
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+	glBindBuffer(GL_ARRAY_BUFFER, Renderable::vbo_texcoord());
 	std::vector<glm::vec2> texcoords = {
 			{0,1}, {1,1}, {0,0}, {1,0}
 	};
@@ -46,11 +54,11 @@ Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, const glm::vec2&
 	glVertexAttribPointer(1, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,
 		0/*stride*/, 0/*offset*/);
 
-	m_indices = { 0,1,2,3 };
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size()*sizeof(GLshort), m_indices.data(), GL_STATIC_DRAW);
-	glBindVertexArray(0);
-		
+	std::vector<GLshort> ind = { 0,1,2,3 };
+	setIndices(ind);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Renderable::ibo());
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices().size()*sizeof(GLshort), indices().data(), GL_STATIC_DRAW);
+	glBindVertexArray(0);		
 }
 
 
@@ -69,22 +77,25 @@ void Sprite::render() {
 	glActiveTexture(GL_TEXTURE0);
 
 	glm::mat4 model(1);
-	float fw = 2 * m_width / (float)Engine::instance()->window()->width();
-	float fh = 2 * m_height / (float)Engine::instance()->window()->height();
-	float fx = -1.0f + 2 * ((renderer()->entity()->pos().x + m_pos.x + m_pivot.x) / (float)Engine::instance()->window()->width());
-	float fy = 1.0f - 2 * ((renderer()->entity()->pos().y + m_pos.y + m_pivot.y) / (float)Engine::instance()->window()->height());
+	float fw = 2 * width() / (float)Engine::instance()->window()->width();
+	float fh = 2 * height() / (float)Engine::instance()->window()->height();
+	float fx = -1.0f + 2 * ((renderer()->entity()->pos().x + pos().x + pivot().x) / (float)Engine::instance()->window()->width());
+	float fy = 1.0f - 2 * ((renderer()->entity()->pos().y + pos().y + pivot().y) / (float)Engine::instance()->window()->height());
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);
 
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	shader()->setUniform1i("Hovered", renderer()->entity()->hovered());
+	shader()->setUniform1i("Pressed", renderer()->entity()->pressed());
+
+	glBindVertexArray(vao());
+	glBindBuffer(GL_ARRAY_BUFFER, vbo());
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/, 0/*offset*/);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoord());
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/, 0/*offset*/);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo());
 	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
