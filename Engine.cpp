@@ -33,6 +33,8 @@
 #include "system/GraphicsSystem.h"
 #include "ui/TextView.h"
 
+#include "system/OpenVRSystem.h"
+
 #define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
 #define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX  0x9049
@@ -331,6 +333,9 @@ void Engine::initializeSystems() {
 
 	ecs::GraphicsSystem *graphicsSystem = new ecs::GraphicsSystem();
 	m_systems.push_back(graphicsSystem);
+
+	ecs::OpenVRSystem* openVRSystem = new ecs::OpenVRSystem();
+	m_systems.push_back(openVRSystem);
 
 }
 
