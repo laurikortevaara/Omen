@@ -6,6 +6,7 @@
 #include "../GL_error.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include "../system/OpenVRSystem.h"
 #include "../ui/Slider.h"
 #include "../ui/Slider.h"
 #include "KeyboardInput.h"
@@ -302,10 +303,19 @@ void MeshRenderer::render(Shader* shader)
 	// Get matrices
 	glm::mat4 viewMatrix = Engine::instance()->camera()->view();
 	glm::mat4 viewprojMatrix = Engine::instance()->camera()->viewProjection();
+
+	ecs::OpenVRSystem* vrsys = Engine::instance()->findSystem<ecs::OpenVRSystem>();
+	if (vrsys != nullptr) // ->renderVR())
+	{
+		viewMatrix = vrsys->getCurrentViewMatrix(vrsys->currentEye());
+		viewprojMatrix = vrsys->getCurrentViewProjectionMatrix(vrsys->currentEye());
+	}
+
 	glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
 	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
 	glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
 	glm::mat4 MVP = viewprojMatrix * modelMatrix;
+
 	glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos = Engine::instance()->camera()->position();
 
@@ -439,7 +449,7 @@ void MeshRenderer::render(Shader* shader)
 		//glDrawElements (GLenum mode, GLsizei count, GLenum type, const void *indices);
 		//glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
 		//(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount);
-		glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 200);
+		glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
 	else
 		glDrawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
 }

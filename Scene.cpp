@@ -101,7 +101,11 @@ Scene::Scene() {
 
 	}));
 	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
-		glClear(GL_DEPTH_BUFFER_BIT);
+
+		ecs::OpenVRSystem* vrs = omen::Engine::instance()->findSystem<ecs::OpenVRSystem>();
+		vrs->render();
+
+		/*glClear(GL_DEPTH_BUFFER_BIT);
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 		glClear(GL_DEPTH_BUFFER_BIT);
 		gs->render(nullptr, 0);
@@ -110,13 +114,7 @@ Scene::Scene() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		gs->render(nullptr, 2);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		gs->render(nullptr, 3);
-
-		gs->render();
-		
-		ecs::OpenVRSystem* vrs = omen::Engine::instance()->findSystem<ecs::OpenVRSystem>();
-		//vrs->render();
-
+		gs->render(nullptr, 3);*/
 	}));
 	
 
@@ -393,10 +391,10 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view)
 {
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 
-	shadowMap->render();
+	/*shadowMap->render();
 	glEnable(GL_DEPTH_TEST);
 	gs->render(shadowMap->m_shader, 0);
-	shadowMap->finish();
+	shadowMap->finish();*/
 
 	ms->render();
 	check_gl_error();
