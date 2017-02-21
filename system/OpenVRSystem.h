@@ -25,7 +25,7 @@ namespace omen
 
 			OpenVRSystem();
 
-			virtual void render(omen::Shader* shader = nullptr);
+			virtual void render(omen::Shader* shader = nullptr, int layer = 0);
 		protected:
 			bool setupStereoRenderTargets();
 		private:

@@ -111,6 +111,12 @@ Scene::Scene() {
 		gs->render(nullptr, 2);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		gs->render(nullptr, 3);
+
+		gs->render();
+		
+		ecs::OpenVRSystem* vrs = omen::Engine::instance()->findSystem<ecs::OpenVRSystem>();
+		//vrs->render();
+
 	}));
 	
 

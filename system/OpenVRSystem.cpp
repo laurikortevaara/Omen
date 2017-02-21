@@ -123,15 +123,15 @@ bool OpenVRSystem::createFrameBuffer(int nWidth, int nHeight, FramebufferDesc &f
 void OpenVRSystem::renderScene(vr::EVREye eye)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-	for (auto c : m_components) {
+	/*for (auto c : m_components) {
 		Renderer* r = dynamic_cast<Renderer*>(c);
 		if (r != nullptr)
 			//renderers.push_back(r);
 			r->render(nullptr);
-	}
+	}*/
 }
 
-void OpenVRSystem::render(omen::Shader* shader)
+void OpenVRSystem::render(omen::Shader* shader, int layer)
 {
 	if (m_VRSystem->IsInputFocusCapturedByAnotherProcess())
 	{

@@ -37,7 +37,7 @@ namespace omen {
 				GraphicsSystem *gs = omen::Engine::instance()->findSystem<GraphicsSystem>();
 				assert(gs != nullptr);
 				gs->add(this);
-
+				
 				OpenVRSystem *vs = omen::Engine::instance()->findSystem<OpenVRSystem>();
 				assert(vs != nullptr);
 				vs->add(this);
