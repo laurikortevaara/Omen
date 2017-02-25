@@ -289,82 +289,65 @@ void MeshRenderer::onDetach(Entity* e) {
 
 void MeshRenderer::render(Shader* shader)
 {
-	// Initialize shader with global parameters
-	Shader* pShader = shader;
-	if (pShader == nullptr) {
-		pShader = m_shader.get();
-		pShader->use();
-	}
-	else {
-		if (!m_meshController->castShadow())
-			return;
-	}
+	Shader* pShader = m_shader.get();
+	
+	pShader->use();
 
+	
 	// Get matrices
-	glm::mat4 viewMatrix = Engine::instance()->camera()->view();
-	glm::mat4 viewprojMatrix = Engine::instance()->camera()->viewProjection();
-
 	ecs::OpenVRSystem* vrsys = Engine::instance()->findSystem<ecs::OpenVRSystem>();
-	if (vrsys != nullptr) // ->renderVR())
+	glm::mat4 MVP = glm::mat4(1);
+	if (vrsys != nullptr && vrsys->renderVR())
 	{
-		viewMatrix = vrsys->getCurrentViewMatrix(vrsys->currentEye());
-		viewprojMatrix = vrsys->getCurrentViewProjectionMatrix(vrsys->currentEye());
+		MVP = vrsys->getCurrentViewProjectionMatrix(vrsys->currentEye()) * entity()->tr()->tr();
+		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
 	}
+	else
+	{
+		glm::mat4 viewMatrix = Engine::instance()->camera()->view();
+		glm::mat4 viewprojMatrix = Engine::instance()->camera()->viewProjection();
+		MVP = viewprojMatrix * entity()->tr()->tr();
 
-	glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
-	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
-	glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
-	glm::mat4 MVP = viewprojMatrix * modelMatrix;
+		// Set matrix uniforms
+		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
+		glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
+		glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
+		glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
+		glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
+		glm::vec3 viewPos = Engine::instance()->camera()->position();
 
-	glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
-	glm::vec3 viewPos = Engine::instance()->camera()->position();
+		glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
+		pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 
-	glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
-	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
+		// Set matrix uniforms
+		pShader->setUniformMatrix4fv("InverseViewProjection", 1, glm::value_ptr(inverseViewProjMatrix), false);
+		pShader->setUniform1f("DepthBias", depth_bias);
+		// Set other uniforms
 
-	// Set matrix uniforms
-	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
-	pShader->setUniformMatrix4fv("InverseViewProjection", 1, glm::value_ptr(inverseViewProjMatrix), false);
-	pShader->setUniform1f("DepthBias", depth_bias);
-	// Set other uniforms
+		/*Setup the DepthMVP*/
+		// Compute the MVP matrix from the light's point of view
+		glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
+		glm::vec3 lightInvDir = normalize(-lightPos);
+		pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
+		float size = Engine::ShadowFrustumSize;
+		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+		glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 
-	/*Setup the DepthMVP*/
-	// Compute the MVP matrix from the light's point of view
-	glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
-	//Engine::LightPos + Engine::instance()->time()*normalize(-lightPos)*0.01f; // Engine::instance()->camera()->position();
-	glm::vec3 lightInvDir = normalize(-lightPos);
-	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
-	float size = Engine::ShadowFrustumSize;
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
-	//depthProjectionMatrix = glm::perspective<float>(glm::radians(spotlight_angle), 1.0f, spotlight_near, spotlight_far);
-	glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
-
-	// or, for spot light :
-	//depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 0.1f, 200);
-	//depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0), glm::vec3(0,1,0));
-
-	MVP = depthProjectionMatrix  * depthViewMatrix * modelMatrix;
-
-	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
-	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
-	glm::mat4 biasMatrix(
-		0.5, 0.0, 0.0, 0.0,
-		0.0, 0.5, 0.0, 0.0,
-		0.0, 0.0, 0.5, 0.0,
-		0.5, 0.5, 0.5, 1.0
+		glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
+		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+		glm::mat4 biasMatrix(
+			0.5, 0.0, 0.0, 0.0,
+			0.0, 0.5, 0.0, 0.0,
+			0.0, 0.0, 0.5, 0.0,
+			0.5, 0.5, 0.5, 1.0
 		);
 
-	glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
-
-	// Send our transformation to the currently bound shader, 
-	// in the "MVP" uniform
-
-	// Send our transformation to the currently bound shader, 
-	// in the "MVP" uniform
-	pShader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
-	pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
-	pShader->setUniform3fv("CameraPosition", 1, glm::value_ptr(viewPos));
-	/********************/
+		glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
+		pShader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
+		pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
+		pShader->setUniform3fv("CameraPosition", 1, glm::value_ptr(viewPos));
+		/********************/
+	}
 
 	pShader->setUniform1i("RenderNormals", m_renderNormals);
 	pShader->setUniform1i("ShadowBlur", Engine::ShadowBlur);
@@ -393,19 +376,6 @@ void MeshRenderer::render(Shader* shader)
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 	}
-	/*else
-	{
-	pShader->setUniform1i("HasTexture", 0);
-
-	int shadowLoc = pShader->getUniformLocation("shadowMap");
-	glUniform1f(shadowLoc, 0);
-
-	omen::Engine* engine = omen::Engine::instance();
-	GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	}*/
 
 	// Setup buffers for rendering
 	glBindVertexArray(m_vao);
@@ -432,24 +402,13 @@ void MeshRenderer::render(Shader* shader)
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_bitangents);
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 	}
-	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_CONSTANT_ALPHA); //	 blend_modes[Engine::blend_mode]);
-	//glDisable(GL_BLEND);
 
-	glEnable(GL_MULTISAMPLE);
-	glEnable(GL_CULL_FACE);
-	if(shader == nullptr)
-		glFrontFace(GL_CCW);
-	else
-		glFrontFace(GL_CW);
-	glPolygonMode(GL_FRONT, Engine::instance()->getPolygonMode());
-	//glPolygonMode(GL_BACK, GL_LINE);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+
 	if (m_indexBuffer != 0)
-		//glDrawElements (GLenum mode, GLsizei count, GLenum type, const void *indices);
-		//glDrawElements(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
-		//(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount);
 		glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
 	else
 		glDrawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
+
 }

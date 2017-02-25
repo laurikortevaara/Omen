@@ -58,11 +58,11 @@ out Data
 
 void main()
 {
-    gl_Position =  ModelViewProjection * (vec4(position,1) + vec4((gl_InstanceID/20)*1000.0,0,(gl_InstanceID%20)*1000.0,0));
+    vec3 p = position;
+    gl_Position =  ModelViewProjection * vec4(p,1);
 
 
     /** Calculate Stuff *************************************************************************************************/
-
     // Position of the vertex, in worldspace : M * position
     vec3 Position_worldspace = (M * vec4(position,1)).xyz;
 
@@ -193,41 +193,11 @@ void main() {
     // SpecularCoeff
 
 	out_color = HasTexture ? texture(TextureMap, uv) : MaterialDiffuse;
-    out_color *= vec4((diffuseColor + ambientColor + specularColor),1) * visibility;
-	/*if(out_color.a < 0.01)
-	   discard;
-	else
-	  out_color += ambient*0.15;*/
+    out_color = texture(TextureMap, uv)*MaterialDiffuse * min(1.0,diffuseFactor+0.5); //vec4(1) * visibility;
+    if(out_color.rgb == vec3(0))
+     out_color = MaterialDiffuse * min(1.0,diffuseFactor+0.5);
+    //out_color *= vec4((diffuseColor + ambientColor + specularColor),1) * visibility;
 
-
-      /// Show the mouse coordinate
-     vertex.y = 0.0;
-
-     Ray ray = Ray(iCameraPosition, iMousePickRay);
-     Sphere sphere = Sphere(vertex, 100.0);
-
-     Plane ground = Plane(vec3(0), vec3(0,1,0));
-     vec3 gn = vec3(0,1,0);
-     Intersection i = Intersection(100000.0,0,vec3(0), vec3(0));
-     Intersection i2 = Intersection(100000.0,0,vec3(0), vec3(0));
-     intersectPlane(ray, ground, i);
-     intersectSphere(ray, sphere, i2);
-     //visibility = clamp(distance(i.hitPoint, vertex)/30.0, 0.0, 1.0);
-     //visibility = step(visibility, 0.3);
-
-     /*float t = intersectSphere(ray, sphere);
-     if(t != -1.0)
-        visibility = t;*/
-     ///
-    float dist = abs(distance(i.hitPoint, vertex));
-    float dist2 = abs(distance(i2.hitPoint, vertex));
-    if(i.hit == 1.0 &&  dist < 30.0 && dist > 28.0 )
-       out_color = vec4(1,0,0,1);
-
-    if(i2.hit == 1.0 &&  dist < 50.0 && dist > 52.0 )
-      out_color = vec4(0,1,0,1);
-
-    //out_color = vec4(vec3(specularCoefficient*lightIntensity),1);
 }
 
 

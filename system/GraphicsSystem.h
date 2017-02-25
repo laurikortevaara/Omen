@@ -16,6 +16,9 @@ namespace omen {
         public:
 			virtual void add(Component *component);
             virtual void render(omen::Shader* pShader = nullptr, int layer=0);
+
+			virtual void shutDown() {};
+
 			int depthMap;
         };
     }

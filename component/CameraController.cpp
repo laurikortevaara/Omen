@@ -29,6 +29,8 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 		this->setEnabled(obj == nullptr);
 	});
 
+	setEnabled(false);
+
 	// Get the Mouse coordinates
 	MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
 	if (mi != nullptr) {
@@ -43,8 +45,8 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 			old_y = y;
 
 			if (m_camera >= nullptr) {
-				m_camera->yaw() += -dx;
-				m_camera->pitch() += dy;
+				m_camera->yaw() += -dx*Engine::instance()->CameraSensitivity;
+				m_camera->pitch() += dy*Engine::instance()->CameraSensitivity;
 			}
 
 		});
@@ -53,7 +55,6 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
 		Engine* e = Engine::instance();
 		KeyboardInput* ki = e->findComponent<KeyboardInput>();
-
 		if (ki->keyPressed(GLFW_KEY_P)) {
 			setEnabled(!enabled());
 		}

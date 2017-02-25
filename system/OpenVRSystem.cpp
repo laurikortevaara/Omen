@@ -1,7 +1,12 @@
 #include "OpenVRSystem.h"
 #include "../component/Renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 #include <openvr.h>
 #include <iostream>
+#include "../MathUtils.h"
+#include "../component/KeyboardInput.h"
+#include "../component/MouseInput.h"
+#include "../Camera.h"
 
 using namespace omen;
 using namespace ecs;
@@ -12,6 +17,9 @@ static const float m_fFarClip = 1000.0f;
 OpenVRSystem::OpenVRSystem() : m_renderVR(false)
 {
 	init();
+	memset(m_rDevClassChar, 0, sizeof(m_rDevClassChar));
+
+	m_camera = new Camera("VR Camera", { 0, 3.0, -10 }, { 0, 0, 0 }, 45.0f);
 }
 
 //-----------------------------------------------------------------------------
@@ -60,12 +68,66 @@ bool OpenVRSystem::init()
 	m_strDisplay = GetTrackedDeviceString(m_VRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
 	m_strManufacturerName = GetTrackedDeviceString(m_VRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ManufacturerName_String);
 
+	setupCameras(); 
+	setupStereoRenderTargets();
+
 	// Initialize the compositor
 	m_Compositor = vr::VRCompositor();
 
-	setupCameras(); 
-	setupStereoRenderTargets();
-	
+
+	// Get the Mouse coordinates
+	MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
+	if (mi != nullptr) {
+		mi->signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) {
+			static omen::floatprec old_x = x;
+			static omen::floatprec old_y = y;
+			omen::floatprec dx = x - old_x;
+			omen::floatprec dy = y - old_y;
+			old_x = x;
+			old_y = y;
+
+			if (m_camera >= nullptr) {
+				m_camera->yaw() += -dx*Engine::instance()->CameraSensitivity;
+				m_camera->pitch() += dy*Engine::instance()->CameraSensitivity;
+			}
+
+		});
+	}
+
+	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
+		Engine* e = Engine::instance();
+		KeyboardInput* ki = e->findComponent<KeyboardInput>();
+
+		// velocity = velocity + accelleration
+		// velo = m/s
+		// acceleration = m/s^2
+		if (m_camera != nullptr && !ki->keyModifierPressed(GLFW_MOD_SHIFT)) {
+			m_camera->acceleration() = glm::vec3(10.35f);
+
+
+			if (ki->keyPressed(GLFW_KEY_W)) {
+				m_camera->velocity().z += m_camera->acceleration().z * deltaTime;
+			}
+			if (ki->keyPressed(GLFW_KEY_S)) {
+				m_camera->velocity().z -= m_camera->acceleration().z * deltaTime;
+			}
+
+			if (ki->keyPressed(GLFW_KEY_A)) {
+				m_camera->velocity().x -= m_camera->acceleration().x * deltaTime;
+			}
+			if (ki->keyPressed(GLFW_KEY_D)) {
+				m_camera->velocity().x += m_camera->acceleration().x * deltaTime;
+			}
+
+			if (ki->keyPressed(GLFW_KEY_E)) {
+				m_camera->velocity().y += m_camera->acceleration().y * deltaTime;
+			}
+			if (ki->keyPressed(GLFW_KEY_C)) {
+				m_camera->velocity().y -= m_camera->acceleration().y * deltaTime;
+			}
+		}
+	});
+
 }
 
 //-----------------------------------------------------------------------------
@@ -176,16 +238,23 @@ glm::mat4 OpenVRSystem::getHMDMatrixPoseEye(vr::EVREye nEye)
 //-----------------------------------------------------------------------------
 glm::mat4 OpenVRSystem::getCurrentViewProjectionMatrix(vr::EVREye nEye)
 {
+	omen::Engine* e = Engine::instance();
+	omen::Camera* c = e->camera();
+
+	glm::mat4 pos(1);
+	pos = glm::translate(pos, c->position());
+
 	glm::mat4 matMVP;
 	if (nEye == vr::Eye_Left)
 	{
-		matMVP = m_mat4ProjectionLeft * m_mat4eyePosLeft * m_mat4HMDPose;
+		matMVP = m_mat4ProjectionLeft * m_mat4eyePosLeft * m_mat4HMDPose * m_camera->view();
 	}
 	else if (nEye == vr::Eye_Right)
 	{
-		matMVP = m_mat4ProjectionRight * m_mat4eyePosRight * m_mat4HMDPose;
+		matMVP = m_mat4ProjectionRight * m_mat4eyePosRight * m_mat4HMDPose * m_camera->view();
 	}
 
+	//matMVP = glm::rotate(matMVP, static_cast<float>(M_PI), glm::vec3(0, 1, 0));
 	return matMVP;
 }
 
@@ -199,10 +268,9 @@ glm::mat4 OpenVRSystem::getCurrentViewMatrix(vr::EVREye eye)
 
 void OpenVRSystem::renderScene(vr::EVREye eye)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
-	glClear(GL_DEPTH_BUFFER_BIT);
 	m_currentEye = eye;
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	gs->render();
 	/*
 	for (uint32_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
@@ -292,7 +360,7 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 		return;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.33f, 0.33f, 0.33f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_MULTISAMPLE);
 
@@ -317,7 +385,7 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 	glEnable(GL_MULTISAMPLE);
 
 	// Right Eye
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.33f, 0.33f, 0.33f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, rightEyeDesc.m_renderFramebufferId);
 	glViewport(0, 0, m_renderWidth, m_renderHeight);
@@ -345,14 +413,15 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 
 	glFinish();
 
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0.33f, 0.33f, 0.33f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//glFlush();
-	//glFinish();
+	glFlush();
+	glFinish();
 	
 	// Update HMD Poses
 	updateHMDMatrixPose();
 
 	m_renderVR = false;
+	glViewport(0, 0, 1920, 1080);
 }

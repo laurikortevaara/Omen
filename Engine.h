@@ -45,6 +45,7 @@ namespace omen {
 		static GLint blend_mode;
 		static glm::vec3 MousePickRay;
 		static glm::vec3 LightPos;
+		static float CameraSensitivity;
 
 		static float     AmbientFactor;
 		static float     MaterialShininess;
@@ -66,6 +67,9 @@ namespace omen {
     public:
         typedef Signal< std::function<void (omen::floatprec time, omen::floatprec delta_time)> > Update;
         Update signal_engine_update;
+
+		typedef Signal< std::function<void()> > ShutDown;
+		ShutDown signal_engine_shut_down;
 
         /** Public class interface **/
     public:
@@ -133,8 +137,10 @@ namespace omen {
         std::unique_ptr<Scene> m_scene;
         std::vector<ecs::System*> m_systems;
         std::unique_ptr<ecs::TextRenderer> m_text;
+		bool m_is_shutting_down;
+		bool m_waiting_for_shut_down;
 
-
+		void shutDown() { m_is_shutting_down = true; }
         void keyHit(int key, int scanCode, int action, int mods);
 
 		omen::floatprec m_time;

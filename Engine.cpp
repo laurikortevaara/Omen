@@ -63,6 +63,7 @@ float     Engine::MaterialShininess = 32;
 float     Engine::LightIntensity = 1.0;
 float	  Engine::LightAzimuthAngle = 0.0f;
 float	  Engine::LightZenithAngle = 0.0f;
+float	  Engine::CameraSensitivity = 0.25;
 
 std::mutex Engine::t_future_task::task_mutex;
 
@@ -148,7 +149,8 @@ Engine::Engine() :
 	m_framecounter(0),
 	m_sample_coverage(1),
 	m_currentSelection(nullptr),
-	m_polygonMode(GL_FILL) {
+	m_polygonMode(GL_FILL),
+	m_is_shutting_down(false) {
 
 	std::string currentDir = omen::getWorkingDir();
 	if (currentDir.find("bin") == std::string::npos)
@@ -158,7 +160,7 @@ Engine::Engine() :
 		initializeSystems();
 		check_gl_error();
 
-		m_camera = new Camera("Camera1", { 0, 500.0, 0 }, { 0, 0, 0 }, 60.0f);
+		m_camera = new Camera("Camera1", { 0, 3.0, -10 }, { 0, 0, 0 }, 45.0f);
 		check_gl_error();
 		findComponent<CameraController>()->setCamera(m_camera);
 		check_gl_error();
@@ -422,6 +424,8 @@ void Engine::update() {
 	signal_engine_update.notify(m_time, m_timeDelta);
 	//glSampleCoverage(m_sample_coverage, GL_FALSE);
 	//doPhysics(m_timeDelta);
+	if (m_is_shutting_down)
+		exit(0);
 }
 
 omen::floatprec Engine::time() {
@@ -667,8 +671,11 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 		}
 	}
 	else if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_Q)
-			exit(0);
+		if (key == GLFW_KEY_Q) {
+			this->signal_engine_shut_down.notify();
+			this->shutDown();
+		}
+			
 
 		if (key == GLFW_KEY_TAB) {
 

@@ -11,6 +11,7 @@ namespace omen {
     namespace ecs {
         class CoreSystem : public ecs::System{
         public:
+			virtual void shutDown() {};
         private:
         };
     } // namepsace ecs

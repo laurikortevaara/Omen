@@ -19,5 +19,9 @@ System::System():
         if(m_isEnabled)
             update(time, deltaTime);
     });
+
+	e->signal_engine_shut_down.connect([this]() {
+		this->shutDown();
+	});
 }
 

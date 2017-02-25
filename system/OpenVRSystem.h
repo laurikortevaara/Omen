@@ -10,6 +10,8 @@ typedef uint32_t GLuint;
 
 namespace omen
 {
+	class Camera;
+
 	namespace ecs
 	{
 		class OpenVRSystem : public ecs::GraphicsSystem
@@ -27,6 +29,7 @@ namespace omen
 			OpenVRSystem();
 
 			virtual void render(omen::Shader* shader = nullptr, int layer = 0);
+			virtual void shutDown() { vr::VR_Shutdown(); };
 
 			glm::mat4 getCurrentViewProjectionMatrix(vr::EVREye nEye);
 			glm::mat4 getCurrentViewMatrix(vr::EVREye eye);
@@ -79,6 +82,8 @@ namespace omen
 			std::string m_strModelLabel;
 			std::string m_strModelNumber;
 			std::string m_strManufacturerName;
+
+			Camera* m_camera;
 		};
 	}
 }

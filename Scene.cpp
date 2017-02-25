@@ -233,158 +233,7 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 }
 void omen::Scene::initialize()
 {
-	float distributionFactor = 10.0f;
-
-	for (int i = 0; i < 10; ++i){
-		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider"+std::to_string(i+1), "textures/slider_groove.png", glm::vec2(10, 100+i*20), glm::vec2(500,10));
-		addEntity(std::move(slider), 1);
-	}
-
-	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView", glm::vec2(0, 150), glm::vec2(200, 200));
-	tv->setText(L"Textii :D");
-	addEntity(std::move(tv), 3);
-
-	ui::Slider* e = dynamic_cast<ui::Slider*>(findEntity("Slider1"));
-	e->setPos(Engine::ShadowFrustumNear/10.0f);
-	if(e!=nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		//std::wstring str = L"Slider Dragged:";
-		//str += omen::to_wstring_with_precision(value, 2);
-		//ptr->setText(str);
-		Engine::ShadowFrustumNear = 10.0f*value;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider2"));
-	e->setPos(Engine::ShadowFrustumFar / 8000.0f);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowFrustumFar = 8000.0f*value;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider3"));
-	e->setPos(Engine::ShadowFrustumSize / 2000.0f);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowFrustumSize = 2000.0f*value;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider4"));
-	e->setPos(Engine::LightDistance);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightDistance = value;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider5"));
-	e->setPos(Engine::LightDistance);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowBlur = value*10.0f;
-	});
 	
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider6"));
-	e->setPos(Engine::LightIntensity);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightIntensity = value*10.0;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider7"));
-	e->setPos(Engine::AmbientFactor);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::AmbientFactor = value;
-	});
-	
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider8"));
-	e->setPos(Engine::MaterialShininess);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::MaterialShininess = value*100.0f;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider9"));
-	e->setPos(Engine::MaterialShininess);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightAzimuthAngle = value*360.0f;
-	});
-
-	e = dynamic_cast<ui::Slider*>(findEntity("Slider10"));
-	e->setPos(Engine::MaterialShininess);
-	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightZenithAngle = value*90.0f;
-	});
-
-
-	/*
-	std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider", "textures/slider_groove.png", glm::vec2(100, 100), glm::vec2(100, 100));
-	ui::Slider* ptr = slider.get();
-	ptr->signal_slider_dragged.connect([ptr](ui::Slider* slider, float value) -> void {
-		std::wstring str = L"Slider Dragged:";
-		str += omen::to_wstring_with_precision(value, 2);
-		std::wcout << str << std::endl;
-	});
-	addEntity(std::move(slider));*/
-	
-	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
-	{
-		if (key == GLFW_KEY_C && mods & GLFW_MOD_SHIFT) {
-			Scene* s = this;
-			s->m_entities.clear();
-		}
-	});
-
-	//std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "FPS_COUNTER");
-	Engine::instance()->signal_engine_update.connect([](float time, float delta_time) {
-		if (lightobj != nullptr) {
-			lightobj->tr()->pos() = Engine::LightPos;
-		}
-
-		ecs::GameObject* sphere = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity("Sphere"));
-		if (sphere != nullptr)
-		{
-			Transform* tr = sphere->getComponent<Transform>();
-			float t = Engine::instance()->time();
-			float d = 10.0 + sin(cos(t*0.5)*3.14)*cos(t*0.5)*15.0;
-			tr->pos() = glm::vec3(sin(t)*d, 0.4+sin(t), cos(t)*d);
-		}
-
-		ui::TextView* obj = dynamic_cast<ui::TextView*>(Engine::instance()->scene()->findEntity("FPS_COUNTER"));
-		if (obj != nullptr) {
-			std::setprecision(2);
-			glm::vec3 v1 = glm::vec3(Engine::instance()->camera()->view()[0][0], Engine::instance()->camera()->view()[0][1], Engine::instance()->camera()->view()[0][2]);
-			glm::vec3 v2 = glm::vec3(Engine::instance()->camera()->view()[1][0], Engine::instance()->camera()->view()[1][1], Engine::instance()->camera()->view()[1][2]);
-			glm::vec3 v3 = glm::vec3(Engine::instance()->camera()->view()[2][0], Engine::instance()->camera()->view()[2][1], Engine::instance()->camera()->view()[2][2]);
-			float y_angle = atan2(Engine::instance()->camera()->view()[0][0], Engine::instance()->camera()->view()[0][2]) * 180 / M_PI;
-			std::wstring fps_str = L"FPS:" + omen::to_wstring_with_precision(Engine::instance()->averageFps(), 3) +
-				L"\nCameraPos: [" + omen::to_wstring_with_precision(Engine::instance()->camera()->position().x, 1) +
-				L", " + omen::to_wstring_with_precision(Engine::instance()->camera()->position().y, 1) +
-				L", " + omen::to_wstring_with_precision(Engine::instance()->camera()->position().z, 1) + L"]" +
-				L"\nCameraDir: [" + omen::to_wstring_with_precision(y_angle, 3) + L"]";
-			obj->setText(fps_str.c_str());
-		}
-	});
-	//addEntity(std::move(tv));
-
-
-	//std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
-
-	/*std::unique_ptr<Mesh> mesh = provider->createPlane();
-	std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("plane");
-	std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
-	mc->setMesh(std::move(mesh));
-
-	std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
-	obj->addCompnent(std::move(mr));
-	obj->addCompnent(std::move(mc));
-
-	
-
-	addEntity(std::move(obj));*/
-	//addEntity(std::make_unique<Terrain>());
-	//addEntity(std::make_unique<Sky>());
-	shadowMap = new ShadowMap();
-	shadowMap->init();
-
-	/*std::unique_ptr<MeshProvider> provider = std::make_unique<MeshProvider>();
-	std::unique_ptr<ecs::GameObject> l = std::move(provider->loadObject("models/light.fbx").begin().operator*());
-	lightobj = l.get();
-	lightobj->getComponent<omen::ecs::MeshController>()->setCastShadow(false);
-	addEntity(std::move(l));*/
-
-	addEntity(std::make_unique<omen::ui::ToolView>("Tools", "texture/toolbar.jpg", glm::vec2(0, 0), glm::vec2( 200, 200)));
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
@@ -395,8 +244,13 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view)
 	glEnable(GL_DEPTH_TEST);
 	gs->render(shadowMap->m_shader, 0);
 	shadowMap->finish();*/
+	
+	ecs::OpenVRSystem* vrs = omen::Engine::instance()->findSystem<ecs::OpenVRSystem>();
+	vrs->render();
 
-	ms->render();
+	gs->render();
+	
+
 	check_gl_error();
 	//renderArrow();
 	return;

@@ -37,7 +37,7 @@ namespace omen {
     public:
         Camera(const std::string &name, const glm::vec3 &pos, const glm::vec3 &lookAt, float fov);
 
-        void onWindowSizeChanged(int width, int height);
+		void onWindowSizeChanged(int width, int height);
 
         void updateViewProjection();
 

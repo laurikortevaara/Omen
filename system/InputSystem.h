@@ -11,7 +11,7 @@
 namespace omen {
     namespace ecs {
         class InputSystem : public ecs::System {
-
+			virtual void shutDown() {};
         };
     } // namespace omen;
 } // namespace omen
