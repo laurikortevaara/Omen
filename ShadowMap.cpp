@@ -50,7 +50,7 @@ void ShadowMap::render()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 	check_gl_error();
-	glViewport(0, 0, 4096, 4096);
+	Engine::instance()->setViewport(0, 0, 4096, 4096);
 	//glEnable(GL_CULL_FACE);
 	glDisable(GL_CULL_FACE);
 	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
@@ -63,5 +63,5 @@ void ShadowMap::finish()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	omen::Engine* engine = Engine::instance();
-	glViewport(0,0,engine->window()->width(), engine->window()->height()); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+	Engine::instance()->setViewport(0,0,engine->window()->width(), engine->window()->height()); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 }

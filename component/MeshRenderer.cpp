@@ -289,8 +289,8 @@ void MeshRenderer::onDetach(Entity* e) {
 
 void MeshRenderer::render(Shader* shader)
 {
-	Shader* pShader = m_shader.get();
-	
+	Shader* pShader = shader == nullptr ? m_shader.get() : shader;
+
 	pShader->use();
 
 	

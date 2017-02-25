@@ -6,6 +6,7 @@
 #include "../MathUtils.h"
 #include "../component/KeyboardInput.h"
 #include "../component/MouseInput.h"
+#include "../component/CameraController.h"
 #include "../Camera.h"
 
 using namespace omen;
@@ -79,6 +80,9 @@ bool OpenVRSystem::init()
 	MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
 	if (mi != nullptr) {
 		mi->signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) {
+			CameraController* ctr = Engine::instance()->findComponent<CameraController>();
+			if (!ctr->enabled())
+				return;
 			static omen::floatprec old_x = x;
 			static omen::floatprec old_y = y;
 			omen::floatprec dx = x - old_x;
@@ -271,7 +275,7 @@ void OpenVRSystem::renderScene(vr::EVREye eye)
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 	m_currentEye = eye;
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	gs->render();
+	gs->render(0);
 	/*
 	for (uint32_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
 	{
@@ -366,7 +370,7 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 
 	// Left Eye
 	glBindFramebuffer(GL_FRAMEBUFFER, leftEyeDesc.m_renderFramebufferId);
-	glViewport(0, 0, m_renderWidth, m_renderHeight);
+	Engine::instance()->setViewport(0, 0, m_renderWidth, m_renderHeight);
 	renderScene(vr::Eye_Left);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -388,7 +392,7 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 	glClearColor(0.33f, 0.33f, 0.33f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, rightEyeDesc.m_renderFramebufferId);
-	glViewport(0, 0, m_renderWidth, m_renderHeight);
+	Engine::instance()->setViewport(0, 0, m_renderWidth, m_renderHeight);
 	renderScene(vr::Eye_Right);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -423,5 +427,5 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 	updateHMDMatrixPose();
 
 	m_renderVR = false;
-	glViewport(0, 0, 1920, 1080);
+	Engine::instance()->setViewport(0, 0, 1920, 1080);
 }

@@ -81,6 +81,7 @@ namespace omen {
         void render();
         Window* window() {return m_window.get();};
         Camera* camera() {return m_camera;};
+		void setViewport(int x, int y, int w, int h);
 
         template <class type> type* findSystem(const std::string& system_name="") {
             for(omen::ecs::System* s : m_systems)

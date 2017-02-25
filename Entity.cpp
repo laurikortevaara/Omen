@@ -12,7 +12,7 @@ using namespace omen::ecs;
 
 
 Entity::Entity(const std::string &name) :
-	Object(name), m_parent(nullptr), m_layer(0), m_is_hovered(false), m_is_pressed(false)
+	Object(name), m_parent(nullptr), m_layer(-1), m_is_hovered(false), m_is_pressed(false)
 {
 	std::unique_ptr<Transform> tr = std::make_unique<Transform>();
 	tr->pos().x = 0;

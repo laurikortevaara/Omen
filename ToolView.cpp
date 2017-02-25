@@ -44,6 +44,8 @@ ToolView::ToolView(const std::string& name, const std::string& sprite, const glm
 	layout->addChild(std::move(button_scale));
 
 	addChild(std::move(layout));
+
+	setLayer(1);
 }
 
 void ToolView::updateLayout()

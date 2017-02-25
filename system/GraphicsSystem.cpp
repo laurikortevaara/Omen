@@ -18,7 +18,7 @@ void GraphicsSystem::add(Component* component)
 void GraphicsSystem::render(omen::Shader* shader, int layer) {
 	int w, h;
 	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
-	//glViewport(0, 0, w, h);
+	//Engine::instance()->setViewport(0, 0, w, h);
 
 	std::vector<Renderer*> renderers;
 

@@ -89,9 +89,10 @@ void Window::createWindow(unsigned int width, unsigned int height) {
 	check_gl_error();
 
 	glEnable(GL_SAMPLE_COVERAGE);
-	int w, h;
-	glfwGetFramebufferSize(m_window, &w, &h);
-	glViewport(0, 0, w, h);
+	int w = width;
+	int h = height;
+	//glfwGetFramebufferSize(m_window, &w, &h);
+	Engine::instance()->setViewport(0, 0, w, h);
 
 	/* Initialize the library */
 	glewExperimental = GL_TRUE;

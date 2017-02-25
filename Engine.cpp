@@ -839,3 +839,8 @@ void Engine::renderText() {
 GLenum Engine::getPolygonMode() {
 	return m_polygonMode;
 }
+
+void Engine::setViewport(int x, int y, int w, int h)
+{
+	glViewport(x, y, w, h);
+}

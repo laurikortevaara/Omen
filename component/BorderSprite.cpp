@@ -16,7 +16,7 @@ BorderSprite::BorderSprite(const std::string& sprite, const glm::vec2& pos, cons
 	left(left), 
 	right(right), 
 	top(top), 
-	bottom(bottom) 
+	bottom(bottom)
 {
 	setShader(new Shader("shaders/border_sprite.glsl"));
 	setTexture(new Texture(sprite));
