@@ -544,7 +544,7 @@ void Shader::listAttribs()
 			strType = std::to_string(type);
 		}
 
-		printf("Uniform #%d Type: %u Name: %s\n", i, strType.c_str(), name);
+		printf("Uniform #%d Type: %s Name: %s\n", i, strType.c_str(), name);
 	}
 }
 GLint Shader::getUniformLocation(const std::string &uniformName) {

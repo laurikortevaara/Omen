@@ -16,8 +16,8 @@ namespace omen {
         glm::vec3   m_scale;
         glm::vec3   m_rotation;
         glm::vec3   m_position;
-        glm::vec3   m_bounds_min;
-        glm::vec3   m_bounds_max;
+        mutable glm::vec3   m_bounds_min;
+		mutable glm::vec3   m_bounds_max;
 
     protected:
         virtual void onAttach(ecs::Entity* e);
@@ -29,8 +29,7 @@ namespace omen {
 		glm::vec3 pos() const { return m_position; }
         glm::vec3& pos() { return m_position; }
 		glm::vec3& scale() { return m_scale;  }
-
-
+		
         explicit Transform(const Transform& tr) {
             m_tr = tr.m_tr;
             m_scale = tr.m_scale;
@@ -59,8 +58,8 @@ namespace omen {
 
         void setBounds(glm::vec3 min, glm::vec3 max) {m_bounds_max = max; m_bounds_min = min;}
         void getBounds(glm::vec3& min, glm::vec3& max)const {max = m_bounds_max ; min = m_bounds_min;}
-		glm::vec3 boundsMax() const { return m_bounds_max; }
-		glm::vec3 boundsMin() const { return m_bounds_min; }
+		glm::vec3 boundsMax() const;
+		glm::vec3 boundsMin() const;
     };
 } // namespace omen
 

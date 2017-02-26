@@ -16,11 +16,13 @@ View::View(View *parentView, const std::string& name, const glm::vec2& pos, cons
 	setLayer(1);
 
 	setLocalPos2D(pos);
-	setSize(size);
+	setSize2D(size);
 	tr()->pos().x = pos.x;
 	tr()->pos().y = pos.y;
 	tr()->pos().z = -1;
 	tr()->setBounds(glm::vec3(0, 0, 0), glm::vec3(size, 0));
+
+	setGravity(ALIGN_LEFT | ALIGN_TOP);
 
 	Engine::instance()->window()->signal_window_size_changed.connect([this](int width, int height) {this->updateLayout();});
 }

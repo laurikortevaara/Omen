@@ -12,6 +12,9 @@
 #include <iomanip>
 #include <vector>
 #include <string>
+#include <locale>
+#include <codecvt>
+
 
 namespace omen {
     
@@ -27,6 +30,7 @@ namespace omen {
 	 * getWorkingDir
 	*/
     std::string getWorkingDir();
+
 
 	/*
 	* to_string_with_precision
@@ -57,4 +61,9 @@ namespace omen {
 
 	template <typename T>
 	std::wstring to_string_with_precision(const T a_value, const int n = 6);
+
+	/*
+	* string_to_wstring
+	*/
+	std::wstring string_to_wstring(const std::string& a_value);
 }

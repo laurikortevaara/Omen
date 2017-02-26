@@ -21,7 +21,7 @@ ImageView::ImageView(View* parentView, const std::string &name,const std::string
 	
 	if (width() == -1 && height() == -1)
 	{
-		setSize(sprite->size());
+		setSize2D(sprite->size());
 		tr()->setBounds(glm::vec3(0, 0, 0), glm::vec3(sprite->width(), sprite->height(), 0));
 	}
 

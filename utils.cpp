@@ -53,4 +53,11 @@ namespace omen {
 		out << std::setprecision(n) << a_value;
 		return out.wstr();
 	}
+
+	std::wstring string_to_wstring(const std::string& a_value)
+	{
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		std::wstring wide = converter.from_bytes(a_value);
+		return wide;
+	}
 }

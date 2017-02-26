@@ -40,7 +40,7 @@ LinearLayout::LayoutDirection &LinearLayout::layoutDirection() {
 
 bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 {
-	glm::vec2 childPos(0.0, 0.0);
+	glm::vec2 childPos(m_margins.x, m_margins.y);
 	for (const auto& child : children())
 	{
 		switch (m_layoutDirection)
@@ -52,6 +52,14 @@ bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 			childPos.x += child->width();
 			break;
 		}
+	}
+	if (m_layoutDirection == HORIZONTAL && e->gravity() & VERTICAL_CENTER)
+	{
+		float h = height();
+		float eh = e->height();
+		if (h == -1)
+			h = eh;
+		childPos.y = (h-eh)*0.5;
 	}
 	e->setLocalPos2D(e->localPos2D()+childPos+glm::vec2(m_margins));
 	Entity::addChild(std::move(e));

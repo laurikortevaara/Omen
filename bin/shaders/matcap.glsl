@@ -1,7 +1,7 @@
 /**
  * Uniforms
  */
-uniform sampler2D tex;
+uniform sampler2D TextureMap;
 uniform mat4      ModelViewProjection;
 uniform mat4      ViewMatrix;
 uniform mat4      ViewProjMatrix;

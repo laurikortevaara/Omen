@@ -80,8 +80,8 @@ void BorderSprite::render() {
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	glm::mat4 model(1);
-	float fw = 2 * width() / (float)Engine::instance()->window()->width();
-	float fh = 2 * height() / (float)Engine::instance()->window()->height();
+	float fw = 2.0 * width() / (float)Engine::instance()->window()->width();
+	float fh = 2.1 * height() / (float)Engine::instance()->window()->height();
 	float fx = -1.0f + 2 * ((renderer()->entity()->pos().x + pos().x + pivot().x) / (float)Engine::instance()->window()->width());
 	float fy =  1.0f - 2 * ((renderer()->entity()->pos().y + pos().y + pivot().y) / (float)Engine::instance()->window()->height());
 	model = glm::translate(model, glm::vec3(fx, fy, 0));

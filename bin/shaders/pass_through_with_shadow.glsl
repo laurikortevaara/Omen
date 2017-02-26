@@ -194,7 +194,7 @@ void main() {
 
 	out_color = HasTexture ? texture(TextureMap, uv) : MaterialDiffuse;
     out_color = texture(TextureMap, uv)*MaterialDiffuse * min(1.0,diffuseFactor+0.5); //vec4(1) * visibility;
-    out_color = MaterialDiffuse * min(1.0,diffuseFactor+0.5) * visibility;
+    out_color = vec4(0.42578125, 0.484375, 0.55859375, 0) +  ( vec4(specularColor,1) + vec4(0.6,0.6,0.6,1) * diffuseFactor) * visibility;
    //out_color *= vec4((diffuseColor + ambientColor + specularColor),1) * visibility;
 }
 

@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include "../ui/View.h"
 
 using namespace omen;
 using namespace ecs;
@@ -34,7 +35,13 @@ TextRenderer::TextRenderer() :
 }
 
 void TextRenderer::render(Shader* shader) {
-	renderText(m_text, 10, -200, 1.0, glm::vec4(1));
+	omen::ui::View* e = dynamic_cast<omen::ui::View*>(entity());
+
+	float x = e->pos2D().x;
+	float y = -e->pos2D().y;
+	if (e->gravity() == omen::ui::View::VERTICAL_CENTER)
+		y = -(e->pos2D().y+(e->size2D().y-Characters['X'].Size.y)*0.5);
+	renderText(m_text, x, y, 1.0, glm::vec4(1));
 }
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)
@@ -74,12 +81,24 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 			x = origin_x;
 			continue;
 		}
-		
+
 		GLfloat xpos = x + ch.Bearing.x * scale;
 		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
 
 		GLfloat w = ch.Size.x * scale;
 		GLfloat h = ch.Size.y * scale;
+
+		/*if (xpos + w * 3 > m_entity->size().x) {
+			ch = Characters['.'];
+			xpos = x + ch.Bearing.x * scale;
+			ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+			w = ch.Size.x * scale;
+			h = ch.Size.y * scale;
+		}
+		if (xpos + w > (m_entity->pos().x+m_entity->size().x))
+			continue;
+		*/
 		// Update VBO for each character
 		GLfloat vertices[6][4] = {
 			{ xpos,     ypos + h,   0.0, 0.0 },
@@ -119,7 +138,7 @@ bool TextRenderer::initializeFreeType() {
 	// Disable byte-alignment restriction
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    FT_Set_Pixel_Sizes(m_fontFace, 0, 24);
+    FT_Set_Pixel_Sizes(m_fontFace, 0, 14);
 
     if (FT_Load_Char(m_fontFace, 'X', FT_LOAD_RENDER)) {
         std::cerr << "Could not load character 'X'" << std::endl;

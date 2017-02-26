@@ -58,21 +58,37 @@ namespace omen {
 			Transform* tr() { return getComponent<Transform>(); }
 			const Transform* tr_const() const { return getComponent_const<Transform>(); }
 
-			glm::vec3 pos() const;
-			glm::vec2 pos2D() const;
+			enum Gravity : int {
+				ALIGN_LEFT = (1u << 0),
+				ALIGN_RIGHT = (1u << 1),
+				ALIGN_TOP = (1u << 2),
+				ALIGN_BOTTOM = (1u << 3),
+				VERTICAL_CENTER = (1u << 4),
+				HORIZONTAL_CENTER = (1u << 5)
+			};
 
-			glm::vec3 size() const { return glm::vec3(width(), height(), depth()); }
-			glm::vec2 size2D() const { return glm::vec2(width(), height()); }
+			int m_gravity;
+			int gravity() const { return m_gravity; }
+			void setGravity(int g) { m_gravity = g; }
 
-			glm::vec3 localPos() const { return Entity::tr_const()->pos(); }
-			void setLocalPos(const glm::vec3& pos) { Entity::tr()->setPos(pos); }
+			virtual glm::vec3 pos() const;
+			virtual glm::vec2 pos2D() const;
 
-			glm::vec2 localPos2D() const { return glm::vec2(Entity::tr_const()->pos()); }
-			void setLocalPos2D(const glm::vec2& pos) { Entity::tr()->setPos(glm::vec3(pos,Entity::tr()->pos().z)); }
+			virtual glm::vec3 localPos() const { return Entity::tr_const()->pos(); }
+			virtual void setLocalPos(const glm::vec3& pos) { Entity::tr()->setPos(pos); }
+
+			virtual glm::vec2 localPos2D() const { return glm::vec2(Entity::tr_const()->pos()); }
+			virtual void setLocalPos2D(const glm::vec2& pos) { Entity::tr()->setPos(glm::vec3(pos,Entity::tr()->pos().z)); }
 
 			virtual float width() const { return tr_const()->boundsMax().x - tr_const()->boundsMin().x; }
 			virtual float height() const { return tr_const()->boundsMax().y - tr_const()->boundsMin().y; }
 			virtual float depth() const { return tr_const()->boundsMax().z - tr_const()->boundsMin().z; }
+
+			virtual glm::vec3 size() const { return glm::vec3(width(), height(), depth()); }
+			virtual glm::vec2 size2D() const { return glm::vec2(width(), height()); }
+
+			virtual void setSize(const glm::vec3& size) { tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + size); }
+			virtual void setSize2D(const glm::vec2& size) { tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + glm::vec3(size.x,size.y,0)); }
 
 			bool hovered() const { return m_is_hovered; }
 			bool pressed() const { return m_is_pressed; }

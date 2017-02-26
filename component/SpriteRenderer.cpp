@@ -4,6 +4,7 @@
 #include "../Engine.h"
 #include "../GL_error.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "../ui/View.h";
 
 omen::ecs::SpriteRenderer::SpriteRenderer(std::unique_ptr<omen::ecs::Sprite> sprite) : 
 	Renderer(),
@@ -15,6 +16,12 @@ omen::ecs::SpriteRenderer::SpriteRenderer(std::unique_ptr<omen::ecs::Sprite> spr
 void omen::ecs::SpriteRenderer::onAttach(Entity* e) 
 {
 	e->setLayer(1);
+	omen::ui::View* v = dynamic_cast<omen::ui::View*>(e);
+	if(v!=nullptr)
+	{
+		glm::vec4 margins = v->margins();
+		//m_sprite->setPos(glm::vec2(margins[omen::ui::View::left], margins[omen::ui::View::top]));
+	}
 }
 
 void omen::ecs::SpriteRenderer::onDetach(Entity* e) 

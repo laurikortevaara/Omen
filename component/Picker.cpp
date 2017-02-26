@@ -133,7 +133,7 @@ void Picker::pick() {
 		else if(dynamic_cast< omen::ui::View* >(entity.get())) {
 			omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity.get());
 			glm::vec2 pos = v->pos2D();
-			glm::vec2 size = v->size();
+			glm::vec3 size = v->size();
 			if (mi->cursorPos().x >= pos.x && mi->cursorPos().x <= (pos.x + size.x) &&
 				mi->cursorPos().y >= pos.y && mi->cursorPos().y <= (pos.y + size.y)) {
 				pSelected = entity.get();

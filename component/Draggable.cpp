@@ -12,27 +12,28 @@
 
 using namespace omen::ecs;
 
-Draggable::Draggable() :
-	m_is_pressed(false)
+Draggable::Draggable(const glm::vec2& groovePos, const glm::vec2& grooveSize) :
+	m_is_pressed(false),
+	m_groovePos(glm::vec3(groovePos.x, groovePos.y, 0.0f)),
+	m_grooveSize(glm::vec3(grooveSize.x, grooveSize.y, 0.0f))
 {
     Engine::instance()->findComponent<MouseInput>()->
             signal_mousebutton_pressed.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
         if (action != GLFW_PRESS || entity() == nullptr)
             return;
+				
+			omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
+			glm::vec3 bmin, bmax;
+			tr->getBounds(bmin, bmax);
 
-	omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
-
-        if(tr!=nullptr){
-            glm::vec3 bmin, bmax;
-            tr->getBounds(bmin,bmax);
-            if(m_cursorPos.x >= (entity()->pos().x+bmin.x) &&
+            if(m_cursorPos.x >= (entity()->pos().x) &&
                m_cursorPos.x <= (entity()->pos().x+bmax.x) &&
-               m_cursorPos.y >= (entity()->pos().y+bmin.y) &&
+               m_cursorPos.y >= (entity()->pos().y) &&
                m_cursorPos.y <= (entity()->pos().y+bmax.y)) {
 				m_deltaPos = glm::vec2(m_cursorPos.x-entity()->pos().x, m_cursorPos.y-entity()->pos().y);
                 signal_clicked.notify(entity(),m_cursorPos);
 				m_is_pressed = true;
-            }
+            
         }
     });
 
@@ -53,21 +54,12 @@ Draggable::Draggable() :
 
 			glm::vec2 newPos = { x - m_deltaPos.x - entity()->parent()->pos().x, tr->pos().y };
 
-			if (entity()->parent() != nullptr)
-			{
-				omen::Transform* ptr = const_cast<Transform*>(entity()->parent()->getComponent<Transform>());
-				ptr->getBounds(pbmin, pbmax);
-				grooveSize = (pbmax - pbmin) - (bmax - bmin);
-			}
-			else
-			{
-				grooveSize = glm::vec3(1);
-			}
+			grooveSize = this->m_grooveSize;
 
-			newPos.x = glm::clamp(newPos.x, 0.0f, grooveSize.x);
+			newPos.x = glm::clamp(newPos.x, 0.0f+groovePos.x, grooveSize.x+groovePos.x);
 
 			// Notify about slider change
-			signal_dragged.notify(newPos.x/grooveSize.x);
+			signal_dragged.notify((newPos.x-groovePos.x)/grooveSize.x);
 			tr->setPos(glm::vec3(newPos,0));
 		}
     });
@@ -137,6 +129,27 @@ Draggable::~Draggable() {
 
 void Draggable::onAttach(Entity *e) {
     m_entity = e;
+
+	omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
+	omen::Transform* ptr = nullptr;
+	if (entity()->parent() != nullptr)
+		ptr = const_cast<Transform*>(entity()->parent()->getComponent<Transform>());
+
+	if (tr != nullptr)
+	{
+		glm::vec3 bmin, bmax;
+		tr->getBounds(bmin, bmax);
+		glm::vec3 bounds = bmax - bmin;
+
+
+		if (ptr != nullptr && this->m_grooveSize.x == -1.0f && this->m_grooveSize.y == -1.0f)
+		{
+			glm::vec3 pbmin, pbmax;
+			ptr->getBounds(pbmin, pbmax);
+			m_grooveSize = glm::vec3(pbmax.x, pbmax.y, 0.0f);
+		}
+		m_grooveSize -= glm::vec3(bounds.x, 0.0, 0.0);
+	}
 }
 
 void Draggable::onDetach(Entity *e) {

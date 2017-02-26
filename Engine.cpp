@@ -51,7 +51,7 @@ static long Engine_left_mbytes = 0;
 
 GLint Engine::blend_mode = 3;
 GLuint Engine::ShadowBlur = 3;
-GLfloat Engine::ShadowFrustumNear = 0.0f;
+GLfloat Engine::ShadowFrustumNear = 5.0f;
 GLfloat Engine::ShadowFrustumFar = 1500.0f;
 GLfloat Engine::LightDistance = 0.225;
 GLfloat Engine::ShadowFrustumSize = 1000.0f;
@@ -388,11 +388,6 @@ void Engine::update() {
 		wstr << "FPS: " << wstringify(fps()) << "\n";
 		wstr << "FPS(Avg): " << wstringify(averageFps()) << "\n";
 		wstr << "Time: " << wstringify(time()) << "\n";
-		wstr << "LightDistance: " << wstringify(LightDistance) << "\n";
-		wstr << "ShadowFrustum Size: " << wstringify(ShadowFrustumSize) << "\n";
-		wstr << "ShadowFrustum Near: " << wstringify(ShadowFrustumNear) << "\n";
-		wstr << "ShadowFrustum Far: " << wstringify(ShadowFrustumFar) << "\n";
-		wstr << "ShadowFrustum Far: " << wstringify(ShadowFrustumFar) << "\n";
 		wstr << "MousePickRay : " << wstringify(Engine::MousePickRay) << "\n";
 		wstr << "CameraPos: " << wstringify(Engine::instance()->camera()->position()) << "\n";
 		wstr << "CursorPos: " << wstringify(glm::vec3(m_mouse_x, m_mouse_y, 0.0)) << "\n";

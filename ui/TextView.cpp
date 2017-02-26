@@ -15,11 +15,11 @@ TextView::TextView(View *parentView, const std::string& name, const glm::vec2& p
 	std::unique_ptr<ecs::TextRenderer> textRenderer = std::make_unique<ecs::TextRenderer>();
 	addComponent(std::move(textRenderer));
 
-	Entity* slider = Engine::instance()->scene()->findEntity("Slider1");
+	/*Entity* slider = Engine::instance()->scene()->findEntity("Slider1");
 	if (slider != nullptr)
 	{
 		slider->getComponent<ecs::Draggable>();
-	}
+	}*/
 }
 
 void TextView::setText(const std::wstring& text) { 

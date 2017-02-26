@@ -14,6 +14,9 @@ using namespace omen::ecs;
 Entity::Entity(const std::string &name) :
 	Object(name), m_parent(nullptr), m_layer(-1), m_is_hovered(false), m_is_pressed(false)
 {
+	// NO gravity for generic entity
+	setGravity(0);
+
 	std::unique_ptr<Transform> tr = std::make_unique<Transform>();
 	tr->pos().x = 0;
 	tr->pos().y = 0;
@@ -146,6 +149,13 @@ glm::vec3 Entity::pos() const
 		Entity* p = dynamic_cast<Entity*>(parent());
 		if (p != nullptr)
 			gPos += p->pos();
+	}
+	if (parent() != nullptr)
+	{
+		if (gravity() & VERTICAL_CENTER)
+			gPos.y = parent()->pos().y + (parent()->size().y-size().y)*0.5;
+		if (gravity() & HORIZONTAL_CENTER)
+			gPos.x = parent()->pos().x + (parent()->size().x - size().x)*0.5;
 	}
 	return gPos;
 }

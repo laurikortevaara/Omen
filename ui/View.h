@@ -15,6 +15,7 @@ namespace omen {
     namespace ui {
         class View : public ecs::Entity {
         public:
+
         protected:
             View *m_parentView;
 
@@ -36,10 +37,26 @@ namespace omen {
 			glm::vec4 margins() const { return m_margins; }
 			void setMargins(const glm::vec4& margins) { m_margins = margins; }
 			
+			enum MARGIN_POS {
+				left = 0,
+				top = 1,
+				right = 2,
+				bottom = 3
+			};
 			glm::vec4 m_margins; // left, top, right, bottom;
-			glm::vec2 m_size;
-			glm::vec2 size() const { return m_size; }
-			void setSize(const glm::vec2& size) { m_size = size; }
+			
+			virtual glm::vec3 pos() const { return Entity::pos() + glm::vec3(m_margins[left], m_margins[top], 0); }
+			virtual glm::vec2 pos2D() const { return Entity::pos2D() + glm::vec2(m_margins[left], m_margins[top]); };
+
+			virtual glm::vec3 localPos() const { return Entity::tr_const()->pos(); }
+			virtual void setLocalPos(const glm::vec3& pos) { Entity::tr()->setPos(pos); }
+
+			virtual glm::vec2 localPos2D() const { return glm::vec2(Entity::tr_const()->pos()); }
+			virtual void setLocalPos2D(const glm::vec2& pos) { Entity::tr()->setPos(glm::vec3(pos, Entity::tr()->pos().z)); }
+
+			virtual float width() const { return Entity::width();}
+			virtual float height() const { return Entity::height(); }
+
 		};
     } // namespace UI
 } // namespace omen

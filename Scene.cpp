@@ -22,6 +22,7 @@
 #include "component/MeshRenderer.h"
 #include "ui/Button.h"
 #include "ui/Slider.h"
+#include "ui/LinearLayout.h"
 #include "ToolView.h"
 #include "ui/TextView.h"
 #include "Texture.h"
@@ -233,73 +234,96 @@ void omen::Scene::initialize()
 
 	float distributionFactor = 10.0f;
 
-	for (int i = 0; i < 10; ++i) {
-		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider" + std::to_string(i + 1), "textures/slider_groove.png", glm::vec2(10, 100 + i * 20), glm::vec2(500, 10));
-		addEntity(std::move(slider), 1);
-	}
+	std::unique_ptr<omen::ui::LinearLayout> sliderLayout = std::make_unique<omen::ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500));
 
-	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView", glm::vec2(0, 150), glm::vec2(200, 200));
+	for (int i = 0; i < 10; ++i) {
+		std::unique_ptr<ui::Slider> slider = std::make_unique<ui::Slider>(nullptr, "Slider" + std::to_string(i + 1), "textures/slider_groove.png", glm::vec2(0,0), glm::vec2(500, 50));
+		//slider->setGravity(omen::ui::View::VERTICAL_CENTER);
+		sliderLayout->addChild(std::move(slider));
+	}
+	addEntity(std::move(sliderLayout));
+
+
+	std::unique_ptr<ui::TextView> tv = std::make_unique<ui::TextView>(nullptr, "TextView", glm::vec2(0, 350), glm::vec2(200, 200));
 	tv->setText(L"Textii :D");
 	addEntity(std::move(tv), 3);
 
 	ui::Slider* e = dynamic_cast<ui::Slider*>(findEntity("Slider1"));
-	e->setPos(Engine::ShadowFrustumNear / 10.0f);
+	e->setMaxValue(10);
+	e->setLabel(L"Near");
+	e->setValue(Engine::ShadowFrustumNear);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowFrustumNear = 10.0f*value;
+		Engine::ShadowFrustumNear = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider2"));
-	e->setPos(Engine::ShadowFrustumFar / 8000.0f);
+	e->setMaxValue(8000);
+	e->setLabel(L"Far");
+	e->setValue(Engine::ShadowFrustumFar);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowFrustumFar = 8000.0f*value;
+		Engine::ShadowFrustumFar = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider3"));
-	e->setPos(Engine::ShadowFrustumSize / 2000.0f);
+	e->setMaxValue(2000);
+	e->setLabel(L"Frust.Size");
+	e->setValue(Engine::ShadowFrustumSize);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowFrustumSize = 2000.0f*value;
+		Engine::ShadowFrustumSize = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider4"));
-	e->setPos(Engine::LightDistance);
+	e->setValue(Engine::LightDistance);
+	e->setLabel(L"Distance");
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
 		Engine::LightDistance = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider5"));
-	e->setPos(Engine::LightDistance);
+	e->setMaxValue(10);
+	e->setLabel(L"ShadowBlur");
+	e->setValue(Engine::LightDistance);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::ShadowBlur = value*10.0f;
+		Engine::ShadowBlur = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider6"));
-	e->setPos(Engine::LightIntensity);
+	e->setMaxValue(10);
+	e->setLabel(L"LightIntensity");
+	e->setValue(Engine::LightIntensity);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightIntensity = value*10.0;
+		Engine::LightIntensity = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider7"));
-	e->setPos(Engine::AmbientFactor);
+	e->setValue(Engine::AmbientFactor);
+	e->setLabel(L"Ambient");
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
 		Engine::AmbientFactor = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider8"));
-	e->setPos(Engine::MaterialShininess);
+	e->setMaxValue(100);
+	e->setLabel(L"Shininess");
+	e->setValue(Engine::MaterialShininess);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::MaterialShininess = value*100.0f;
+		Engine::MaterialShininess = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider9"));
-	e->setPos(Engine::MaterialShininess);
+	e->setMaxValue(360);
+	e->setLabel(L"Azimuth");
+	e->setValue(Engine::MaterialShininess);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightAzimuthAngle = value*360.0f;
+		Engine::LightAzimuthAngle = value;
 	});
 
 	e = dynamic_cast<ui::Slider*>(findEntity("Slider10"));
-	e->setPos(Engine::MaterialShininess);
+	e->setMaxValue(90);
+	e->setLabel(L"Zenith");
+	e->setValue(Engine::MaterialShininess);
 	if (e != nullptr) e->signal_slider_dragged.connect([](ui::Slider* slider, float value) -> void {
-		Engine::LightZenithAngle = value*90.0f;
+		Engine::LightZenithAngle = value;
 	});
 
 	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)

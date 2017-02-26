@@ -358,7 +358,7 @@ void OpenVRSystem::updateHMDMatrixPose()
 void OpenVRSystem::render(omen::Shader* shader, int layer)
 {
 	m_renderVR = true;
-	if (m_VRSystem->IsInputFocusCapturedByAnotherProcess())
+	if (m_VRSystem == nullptr || m_VRSystem->IsInputFocusCapturedByAnotherProcess())
 	{
 		std::cout << "VR Input focus captured by another process, cannot render!" << std::endl;
 		return;

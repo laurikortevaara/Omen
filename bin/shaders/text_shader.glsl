@@ -36,7 +36,7 @@ out vec4 out_color;
 
 void main()
 {
-    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(Text, TexCoords).r * 0.5);
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(Text, TexCoords).r * 0.95);
     out_color = TextColor * sampled;
 }
 

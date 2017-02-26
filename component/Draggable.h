@@ -22,12 +22,14 @@ namespace omen {
 			Dragged_t signal_dragged;
 
         public:
-            Draggable();
+			Draggable(const glm::vec2& groovePos = { 0.0f,0.0f }, const glm::vec2& grooveSize = { -1.0f,-1.0f });
             virtual ~Draggable();
 
 			void setPos(float pos);
 			float pos() const;
         private:
+			glm::vec3 m_groovePos;
+			glm::vec3 m_grooveSize;
 			glm::vec2 m_deltaPos;
             glm::vec2 m_cursorPos;
 			bool m_is_pressed;
