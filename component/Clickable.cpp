@@ -31,7 +31,7 @@ Clickable::Clickable() :
 				cursorPos.y >= (pos.y+bmin.y) &&
 				cursorPos.y <= (pos.y+bmax.y)) {
 				m_deltaPos = glm::vec2(cursorPos.x-pos.x, cursorPos.y-pos.y);
-                signal_entity_clicked.notify(entity(), cursorPos);
+                signal_entity_clicked.notify(entity(), cursorPos, button);
 				m_is_pressed = true;
             }
         }

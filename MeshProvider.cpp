@@ -341,7 +341,7 @@ std::unique_ptr<Mesh> MeshProvider::createSphere()
 	std::vector<Mesh::Vertex> actualVertices;
 	std::vector<glm::vec3> actualNormals;
 	actualNormals.reserve(vertices.size());
-	for (int i = 0; i < indices.size(); i+=3 ) {
+	for (size_t i = 0; i < indices.size(); i+=3 ) {
 		int vi1 = indices[i];
 		int vi2 = indices[i + 1];
 		int vi3 = indices[i + 2];
@@ -360,7 +360,7 @@ std::unique_ptr<Mesh> MeshProvider::createSphere()
 		v3.normal = (n);*/
 	}
 
-	for (int i = 0; i < indices.size(); i += 3) {
+	for (size_t i = 0; i < indices.size(); i += 3) {
 		int vi1 = indices[i];
 		int vi2 = indices[i + 1];
 		int vi3 = indices[i + 2];
@@ -376,7 +376,7 @@ std::unique_ptr<Mesh> MeshProvider::createSphere()
 	}
 
 	// Calc tangents
-	for (int i = 0; i < vertices.size()-3; i += 3) {
+	for (size_t i = 0; i < vertices.size()-3; i += 3) {
 
 		// Shortcuts for vertices
 		glm::vec3 & v0 = vertices.empty() ? glm::vec3(0.0f) : vertices[i + 0];
@@ -435,16 +435,16 @@ std::unique_ptr<Mesh> MeshProvider::createSphere()
 	return nullptr;
 	////////
 	float radius = 10.0f;
-	unsigned int rings = 10;
-	unsigned int sectors = 10;
+	int rings = 10;
+	int sectors = 10;
 	{
 		std::vector<GLfloat> vertices;
 		std::vector<GLfloat> normals;
 		std::vector<GLfloat> texcoords;
 		std::vector<GLushort> indices;
 
-		float const R = 1. / (float)(rings - 1);
-		float const S = 1. / (float)(sectors - 1);
+		float const R = 1.0f / (float)(rings - 1);
+		float const S = 1.0f / (float)(sectors - 1);
 		int r, s;
 		
 		vertices.resize(rings * sectors * 3);
@@ -454,9 +454,9 @@ std::unique_ptr<Mesh> MeshProvider::createSphere()
 		std::vector<GLfloat>::iterator n = normals.begin();
 		std::vector<GLfloat>::iterator t = texcoords.begin();
 		for (r = 0; r < rings; r++) for (s = 0; s < sectors; s++) {
-			float const y = sin(-M_PI_2 + M_PI * r * R);
-			float const x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
-			float const z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
+			float const y = static_cast<float>(sin(-M_PI_2 + M_PI * r * R));
+			float const x = static_cast<float>(cos(2 * M_PI * s * S) * sin(M_PI * r * R));
+			float const z = static_cast<float>(sin(2 * M_PI * s * S) * sin(M_PI * r * R));
 
 			*t++ = s*S;
 			*t++ = r*R;

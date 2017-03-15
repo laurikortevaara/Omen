@@ -17,6 +17,9 @@ namespace omen {
 	}
 
     namespace ui {
+
+		class ImageView;
+
         class Slider : public View {
         public:
             typedef omen::Signal<std::function<void(Slider *, glm::vec2)> > SliderClicked_t;
@@ -37,7 +40,7 @@ namespace omen {
 			void setGrooveSize(glm::vec2 grooveSize) { m_grooveSize = grooveSize; }
 			glm::vec2 grooveSize() const { return m_grooveSize; }
 
-			void setCurrentValue(float value) { m_current_value = value; }
+			void setCurrentValue(float value);
 			void setMinValue(float min) { m_min_value = min; }
 			void setMaxValue(float max) { m_max_value = max; }
 			float currentValue() const { return m_current_value; }
@@ -55,6 +58,7 @@ namespace omen {
 			float m_current_value;
 			glm::vec2 m_groovePos;
 			glm::vec2 m_grooveSize;
+			ImageView* m_pKnot;
         };
     } // namespace ui
 } // namespace omen

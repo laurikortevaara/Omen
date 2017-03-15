@@ -131,7 +131,7 @@ bool OpenVRSystem::init()
 			}
 		}
 	});
-
+	return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -268,6 +268,8 @@ glm::mat4 OpenVRSystem::getCurrentViewMatrix(vr::EVREye eye)
 		return m_mat4eyePosLeft * glm::mat4(glm::mat3(m_mat4HMDPose));
 	if (eye == vr::Eye_Right)
 		return m_mat4eyePosRight * glm::mat4(glm::mat3(m_mat4HMDPose));
+	else
+		return glm::mat4();
 }
 
 void OpenVRSystem::renderScene(vr::EVREye eye)

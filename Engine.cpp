@@ -53,7 +53,7 @@ GLint Engine::blend_mode = 3;
 GLuint Engine::ShadowBlur = 3;
 GLfloat Engine::ShadowFrustumNear = 5.0f;
 GLfloat Engine::ShadowFrustumFar = 1500.0f;
-GLfloat Engine::LightDistance = 0.225;
+GLfloat Engine::LightDistance = 0.225f;
 GLfloat Engine::ShadowFrustumSize = 1000.0f;
 glm::vec3 Engine::MousePickRay(0, 0, 0);
 glm::vec3 Engine::LightPos(-15, 20, -15);
@@ -69,7 +69,7 @@ std::mutex Engine::t_future_task::task_mutex;
 
 #define size_alloc 1024*1024*300
 
-typedef struct allocation{
+struct allocation{
 	BYTE* ptr;
 	unsigned long long size;
 };
@@ -150,7 +150,9 @@ Engine::Engine() :
 	m_sample_coverage(1),
 	m_currentSelection(nullptr),
 	m_polygonMode(GL_FILL),
-	m_is_shutting_down(false) {
+	m_is_shutting_down(false),
+	m_bMeshRendererEnabled(true)
+{
 
 	std::string currentDir = omen::getWorkingDir();
 	if (currentDir.find("bin") == std::string::npos)
@@ -306,8 +308,12 @@ void Engine::initializeSystems() {
 	});
 	
 	keyboardInput->signal_key_release.connect([this](int k, int s, int a, int m) {
+		if (k == GLFW_KEY_Y)
+			this->m_bMeshRendererEnabled = this->m_bMeshRendererEnabled ? false : true;
+		else
 		if (k == GLFW_KEY_T)
 			m_polygonMode = m_polygonMode == GL_FILL ? GL_LINE : GL_FILL;
+		
 	});
 
 	keyboardInput->signal_key_press.connect([this](int key, int shift, int alpha, int mode) {
@@ -396,8 +402,8 @@ void Engine::update() {
 
 	float t = time();
 	glm::vec4 l(0, 1, 0, 1);
-	float la = LightAzimuthAngle * ((glm::pi<float>())/ 180.0);
-	float lz = LightZenithAngle * ((glm::pi<float>()) / 180.0);
+	float la = std::any_cast<float>(properties["Azimuth"]) * ((glm::pi<float>())/ 180.0f);
+	float lz = std::any_cast<float>(properties["Zenith"]) * ((glm::pi<float>()) / 180.0f);
 	glm::mat4 m;
 	m = glm::rotate(m, la, glm::vec3(0, 1, 0));
 	m = glm::rotate(m, lz, glm::vec3(1, 0, 0));
@@ -519,7 +525,7 @@ void Engine::render() {
 	for (auto fps : q_fps)
 		m_avg_fps += fps;
 	
-	m_fps = 1.0 / m_timeDelta;
+	m_fps = 1.0f / m_timeDelta;
 	m_avg_fps /= q_fps.size();
 	
 	glClearColor(0, 0, 0, 1);
@@ -529,7 +535,7 @@ void Engine::render() {
 
 	handle_task_queue();
 
-	float delta = (1000.0f/60.0)-(m_timeDelta*1000.0f);
+	float delta = (1000.0f/60.0f)-(m_timeDelta*1000.0f);
 	if(delta > 0 )
 		Sleep((int)(delta));
 }

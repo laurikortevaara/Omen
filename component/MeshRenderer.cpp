@@ -243,33 +243,33 @@ void MeshRenderer::onAttach(Entity* e) {
 		{
 		case 1:
 			if (key == GLFW_KEY_PAGE_UP)
-				spotlight_distance += 0.001;
+				spotlight_distance += 0.001f;
 			if (key == GLFW_KEY_PAGE_DOWN)
-				spotlight_distance -= 0.001;
+				spotlight_distance -= 0.001f;
 			break;
 		case 2:
 			if (key == GLFW_KEY_PAGE_UP)
-				spotlight_angle += 5.0;
+				spotlight_angle += 5.0f;
 			if (key == GLFW_KEY_PAGE_DOWN)
-				spotlight_angle -= 5.0;
+				spotlight_angle -= 5.0f;
 			break;
 		case 3:
 			if (key == GLFW_KEY_PAGE_UP)
-				spotlight_near += 0.01;
+				spotlight_near += 0.01f;
 			if (key == GLFW_KEY_PAGE_DOWN)
-				spotlight_near -= 0.01;
+				spotlight_near -= 0.01f;
 			break;
 		case 4:
 			if (key == GLFW_KEY_PAGE_UP)
-				spotlight_far += 0.1;
+				spotlight_far += 0.1f;
 			if (key == GLFW_KEY_PAGE_DOWN)
-				spotlight_far -= 0.1;
+				spotlight_far -= 0.1f;
 			break;
 		case 5:
 			if (key == GLFW_KEY_PAGE_UP)
-				depth_bias += 0.01;
+				depth_bias += 0.01f;
 			if (key == GLFW_KEY_PAGE_DOWN)
-				depth_bias -= 0.01;
+				depth_bias -= 0.01f;
 			break;
 		}
 
@@ -289,6 +289,8 @@ void MeshRenderer::onDetach(Entity* e) {
 
 void MeshRenderer::render(Shader* shader)
 {
+	if (!Engine::instance()->meshRendererEnabled())
+		return;
 	Shader* pShader = shader == nullptr ? m_shader.get() : shader;
 
 	pShader->use();

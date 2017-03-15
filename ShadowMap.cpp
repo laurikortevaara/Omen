@@ -44,6 +44,8 @@ bool ShadowMap::init()
 	// Always check that our framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		return false;
+
+	return true;
 }
 
 void ShadowMap::render()

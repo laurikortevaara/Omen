@@ -23,7 +23,8 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	View(parentView, name, pos, size),
 	m_min_value(minMax.x),
 	m_max_value(minMax.y),
-	m_current_value(0.0f)
+	m_current_value(0.0f),
+	m_pKnot(nullptr)
 {
 	// Create main slider layout
 	std::unique_ptr<LinearLayout> layout = std::make_unique<LinearLayout>(this, "LayoutSlider", glm::vec2(0, 0), size, LinearLayout::LayoutDirection::HORIZONTAL);
@@ -48,25 +49,33 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	sliderGroove = std::make_unique<omen::ecs::BorderSprite>(spriteName, m_groovePos+glm::vec2(0,22.5), glm::vec2(m_grooveSize.x-20,-1), 10, 10, 3, 3);
 	std::unique_ptr<omen::ecs::SpriteRenderer> sr = std::make_unique<omen::ecs::SpriteRenderer>(std::move(sliderGroove));
 	layoutGroove->addComponent(std::move(sr));
-	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
-	layoutGroove->addComponent(std::move(click));
-  
+	
 	// Create knot button to allow slider value changes
 	glm::vec2 knotPos{0,0};
 	std::unique_ptr<omen::ui::ImageView> knot = std::make_unique<omen::ui::ImageView>(nullptr, "Knot", "textures/slider_knot.png", knotPos);
 	knot->setGravity(VERTICAL_CENTER);
 	
 	// Create a draggable component and add it to the knot
-	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>(m_groovePos, m_grooveSize);
+	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>(m_groovePos, glm::vec2(m_grooveSize.x-20,m_grooveSize.y));
 	dragKnot->signal_dragged.connect([this](float value) -> void {
-		m_current_value = value;
-		signal_slider_dragged.notify(this, m_current_value*(this->m_max_value - this->m_min_value));
+		setCurrentValue(value*(this->m_max_value - this->m_min_value));
 	});
+
 	knot->addComponent(std::move(dragKnot));
 	
+	m_pKnot = knot.get();
 	// Add the knot to the groove layout
 	layoutGroove->addChild(std::move(knot));
 	
+
+	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
+	click->signal_entity_clicked.connect([this](Entity* e, glm::vec2 pos, int button) {
+		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+			setCurrentValue(0.5);
+		}
+	});
+	layoutGroove->addComponent(std::move(click));
+
 	// Add the groove layout to the main slider layout
 	layout->addChild(std::move(layoutGroove));
 
@@ -120,4 +129,11 @@ void Slider::setLabel(const std::wstring& label)
 {
 	TextView* tvLabel = dynamic_cast<TextView*>(findChild("LabelName"));
 	tvLabel->setText(label);
+}
+
+void Slider::setCurrentValue(float value) {
+	m_current_value = value / (this->m_max_value - this->m_min_value);
+	signal_slider_dragged.notify(this, m_current_value*(this->m_max_value - this->m_min_value));
+	if (m_pKnot != nullptr)
+		m_pKnot->setLocalPos2D(glm::vec2(m_current_value*(m_grooveSize.x - 40), m_pKnot->localPos2D().y));
 }

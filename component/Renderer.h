@@ -52,6 +52,7 @@ namespace omen {
 			GLuint m_vbo_normals;
 			GLuint m_vbo_tangents;
 			GLuint m_vbo_bitangents;
+			GLuint m_vbo_barycentric;
 			std::unique_ptr<Shader> m_shader;
 			std::unique_ptr<Texture> m_texture;
 		private:

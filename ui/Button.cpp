@@ -21,7 +21,7 @@ Button::Button(View* parentView, const std::string &name,const std::string &spri
 	addComponent(std::move(click));
 	   
 	// Cliced event
-    getComponent<ecs::Clickable>()->signal_entity_clicked.connect([&](ecs::Entity* e, glm::vec2 pos){
+    getComponent<ecs::Clickable>()->signal_entity_clicked.connect([&](ecs::Entity* e, glm::vec2 pos, int button){
         if(e==this){
             signal_button_clicked.notify(this,pos);
         }

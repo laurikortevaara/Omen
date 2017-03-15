@@ -7,6 +7,7 @@
 #define VERTEX_ATTRIB_NORMAL 2
 #define VERTEX_ATTRIB_TANGENT 3
 #define VERTEX_ATTRIB_BITANGENT 4
+#define VERTEX_ATTRIB_BARYCENTRIC 5
 
 namespace omen {
 	class Material;

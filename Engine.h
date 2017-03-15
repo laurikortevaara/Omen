@@ -7,6 +7,7 @@
 
 #include <string>
 #include <iostream>
+#include <any>
 #include <glm/detail/type_mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <future>
@@ -47,11 +48,14 @@ namespace omen {
 		static glm::vec3 LightPos;
 		static float CameraSensitivity;
 
+		std::map<std::string, std::any> properties;
+
 		static float     AmbientFactor;
 		static float     MaterialShininess;
 		static float     LightIntensity;
 		static float	 LightAzimuthAngle;
 		static float	 LightZenithAngle;
+
 		/*static long left_bytes;
 		static long left_kbytes;
 		static long left_mbytes;*/
@@ -63,6 +67,7 @@ namespace omen {
         GLenum getPolygonMode();
 		static void getTextureMemoryInfo();
 		void ray_cast_mouse();
+		bool meshRendererEnabled() const { return m_bMeshRendererEnabled; }
 
     public:
         typedef Signal< std::function<void (omen::floatprec time, omen::floatprec delta_time)> > Update;
@@ -140,6 +145,7 @@ namespace omen {
         std::unique_ptr<ecs::TextRenderer> m_text;
 		bool m_is_shutting_down;
 		bool m_waiting_for_shut_down;
+		bool m_bMeshRendererEnabled;
 
 		void shutDown() { m_is_shutting_down = true; }
         void keyHit(int key, int scanCode, int action, int mods);

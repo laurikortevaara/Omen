@@ -153,9 +153,9 @@ glm::vec3 Entity::pos() const
 	if (parent() != nullptr)
 	{
 		if (gravity() & VERTICAL_CENTER)
-			gPos.y = parent()->pos().y + (parent()->size().y-size().y)*0.5;
+			gPos.y = parent()->pos().y + (parent()->size().y-size().y)*0.5f;
 		if (gravity() & HORIZONTAL_CENTER)
-			gPos.x = parent()->pos().x + (parent()->size().x - size().x)*0.5;
+			gPos.x = parent()->pos().x + (parent()->size().x - size().x)*0.5f;
 	}
 	return gPos;
 }

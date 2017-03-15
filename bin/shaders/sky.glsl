@@ -197,7 +197,7 @@ void main() {
 in vec3 vposition;
 out vec4 color;
 void main() {
-   
+
    vec3 sunPos = vec3(0,sin(iGlobalTime), cos(iGlobalTime));
 	vec3 col = atmosphere(
         normalize(vposition),           // normalized ray direction
@@ -215,5 +215,6 @@ void main() {
 
     // Apply exposure.
 	color = 1.0 - exp(-1.0 * vec4(col,1));
+    color = vec4(1);
 }
 #endif
