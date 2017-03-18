@@ -58,7 +58,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	// Create a draggable component and add it to the knot
 	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>(m_groovePos, glm::vec2(m_grooveSize.x-20,m_grooveSize.y));
 	dragKnot->signal_dragged.connect([this](float value) -> void {
-		setCurrentValue(value*(this->m_max_value - this->m_min_value));
+		setCurrentValue(this->m_min_value + value*(this->m_max_value - this->m_min_value));
 	});
 
 	knot->addComponent(std::move(dragKnot));
@@ -71,7 +71,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
 	click->signal_entity_clicked.connect([this](Entity* e, glm::vec2 pos, int button) {
 		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-			setCurrentValue(0.5);
+			setCurrentValue(this->m_min_value + 0.5*(this->m_max_value - this->m_min_value));
 		}
 	});
 	layoutGroove->addComponent(std::move(click));

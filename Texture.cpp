@@ -376,7 +376,7 @@ void Texture::loadTexture(const std::string &bitmap_path) {
 			m_height = y;
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			unsigned char* buf = new unsigned char(x*y*btm);
+			unsigned char* buf = new unsigned char[x*y*btm];
 			memcpy(buf, image, x*y*btm*sizeof(unsigned char));
 			glTexImage2D(m_textureTarget, 0, btm == 3 ? GL_RGB : GL_RGBA, x, y, 0, btm == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE,
 				(const void *)buf);

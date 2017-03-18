@@ -31,6 +31,24 @@ namespace omen {
 			GLuint m_vbo;
 			GLuint m_ibo;
 			Shader *m_shader;
+
+			float m_spotBrightness;
+			float  m_rayleighBrightness;
+			float  m_mieBrightness;
+			float  m_mieDistribution;
+			int  m_stepCount;
+			float m_surfaceHeight;
+			float m_rayleighStrength;
+			float  m_mieStrength;
+			float  m_scatterStrength;
+			float m_rayleighCollectionPower;
+			float m_mieCollectionPower;
+			float m_intensityRed;
+			float  m_intensityGreen;
+			float m_intensityBlue;
+			float m_HExtinctionBias;
+			float  m_EyeExtinctionBias;
+			float  m_rayleighFactor;
 		};
 	}; // namespace ecs;
 } // namespace omen

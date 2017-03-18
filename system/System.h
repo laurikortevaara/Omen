@@ -33,7 +33,7 @@ namespace omen {
             void update(double time, double deltaTime);
 
             template<class type>
-            type *findComponent(const std::string &component_name = "") {
+            type *findComponent(const char* component_name = nullptr) {
                 for (auto c : m_components)
                     if (dynamic_cast<type *>(c) != nullptr)
                         return dynamic_cast<type *>(c);

@@ -19,6 +19,28 @@ SkyRenderer::SkyRenderer(MeshController* mc) :
 	m_shader = new Shader("shaders/spherical_sky.glsl");
 	uvTexMap = new Texture("textures/sky_daytime_blue.jpg");
 	uvEnvMap = new Texture("textures/sky_daytime_blue.jpg");
+
+	Engine::instance()->properties["SpotBrightness"].signal_property_changed.connect([&](std::any* prop) { 
+	   float miu = std::any_cast<float>(*prop);
+		this->m_spotBrightness = miu; 
+	});
+
+	Engine::instance()->properties["RayleighBrightness"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighBrightness = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieBrightness"].signal_property_changed.connect([this](std::any* prop) { this->m_mieBrightness = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieDistribution"].signal_property_changed.connect([this](std::any* prop) { this->m_mieDistribution = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["StepCount"].signal_property_changed.connect([this](std::any* prop) { this->m_stepCount = std::any_cast<int>(*prop); });
+	Engine::instance()->properties["SurfaceHeight"].signal_property_changed.connect([this](std::any* prop) { this->m_surfaceHeight = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighStrength"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighStrength = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieStrength"].signal_property_changed.connect([this](std::any* prop) { this->m_mieStrength = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["ScatterStrength"].signal_property_changed.connect([this](std::any* prop) { this->m_scatterStrength = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighCollectionPower"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighCollectionPower = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieCollectionPower"].signal_property_changed.connect([this](std::any* prop) { this->m_mieCollectionPower = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["IntensityRed"].signal_property_changed.connect([this](std::any* prop) { this->m_intensityRed = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["IntensityGreen"].signal_property_changed.connect([this](std::any* prop) { this->m_intensityGreen = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["IntensityBlue"].signal_property_changed.connect([this](std::any* prop) { this->m_intensityBlue = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["HExtinctionBias"].signal_property_changed.connect([this](std::any* prop) { this->m_HExtinctionBias = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["EyeExtinctionBias"].signal_property_changed.connect([this](std::any* prop) { this->m_EyeExtinctionBias = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighFactor"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighFactor = std::any_cast<float>(*prop); });
 }
 
 
@@ -65,22 +87,25 @@ void SkyRenderer::render(Shader* shader) {
 	m_shader->setUniformMatrix4fv("invPV", 1, glm::value_ptr(ipv), false);
 	m_shader->setUniformMatrix4fv("inv_proj", 1, glm::value_ptr(ip), false);
 	m_shader->setUniformMatrix4fv("inv_view_rot", 1, glm::value_ptr(iv), false);
-	m_shader->setUniform1f("SpotBrightness", std::any_cast<float>(Engine::instance()->properties["SpotBrightness"]));
-	m_shader->setUniform1f("RayleighBrightness", std::any_cast<float>(Engine::instance()->properties["RayleighBrightness"]));
-	m_shader->setUniform1f("MieBrightness", std::any_cast<float>(Engine::instance()->properties["MieBrightness"]));
-	m_shader->setUniform1f("MieDistribution", std::any_cast<float>(Engine::instance()->properties["MieDistribution"]));
-	m_shader->setUniform1i("StepCount", std::any_cast<int>(Engine::instance()->properties["StepCount"]));
-	m_shader->setUniform1f("SurfaceHeight", std::any_cast<float>(Engine::instance()->properties["SurfaceHeight"]));
-	m_shader->setUniform1f("RayleighStrength", std::any_cast<float>(Engine::instance()->properties["RayleighStrength"]));
-	m_shader->setUniform1f("MieStrength", std::any_cast<float>(Engine::instance()->properties["MieStrength"]));
-	m_shader->setUniform1f("ScatterStrength", std::any_cast<float>(Engine::instance()->properties["ScatterStrength"]));
-	m_shader->setUniform1f("RayleighCollectionPower", std::any_cast<float>(Engine::instance()->properties["RayleighCollectionPower"]));
-	m_shader->setUniform1f("MieCollectionPower", std::any_cast<float>(Engine::instance()->properties["MieCollectionPower"]));
-	m_shader->setUniform1f("IntensityRed", std::any_cast<float>(Engine::instance()->properties["IntensityRed"]));
-	m_shader->setUniform1f("IntensityGreen", std::any_cast<float>(Engine::instance()->properties["IntensityGreen"]));
-	m_shader->setUniform1f("IntensityBlue", std::any_cast<float>(Engine::instance()->properties["IntensityBlue"]));
-	m_shader->setUniform1f("HExtinctionBias", std::any_cast<float>(Engine::instance()->properties["HExtinctionBias"]));
-	m_shader->setUniform1f("EyeExtinctionBias", std::any_cast<float>(Engine::instance()->properties["EyeExtinctionBias"]));
+	
+	m_shader->setUniform1f("SpotBrightness", m_spotBrightness); 
+	m_shader->setUniform1f("RayleighBrightness", m_rayleighBrightness);
+	m_shader->setUniform1f("MieBrightness", m_mieBrightness); 
+	m_shader->setUniform1f("MieDistribution", m_mieDistribution);
+	m_shader->setUniform1i("StepCount", m_stepCount); 
+	m_shader->setUniform1f("SurfaceHeight", m_surfaceHeight);
+	m_shader->setUniform1f("RayleighStrength", m_rayleighStrength);
+	m_shader->setUniform1f("MieStrength", m_mieStrength); 
+	m_shader->setUniform1f("ScatterStrength", m_scatterStrength); 
+	m_shader->setUniform1f("RayleighCollectionPower", m_rayleighCollectionPower); 
+	m_shader->setUniform1f("MieCollectionPower", m_mieCollectionPower); 
+	m_shader->setUniform1f("IntensityRed", m_intensityRed); 
+	m_shader->setUniform1f("IntensityGreen", m_intensityGreen);
+	m_shader->setUniform1f("IntensityBlue", m_intensityBlue); 
+	m_shader->setUniform1f("HExtinctionBias", m_HExtinctionBias); 
+	m_shader->setUniform1f("EyeExtinctionBias", m_EyeExtinctionBias);
+	m_shader->setUniform1f("RayleighFactor", m_rayleighFactor);
+
 	glm::vec3 lpos = std::any_cast<glm::vec3>(Engine::LightPos);
 	m_shader->setUniform3fv("LightPos", 1, glm::value_ptr(lpos));
 

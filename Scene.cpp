@@ -72,7 +72,7 @@ Scene::Scene() {
 	renderBuffer2 = new RenderBuffer();
 
 	ms = new MultipassShader();
-	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		int textureMapLoc = shader->getUniformLocation("Texture");
@@ -104,7 +104,7 @@ Scene::Scene() {
 		glDisable(GL_CULL_FACE);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	}));
+	}));*/
 	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -241,6 +241,8 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 }
 void omen::Scene::initialize()
 {
+	addEntity(std::move(std::make_unique<Sky>()));
+
 	std::unique_ptr<ui::LinearLayout> sliderLayout = std::make_unique<ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), ui::LinearLayout::VERTICAL);
 
 	std::unique_ptr<ui::Slider> slider_spot_brightness = std::make_unique<ui::Slider>(nullptr, "Spot Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0,1000));
@@ -283,11 +285,11 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_step_count));
 
-	std::unique_ptr<ui::Slider> slider_surface_height = std::make_unique<ui::Slider>(nullptr, "SurfaceHeight", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 1));
-	Engine::instance()->properties["SurfaceHeight"] = 0.5f;
-	slider_surface_height->setCurrentValue(0.5f);
+	std::unique_ptr<ui::Slider> slider_surface_height = std::make_unique<ui::Slider>(nullptr, "SurfaceHeight", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
+	Engine::instance()->properties["SurfaceHeight"] = 0.9f;
+	slider_surface_height->setCurrentValue(0.9f);
 	slider_surface_height->signal_slider_dragged.connect([](ui::Slider* slider, float value) {
-		Engine::instance()->properties["SurfaceHeight"] = value;
+		Engine::instance()->properties["SurfaceHeight"] = 0.9f+0.1f*value;
 	});
 	sliderLayout->addChild(std::move(slider_surface_height));
 
@@ -298,6 +300,14 @@ void omen::Scene::initialize()
 		Engine::instance()->properties["RayleighStrength"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_rayleigh_strenght));
+
+	std::unique_ptr<ui::Slider> slider_rayleighfactor = std::make_unique<ui::Slider>(nullptr, "RayleighFactor", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-1.0, 1.0f));
+	Engine::instance()->properties["RayleighFactor"] = -0.001f;
+	slider_rayleighfactor->setCurrentValue(-0.001f);
+	slider_rayleighfactor->signal_slider_dragged.connect([](ui::Slider* slider, float value) {
+		Engine::instance()->properties["RayleighFactor"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_rayleighfactor));
 
 	std::unique_ptr<ui::Slider> slider_mie_strength = std::make_unique<ui::Slider>(nullptr, "MieStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties["MieStrength"] = 1.3f;
@@ -355,7 +365,7 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_intensity_blue));
 
-	std::unique_ptr<ui::Slider> slider_sun_azimuth = std::make_unique<ui::Slider>(nullptr, "Sun Azimuth", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 360));
+	std::unique_ptr<ui::Slider> slider_sun_azimuth = std::make_unique<ui::Slider>(nullptr, "Sun Azimuth", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-180, 180));
 	Engine::instance()->properties["Azimuth"] = 1.0f;
 	slider_sun_azimuth->setCurrentValue(1.0f);
 	slider_sun_azimuth->signal_slider_dragged.connect([](ui::Slider* slider, float value) {
@@ -363,7 +373,7 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_sun_azimuth));
 
-	std::unique_ptr<ui::Slider> slider_sun_zenith = std::make_unique<ui::Slider>(nullptr, "Sun Zenith", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 360));
+	std::unique_ptr<ui::Slider> slider_sun_zenith = std::make_unique<ui::Slider>(nullptr, "Sun Zenith", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 180));
 	Engine::instance()->properties["Zenith"] = 1.0f;
 	slider_sun_zenith->setCurrentValue(1.0f);
 	slider_sun_zenith->signal_slider_dragged.connect([](ui::Slider* slider, float value) {
@@ -388,7 +398,6 @@ void omen::Scene::initialize()
 	sliderLayout->addChild(std::move(slider_ebias));
 
 	addEntity(std::move(sliderLayout));
-	addEntity(std::move(std::make_unique<Sky>()));
 	/*std::unique_ptr<omen::ui::LinearLayout> mainLayout = std::make_unique<omen::ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), omen::ui::LinearLayout::VERTICAL);
 	for (int j = 0; j < 10; ++j)
 	{

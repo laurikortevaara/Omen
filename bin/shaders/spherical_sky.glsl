@@ -23,6 +23,7 @@ uniform float IntensityBlue;
 uniform vec3 LightPos;
 uniform float EyeExtinctionBias;
 uniform float HExtinctionBias;
+uniform float RayleighFactor;
 /**
  * Vertex Shader
  *
@@ -41,7 +42,7 @@ void main() {
     vec4 back = invPV * vec4(pos,  1.0, 1.0);
 
     dir=back.xyz / back.w - front.xyz / front.w;
-    gl_Position = vec4(pos,-1.0,1.0);
+    gl_Position = vec4(pos,.0,1.0);
 }
 #endif
 
@@ -119,7 +120,7 @@ void main()
 
     vec3 lightdir = normalize(-LightPos);
     vec3 eyedir = getWorldNormal();
-    float alpha = dot(-eyedir, lightdir);
+    float alpha = dot(eyedir, lightdir);
 
     // Factors: rayleigh, mie and spot
     float rayleigh_brightness = RayleighBrightness; // 0-10.0, 33
@@ -136,8 +137,8 @@ void main()
     float mie_collection_power = MieCollectionPower;
 
     // Strength, rayleigh, and mie
-    float rayleigh_factor = phase(alpha, -0.01)*rayleigh_brightness; // 0-400, 139
-    float mie_factor = phase(alpha, mie_distribution)*mie_brightness; // 0-400, 264
+    float rayleigh_factor = phase(alpha, RayleighFactor)*rayleigh_brightness; // 0-400, 139
+    float mie_factor      = phase(alpha, mie_distribution)*mie_brightness; // 0-400, 264
 
     float spot = smoothstep(0.0, 15.0, phase(alpha, 0.9995))*spot_brightness;
 
@@ -167,13 +168,13 @@ void main()
         vec3 influx = absorb(sample_depth, vec3(intensity), scatter_strength);
 
         rayleigh_collected += absorb(sample_distance, Kr*influx, rayleigh_strength);
-        mie_collected += absorb(sample_distance, influx, mie_strength);
+        mie_collected      += absorb(sample_distance, influx   , mie_strength);
     }
 
-    rayleigh_collected = (rayleigh_collected * eye_extinction * pow(eye_depth, rayleigh_collection_power)) / float(step_count);
-    mie_collected = (mie_collected * eye_extinction * pow(eye_depth, mie_collection_power)) / float(step_count);
+    rayleigh_collected *= eye_extinction * pow(eye_depth, rayleigh_collection_power ) / float(step_count);
+    mie_collected      *= eye_extinction * pow(eye_depth, mie_collection_power      ) / float(step_count);
 
-    fragColor = vec4(vec3(spot*mie_collected + mie_factor*mie_collected + rayleigh_factor * rayleigh_collected), 1);
+    fragColor = vec4(vec3(mie_factor*mie_collected + rayleigh_factor * rayleigh_collected), 1) + vec4(vec3(spot*length(mie_collected)*vec3(246,223,143)/255.0),1);
 }
 #endif
 // END

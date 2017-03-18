@@ -67,7 +67,7 @@ float	  Engine::CameraSensitivity = 0.25;
 
 std::mutex Engine::t_future_task::task_mutex;
 
-#define size_alloc 1024*1024*300
+#define size_alloc 1024*1024*100
 
 struct allocation{
 	BYTE* ptr;
@@ -98,8 +98,12 @@ std::wstring wstringify(glm::vec3 v) {
 	return os.str();
 }
 
+#define _OWN_NEW
+#ifdef OWN_NEW
 void * operator new(size_t size)
 {   
+	if(mempool == nullptr)
+		mempool = (BYTE*)malloc(size_alloc);
 	/*std::cout << "Allocating with new [" << size << "] bytes. " << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__ << std::endl;
 	// try to allocate size bytes
 	void *p;
@@ -111,6 +115,8 @@ void * operator new(size_t size)
 			_RAISE(nomem);
 		}
 		*/
+	if (current_p == nullptr)
+		current_p = mempool;
 	void * p = (void*)current_p;
 	current_p += size;
 	Engine_left_bytes = size_alloc - (current_p - mempool);
@@ -137,7 +143,7 @@ void operator delete(void* ptr) noexcept
 {
 	//std::puts("");
 }
-
+#endif
 Engine::Engine() :
 	m_scene(nullptr),
 	m_camera(nullptr),
@@ -207,7 +213,7 @@ Engine::Engine() :
 
 Engine::~Engine()
 {
-	free(mempool);
+	//free(mempool);
 }
 
 Engine *Engine::instance() {
@@ -388,7 +394,7 @@ void Engine::ray_cast_mouse()
 
 void Engine::update() {
 
-	ui::TextView* tv = dynamic_cast<ui::TextView*>(scene()->findEntity("TextView"));
+	/*ui::TextView* tv = dynamic_cast<ui::TextView*>(scene()->findEntity("TextView"));
 	if (tv != nullptr) {
 		std::wstringstream wstr;
 		wstr << "FPS: " << wstringify(fps()) << "\n";
@@ -399,16 +405,15 @@ void Engine::update() {
 		wstr << "CursorPos: " << wstringify(glm::vec3(m_mouse_x, m_mouse_y, 0.0)) << "\n";
 		tv->setText(wstr.str());
 	}
-
+	*/
 	float t = time();
 	glm::vec4 l(0, 1, 0, 1);
 	float la = std::any_cast<float>(properties["Azimuth"]) * ((glm::pi<float>())/ 180.0f);
-	float lz = std::any_cast<float>(properties["Zenith"]) * ((glm::pi<float>()) / 180.0f);
+	float lz = (180.0f-std::any_cast<float>(properties["Zenith"])) * ((glm::pi<float>()) / 180.0f);
 	glm::mat4 m;
 	m = glm::rotate(m, la, glm::vec3(0, 1, 0));
 	m = glm::rotate(m, lz, glm::vec3(1, 0, 0));
 	l = normalize(m*l);
-	l *= 10000;
 	LightPos.x = l.x;
 	LightPos.y = l.y;
 	LightPos.z = l.z;

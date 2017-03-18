@@ -15,6 +15,17 @@ JoystickInput::JoystickInput() : Component() {
     // KeyHit signal handler
     // Add a static C-function callback wrapper with pointer to this
     m_window = glfwGetCurrentContext();
+
+	for (int i = 0; i < Joystick::MAX_JOYSTICK_COUNT; ++i) {
+		if (Joystick::isPresent(i)) {
+			addJoystick(new Joystick(i));
+		}
+	}
+	for (auto joystick : m_joysticks) {
+		if (!joystick->isPresent()) {
+			removeJoystick(joystick);
+		}
+	}
 }
 
 JoystickInput::~JoystickInput() {
@@ -22,16 +33,7 @@ JoystickInput::~JoystickInput() {
 }
 
 void JoystickInput::update(double time, double deltaTime) {
-    for (int i = 0; i < Joystick::MAX_JOYSTICK_COUNT; ++i) {
-        if (Joystick::isPresent(i)) {
-            addJoystick(new Joystick(i));
-        }
-    }
-    for (auto joystick : m_joysticks) {
-        if (!joystick->isPresent()) {
-            removeJoystick(joystick);
-        }
-    }
+    
 }
 
 /**

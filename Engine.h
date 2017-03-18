@@ -20,6 +20,7 @@
 #include "Texture.h"
 #include "system/System.h"
 #include "ui/Button.h"
+#include "Property.h"
 
 
 namespace omen {
@@ -29,7 +30,7 @@ namespace omen {
 	namespace ecs {
 		class TextRenderer;
 	}
-
+		
     class Engine {
 #define post_function Engine::instance()->post(std::make_unique<std::function<void()>>(std::function<void()>([&](void)
         /** Singleton interface **/
@@ -48,7 +49,7 @@ namespace omen {
 		static glm::vec3 LightPos;
 		static float CameraSensitivity;
 
-		std::map<std::string, std::any> properties;
+		std::map<std::string, Property> properties;
 
 		static float     AmbientFactor;
 		static float     MaterialShininess;
@@ -88,7 +89,7 @@ namespace omen {
         Camera* camera() {return m_camera;};
 		void setViewport(int x, int y, int w, int h);
 
-        template <class type> type* findSystem(const std::string& system_name="") {
+        template <class type> type* findSystem(const char* system_name=nullptr) {
             for(omen::ecs::System* s : m_systems)
 
                 if(dynamic_cast<type*>(s)!= nullptr)
@@ -96,7 +97,7 @@ namespace omen {
                 return nullptr;
         }
 
-        template <class type> type* findComponent(const std::string& component_name="") {
+        template <class type> type* findComponent(const char* component_name=nullptr) {
             for(omen::ecs::System* s : m_systems){
                 ecs::Component* c = s->findComponent<type>(component_name);
                 if(c != nullptr)
@@ -116,7 +117,7 @@ namespace omen {
             std::chrono::time_point<std::chrono::system_clock> task_created;
             std::chrono::duration<omen::floatprec> delay;
 			bool repeating;
-            std::shared_future<void> task;
+            std::future<void> task;
 			std::unique_ptr<std::function<void()>> fun;
 
 			void run() {
