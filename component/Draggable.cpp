@@ -73,7 +73,6 @@ float Draggable::pos() const {
 
 	omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity());
 	float minX, maxX;
-	float minY, maxY;
 
 	omen::Transform* parentTr = nullptr;
 	glm::vec3 pbmin, pbmax;
@@ -100,7 +99,6 @@ void Draggable::setPos(float pos) {
 
 	omen::ui::View* v = dynamic_cast<omen::ui::View*>(entity());
 	float minX, maxX;
-	float minY, maxY;
 
 	omen::Transform* parentTr = nullptr;
 	glm::vec3 pbmin, pbmax;

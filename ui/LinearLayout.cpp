@@ -59,7 +59,7 @@ bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 		float eh = e->height();
 		if (h == -1)
 			h = eh;
-		childPos.y = (h-eh)*0.5;
+		childPos.y = (h-eh)*0.5f;
 	}
 	e->setLocalPos2D(e->localPos2D()+childPos+glm::vec2(m_margins));
 	Entity::addChild(std::move(e));

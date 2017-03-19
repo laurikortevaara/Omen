@@ -35,7 +35,7 @@ MouseInput::MouseInput() : Component() {
 
 	glfwSetScrollCallback(m_window, [](GLFWwindow* win, double x, double y) -> void {
 		if (mouseinput_callbacks.find(win) != mouseinput_callbacks.end())
-			mouseinput_callbacks.find(win)->second.mouseScrolled(win, x, y);
+			mouseinput_callbacks.find(win)->second.mouseScrolled(win, static_cast<omen::floatprec>(x), static_cast<omen::floatprec>(y));
 	});
 
     // Hide te cursor and disable it's movement, kinda like capturing the mouse

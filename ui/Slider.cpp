@@ -71,7 +71,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
 	click->signal_entity_clicked.connect([this](Entity* e, glm::vec2 pos, int button) {
 		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-			setCurrentValue(this->m_min_value + 0.5*(this->m_max_value - this->m_min_value));
+			setCurrentValue(this->m_min_value + 0.5f*(this->m_max_value - this->m_min_value));
 		}
 	});
 	layoutGroove->addComponent(std::move(click));

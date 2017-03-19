@@ -47,7 +47,7 @@ GLuint read_png_file(char* file_name, int* w, int* h)
 	int color_type, interlace_type;
 	FILE *fp;
 
-	if ((fp = fopen(file_name, "rb")) == NULL)
+	if ((fopen_s(&fp, file_name, "rb")) != 0)
 		return false;
 
 	/* Create and initialize the png_struct
@@ -138,7 +138,7 @@ GLuint read_png_file(char* file_name, int* w, int* h)
 
 	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 
-	for (int i = 0; i < height; i++) {
+	for (size_t i = 0; i < height; i++) {
 		// note that png is ordered top to
 		// bottom, but OpenGL expect it bottom to top
 		// so the order or swapped

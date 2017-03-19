@@ -24,6 +24,7 @@ uniform vec3 LightPos;
 uniform float EyeExtinctionBias;
 uniform float HExtinctionBias;
 uniform float RayleighFactor;
+uniform vec3 Kr;
 /**
  * Vertex Shader
  *
@@ -47,8 +48,6 @@ void main() {
 #endif
 
 #ifdef FRAGMENT_SHADER
-
-const vec3 Kr = vec3(0.18867780436772762, 0.4978442963618773, 0.6616065586417131);
 
 /**
  * Fragment Shader
@@ -156,7 +155,7 @@ void main()
     vec3 rayleigh_collected = vec3(0.0,0.0,0.0);
     vec3 mie_collected = vec3(0.0,0.0,0.0);
 
-    vec3 intensity = vec3(IntensityRed, IntensityGreen, IntensityBlue);
+    vec3 intensity = vec3(1); //vec3(IntensityRed, IntensityGreen, IntensityBlue);
 
     for(int i=0; i < step_count; ++i)
     {

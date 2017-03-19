@@ -4,7 +4,7 @@
 #include "../Engine.h"
 #include "../GL_error.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "../ui/View.h";
+#include "../ui/View.h"
 
 omen::ecs::SpriteRenderer::SpriteRenderer(std::unique_ptr<omen::ecs::Sprite> sprite) : 
 	Renderer(),

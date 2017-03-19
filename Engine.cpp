@@ -67,7 +67,7 @@ float	  Engine::CameraSensitivity = 0.25;
 
 std::mutex Engine::t_future_task::task_mutex;
 
-#define size_alloc 1024*1024*100
+#define size_alloc 1024*1024*500
 
 struct allocation{
 	BYTE* ptr;
@@ -98,7 +98,7 @@ std::wstring wstringify(glm::vec3 v) {
 	return os.str();
 }
 
-#define _OWN_NEW
+#define OWN_NEW
 #ifdef OWN_NEW
 void * operator new(size_t size)
 {   
@@ -213,7 +213,7 @@ Engine::Engine() :
 
 Engine::~Engine()
 {
-	//free(mempool);
+	free(mempool);
 }
 
 Engine *Engine::instance() {

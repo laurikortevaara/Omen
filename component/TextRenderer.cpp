@@ -40,7 +40,7 @@ void TextRenderer::render(Shader* shader) {
 	float x = e->pos2D().x;
 	float y = -e->pos2D().y;
 	if (e->gravity() == omen::ui::View::VERTICAL_CENTER)
-		y = -(e->pos2D().y+(e->size2D().y-Characters['X'].Size.y)*0.5);
+		y = -(e->pos2D().y+(e->size2D().y-Characters['X'].Size.y)*0.5f);
 	renderText(m_text, x, y, 1.0, glm::vec4(1));
 }
 

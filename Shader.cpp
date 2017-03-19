@@ -216,7 +216,7 @@ bool Shader::readShaderFile(const char*shader_file) {
 		}
 	}
 
-	listAttribs();
+	//listAttribs();
 	std::cout << "--- Done Loading shader from file: " << shader_file << "---" << std::endl;
 	return true;
 }

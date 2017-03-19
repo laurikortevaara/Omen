@@ -80,8 +80,8 @@ void BorderSprite::render() {
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	glm::mat4 model(1);
-	float fw = 2.0 * width() / (float)Engine::instance()->window()->width();
-	float fh = 2.1 * height() / (float)Engine::instance()->window()->height();
+	float fw = 2.0f * width() / (float)Engine::instance()->window()->width();
+	float fh = 2.1f * height() / (float)Engine::instance()->window()->height();
 	float fx = -1.0f + 2 * ((renderer()->entity()->pos().x + pos().x + pivot().x) / (float)Engine::instance()->window()->width());
 	float fy =  1.0f - 2 * ((renderer()->entity()->pos().y + pos().y*0.5f + pivot().y) / (float)Engine::instance()->window()->height());
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
@@ -91,8 +91,8 @@ void BorderSprite::render() {
 	shader()->setUniform1i("BorderRight", right);
 	shader()->setUniform1i("BorderTop", top);
 	shader()->setUniform1i("BorderBottom", bottom);
-	shader()->setUniform1i("ViewWidth", width());
-	shader()->setUniform1i("ViewHeight", height());
+	shader()->setUniform1i("ViewWidth", static_cast<int>(width()));
+	shader()->setUniform1i("ViewHeight", static_cast<int>(height()));
 	int spriteWidth = texture()->width();
 	int spriteHeight = texture()->height();
 	shader()->setUniform1i("SpriteWidth", texture()->width());

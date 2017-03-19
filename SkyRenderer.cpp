@@ -106,6 +106,10 @@ void SkyRenderer::render(Shader* shader) {
 	m_shader->setUniform1f("EyeExtinctionBias", m_EyeExtinctionBias);
 	m_shader->setUniform1f("RayleighFactor", m_rayleighFactor);
 
+	glm::vec3 Kr = glm::vec3(0.18867780436772762*(0.5+0.5*m_intensityRed), 0.4978442963618773*(0.5 + 0.5*m_intensityGreen), 0.6616065586417131*(0.5 + 0.5*m_intensityBlue));
+	m_shader->setUniform3fv("Kr", 1, glm::value_ptr(Kr));
+
+
 	glm::vec3 lpos = std::any_cast<glm::vec3>(Engine::LightPos);
 	m_shader->setUniform3fv("LightPos", 1, glm::value_ptr(lpos));
 

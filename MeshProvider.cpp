@@ -1544,7 +1544,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 		std::vector<FbxColor> Speculars;
 		std::vector<std::string> textureFiles;
 		GetMaterials(pNode, Ambients, Diffuses, Speculars, textureFiles);
-		int iMesh = 0;
+		unsigned int iMesh = 0;
 		for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
 		{
 			FbxNodeAttribute* pAttrib = pNode->GetNodeAttributeByIndex(i);
@@ -1591,17 +1591,17 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				GetUVCoordinates(pNode, uv);
 
 				normals.clear();
-				for (int ti = 0; ti < vertices.size(); ++ti) {
+				for (size_t ti = 0; ti < vertices.size(); ++ti) {
 					normals.push_back({ 0,0,0 });
 					tangents.push_back({ 0,0,0 });
 					bitangents.push_back({ 0,0,0 });
 				}
 				
-				for (int ti = 0; ti < indices.size(); ti+=3)
+				for (size_t ti = 0; ti < indices.size(); ti+=3)
 				{
-					int ti1 = indices[ti + 0];
-					int ti2 = indices[ti + 1];
-					int ti3 = indices[ti + 2];
+					unsigned int ti1 = indices[ti + 0];
+					unsigned int ti2 = indices[ti + 1];
+					unsigned int ti3 = indices[ti + 2];
 					Mesh::Vertex& v0 = vertices[ti1];
 					Mesh::Vertex& v1 = vertices[ti2];
 					Mesh::Vertex& v2 = vertices[ti3];
@@ -1681,17 +1681,18 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				obj->addCompnent(std::move(mr));
 				obj->addCompnent(std::move(mc));
 
+				
 				FbxDouble3 lTranslation = pNode->LclTranslation.Get();
 				FbxDouble3 lRotation = pNode->LclRotation.Get();
 				FbxDouble3 lScaling = pNode->LclScaling.Get();
 
-				obj->tr()->pos().x = lTranslation[0] / lScaling[0];
-				obj->tr()->pos().y = lTranslation[1] / lScaling[1];
-				obj->tr()->pos().z = lTranslation[2] / lScaling[2];
+				obj->tr()->pos().x = static_cast<omen::floatprec>(lTranslation[0] / lScaling[0]);
+				obj->tr()->pos().y = static_cast<omen::floatprec>(lTranslation[1] / lScaling[1]);
+				obj->tr()->pos().z = static_cast<omen::floatprec>(lTranslation[2] / lScaling[2]);
 
-				obj->tr()->rotate(lRotation[0], glm::vec3(1, 0, 0));
-				obj->tr()->rotate(lRotation[1], glm::vec3(0, 1, 0));
-				obj->tr()->rotate(lRotation[2], glm::vec3(0, 0, 1));
+				obj->tr()->rotate(static_cast<omen::floatprec>(lRotation[0]), glm::vec3(1, 0, 0));
+				obj->tr()->rotate(static_cast<omen::floatprec>(lRotation[1]), glm::vec3(0, 1, 0));
+				obj->tr()->rotate(static_cast<omen::floatprec>(lRotation[2]), glm::vec3(0, 0, 1));
 
 				/*
 				obj->tr()->scale().x = lScaling[0] * 0.01;
@@ -1782,7 +1783,7 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 	glm::vec3 max_pos;
 	glm::vec3 min_pos;
 
-	for (int i = 0; i < vertices.size(); i += 3) {
+	for (size_t i = 0; i < vertices.size(); i += 3) {
 		glm::vec3& v1 = vertices[i];
 		glm::vec3& v2 = vertices[(i + 1) % (vertices.size())];
 		glm::vec3& v3 = vertices[(i + 2) % (vertices.size())];
@@ -1796,7 +1797,7 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 		min_pos.x = min(v3.x, min_pos.x); min_pos.y = min(v3.y, min_pos.y); min_pos.z = min(v3.z, min_pos.z);
 	}
 
-	for (int i = 0; i < vertices.size(); i+=3 ) {
+	for (size_t i = 0; i < vertices.size(); i+=3 ) {
 		glm::vec3& v1 = vertices[i];
 		glm::vec3& v2 = vertices[(i+1) % (vertices.size())];
 		glm::vec3& v3 = vertices[(i+2) % (vertices.size())];
@@ -1958,7 +1959,7 @@ std::unique_ptr<Mesh> MeshProvider::createPlane(float size, int subdiv)
 		
 	std::vector<GLsizei> indices;
 	std::vector<GLsizei> indices1 = { 0,1,3,1,2,3 };
-	for (int i = 0; i < vertices.size(); i+=4)
+	for (size_t i = 0; i < vertices.size(); i+=4)
 		for(auto index : indices1)
 			indices.push_back(index+i);
 	
