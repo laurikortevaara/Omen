@@ -233,12 +233,23 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 		addEntity(std::move(obj));
 
 	}
+
+	for (auto& light : lights()) {
+		std::list< std::unique_ptr<omen::ecs::GameObject> > lightmeshes = provider->loadObject("models/light_bulb.fbx");
+		for (auto& obj : lightmeshes)
+		{
+			obj->tr()->setPos(light->tr().pos());
+			obj->tr()->rotate(90.0, glm::vec3(1, 0, 0));
+			addEntity(std::move(obj));
+		}
+	}
 	
 	return nullptr;
 }
 void omen::Scene::initialize()
 {
-	
+	shadowMap = new ShadowMap();
+	shadowMap->init();
 	//addEntity(std::move(std::make_unique<Sky>()));
 	return;
 	//addEntity(std::move(std::make_unique<GroundGrid>()));
@@ -415,8 +426,49 @@ void omen::Scene::initialize()
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
 {
+	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
+
+	// Render shadowmap
+	shadowMap->render();
+	glEnable(GL_DEPTH_TEST);
+	gs->render(shadowMap->m_shader, 0);
+	shadowMap->finish();
+	
 	// Render scene on screen
 	ms->render();
+
+	// Render the foo
+	quadShader->use();
+
+	glm::vec2 v[4] = { { -0.1,0.1 },{ -0.1,-0.1 },{ 0.1, 0.1 },{ 0.1,-0.1 } };
+	GLuint vbo = 0, vao = 0;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	int loc = glGetUniformLocation(quadShader->m_shader_program, "Texture");
+	if (loc >= 0)
+		glUniform1i(loc, GL_TEXTURE0);
+
+	GLuint texId = shadowMap->depthTexture;
+	glBindTexture(GL_TEXTURE_2D, texId);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
 }
 
 void Scene::renderArrow()

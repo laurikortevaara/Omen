@@ -15,6 +15,7 @@ namespace omen {
         glm::vec4 m_diffuse_color;
         glm::vec4 m_ambient_color;
         glm::vec4 m_specular_color;
+		glm::vec4 m_emissive_color;
         GLfloat m_spec_coeff;
         Texture *m_texture;
 		Texture *m_texture_normal;
@@ -37,6 +38,11 @@ namespace omen {
         glm::vec4 &specularColor() { return m_specular_color; }
 
         void setSpecularColor(glm::vec4 color) { m_specular_color = color; }
+
+		glm::vec4 const &const_emissiveColor() const { return m_emissive_color; }
+		glm::vec4 &emissiveColor() { return m_emissive_color; }
+
+		void setEmissiveColor(glm::vec4 color) { m_emissive_color = color; }
 
         float &specularCoeff() { return m_spec_coeff; }
 

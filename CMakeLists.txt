@@ -311,6 +311,7 @@ Renderable.cpp
 RenderBuffer.cpp
 Scene.cpp
 Shader.cpp
+ShadowMap.cpp
 Sky.cpp
 SkyRenderer.cpp
 SysInfo.cpp
@@ -350,6 +351,7 @@ Renderable.h
 RenderBuffer.h
 Scene.h
 Shader.h
+ShadowMap.h
 Signal.h
 Sky.h
 SkyRenderer.h

@@ -17,6 +17,7 @@ uniform mat4    InverseViewProjection;
 uniform mat4	  DepthBiasMVP;
 uniform vec3	  LightPos;
 uniform vec4	  MaterialDiffuse;
+uniform vec4	  MaterialEmissive;
 uniform int		  ShadowBlur = 1;
 uniform bool	  HasTexture = true;
 uniform float     DepthBias = 0.01;
@@ -162,7 +163,7 @@ void main() {
 
 	// Shadow depth test
 	float visibility = 1.0;
-    float bias = DepthBias;
+    float bias = 0.0001; //DepthBias;
 	float compare = (ShadowCoord.z-bias)/ShadowCoord.w;
 	float fDepth = texture( shadowMap, (ShadowCoord.xy/ShadowCoord.w) ).z;
     if (  fDepth < compare  )
@@ -197,9 +198,16 @@ void main() {
 	out_color = HasTexture ? texture(TextureMap, uv) : MaterialDiffuse;
     //out_color = texture(TextureMap, uv)*MaterialDiffuse * min(1.0,diffuseFactor+0.5); //vec4(1) * visibility;
     //out_color = vec4(0.42578125, 0.484375, 0.55859375, 0) +  ( vec4(specularColor,1) + vec4(0.6,0.6,0.6,1) * diffuseFactor) * visibility;
-    //out_color *= vec4((diffuseColor + ambientColor + specularColor),1) * visibility;
+    out_color *= vec4((diffuseColor + ambientColor + specularColor),1) * visibility;
+	out_color = vec4(1)*visibility;
+
 	
-	out_color.r += 1.0-smoothstep(0.50,1.5,length(vertex-IntersectPos));
+
+	if(length(MaterialEmissive.r)==1.0)
+		out_color = MaterialEmissive;
+	//out_color = vec4(1)*cosAngle;
+	//out_color.r += 1.0-smoothstep(0.50,1.5,length(vertex-IntersectPos));
+
 }
 
 

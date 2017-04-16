@@ -56,10 +56,10 @@ GLint Engine::blend_mode = 3;
 GLuint Engine::ShadowBlur = 3;
 GLfloat Engine::ShadowFrustumNear = 5.0f;
 GLfloat Engine::ShadowFrustumFar = 1500.0f;
-GLfloat Engine::LightDistance = 0.225f;
+GLfloat Engine::LightDistance = 1.0f;
 GLfloat Engine::ShadowFrustumSize = 1000.0f;
 glm::vec3 Engine::MousePickRay(0, 0, 0);
-glm::vec3 Engine::LightPos(-15, 20, -15);
+glm::vec3 Engine::LightPos(100, 100, 0);
 
 float     Engine::AmbientFactor = 1.0;
 float     Engine::MaterialShininess = 32;
@@ -427,7 +427,7 @@ void Engine::update() {
 		tv->setText(wstr.str());
 	}
 	*/
-	float t = time();
+	/*float t = time();
 	glm::vec4 l(0, 1, 0, 1);
 	float la = 0.0f; // std::any_cast<float>(properties["Azimuth"]) * ((glm::pi<float>()) / 180.0f);
 	float lz = 45.0f; // (180.0f - std::any_cast<float>(properties["Zenith"])) * ((glm::pi<float>()) / 180.0f);
@@ -437,7 +437,7 @@ void Engine::update() {
 	l = normalize(m*l);
 	LightPos.x = l.x;
 	LightPos.y = l.y;
-	LightPos.z = l.z;
+	LightPos.z = l.z;*/
 	//getTextureMemoryInfo();
 	ray_cast_mouse();
 

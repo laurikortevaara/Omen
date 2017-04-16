@@ -297,7 +297,7 @@ void MeshRenderer::render(Shader* shader)
 
 	pShader->use();
 
-	
+	glEnable(GL_BLEND);
 	// Get matrices
 	ecs::OpenVRSystem* vrsys = Engine::instance()->findSystem<ecs::OpenVRSystem>();
 	glm::mat4 MVP = glm::mat4(1);
@@ -326,6 +326,9 @@ void MeshRenderer::render(Shader* shader)
 		glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
 		pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 
+		glm::vec4 emissiveColor = m_meshController->mesh()->material()->const_emissiveColor();
+		pShader->setUniform4fv("MaterialEmissive", 1, glm::value_ptr(emissiveColor));
+
 		// Set matrix uniforms
 		pShader->setUniformMatrix4fv("InverseViewProjection", 1, glm::value_ptr(inverseViewProjMatrix), false);
 		pShader->setUniform1f("DepthBias", depth_bias);
@@ -334,10 +337,11 @@ void MeshRenderer::render(Shader* shader)
 		/*Setup the DepthMVP*/
 		// Compute the MVP matrix from the light's point of view
 		glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
-		glm::vec3 lightInvDir = normalize(-lightPos);
+		//glm::vec3 lightInvDir = normalize(-lightPos);
+		glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
 		pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
-		float size = Engine::ShadowFrustumSize;
-		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+		float size = 10.0f; // Engine::ShadowFrustumSize;
+		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, -10, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
 		glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 
 		glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
@@ -382,10 +386,12 @@ void MeshRenderer::render(Shader* shader)
 		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
 
 		int shadowLoc = pShader->getUniformLocation("shadowMap");
-		glUniform1i(shadowLoc, 1);
+		if (shadowLoc >= 0) {
+			glUniform1i(shadowLoc, 1);
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
+		}
 	}
 
 	// Setup buffers for rendering
@@ -422,4 +428,42 @@ void MeshRenderer::render(Shader* shader)
 	else
 		drawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
 
+}
+
+void MeshRenderer::renderShadows(Shader* shader)
+{
+	shader->use();
+
+	/*Setup the DepthMVP*/
+	// Compute the MVP matrix from the light's point of view
+	glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
+	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
+	float size = 100.0f;
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, -10, 100.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
+	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+	glm::mat4 biasMatrix(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+	);
+
+	glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
+	shader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
+
+	// Setup buffers for rendering
+	glBindVertexArray(m_vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
+
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+
+	if (m_indexBuffer != 0)
+		drawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
+	else
+		drawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
 }
