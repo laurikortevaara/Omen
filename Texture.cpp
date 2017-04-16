@@ -403,11 +403,11 @@ void Texture::loadTexture(const std::string &bitmap_path) {
 
 void Texture::bind()
 {
-	if (!glIsTexture(m_textureID))
+	/*if (!glIsTexture(m_textureID))
 	{
 		int a = 1;
 	}
-	else
+	else*/
 		glBindTexture(m_textureTarget, m_textureID);
 }
 

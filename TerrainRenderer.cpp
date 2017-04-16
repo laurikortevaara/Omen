@@ -172,7 +172,7 @@ void TerrainRenderer::render()
 	//glPolygonMode(GL_FRONT, GL_LINE);
 	//glPolygonMode(GL_BACK, GL_LINE);
 	if (m_indexBuffer != 0)
-		glDrawElementsInstanced(GL_PATCHES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0,100);
+		drawElementsInstanced(GL_PATCHES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0,100);
 	check_gl_error();
 	glPolygonMode(GL_FRONT, GL_FILL);
 }

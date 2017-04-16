@@ -6,13 +6,14 @@
 #include "Component/Component.h"
 #include "Component/Transform.h"
 #include "component/MouseInput.h"
+#include "component/Picker.h"
 #include "Engine.h"
 
 using namespace omen::ecs;
 
 
 Entity::Entity(const std::string &name) :
-	Object(name), m_parent(nullptr), m_layer(-1), m_is_hovered(false), m_is_pressed(false)
+	Object(name), m_parent(nullptr), m_layer(-1), m_is_hovered(false), m_is_pressed(false), m_is_selected(false)
 {
 	// NO gravity for generic entity
 	setGravity(0);
@@ -22,6 +23,10 @@ Entity::Entity(const std::string &name) :
 	tr->pos().y = 0;
 	tr->setBounds(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	addComponent(std::move(tr));
+
+	Picker::signal_object_picked.connect([this](omen::ecs::Entity* obj) {
+		this->m_is_selected = obj == this;			
+	});
 
 	/**
 	Make Entity hoverable by mouse
@@ -61,6 +66,10 @@ Entity::Entity(const std::string &name) :
 	{
 		this->setPressed(false);
 	});
+}
+
+Entity::~Entity() 
+{
 }
 
 bool Entity::addChild(std::unique_ptr<Entity> e) {

@@ -25,3 +25,8 @@ System::System():
 	});
 }
 
+void System::add(Component* component)
+{
+	m_components.push_back(component); 
+}
+

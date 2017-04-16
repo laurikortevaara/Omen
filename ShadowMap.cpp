@@ -37,7 +37,7 @@ bool ShadowMap::init()
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);
-	//glDrawBuffer(GL_NONE); // No color buffer is drawn to.
+	//drawBuffer(GL_NONE); // No color buffer is drawn to.
 	//glReadBuffer(GL_NONE); // No read buffer in use
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

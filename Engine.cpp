@@ -30,8 +30,11 @@
 #include "component/Transformer.h"
 #include "component/Sprite.h"
 #include "component/TextRenderer.h"
+#include "component/Script.h"
 #include "system/GraphicsSystem.h"
+#include "system/ScriptSystem.h"
 #include "ui/TextView.h"
+#include "SysInfo.h"
 
 #include "system/OpenVRSystem.h"
 
@@ -67,7 +70,7 @@ float	  Engine::CameraSensitivity = 0.25;
 
 std::mutex Engine::t_future_task::task_mutex;
 
-#define size_alloc 1024*1024*500
+#define size_alloc 1024*1024*100
 
 struct allocation{
 	BYTE* ptr;
@@ -98,7 +101,9 @@ std::wstring wstringify(glm::vec3 v) {
 	return os.str();
 }
 
-#define OWN_NEW
+long long allocations = 0;
+
+#define _OWN_NEW
 #ifdef OWN_NEW
 void * operator new(size_t size)
 {   
@@ -136,11 +141,14 @@ void * operator new(size_t size)
 	//allocations[allocation_index].ptr = (BYTE*)p;
 	//allocations[allocation_index].size = size;
 	allocation_index++;
+
+	allocations++;
 	return (p);
 }
 
 void operator delete(void* ptr) noexcept
 {
+
 	//std::puts("");
 }
 #endif
@@ -164,11 +172,15 @@ Engine::Engine() :
 	if (currentDir.find("bin") == std::string::npos)
 		_chdir("bin");
 
+	SysInfo info;
+
 	Window::signal_window_created.connect([this](Window* window) {
+		if (window != m_window.get())
+			return;
 		initializeSystems();
 		check_gl_error();
 
-		m_camera = new Camera("Camera1", { 0, 3.0, -10 }, { 0, 0, 0 }, 45.0f);
+		m_camera = new Camera("Camera1", { 0, 100.0, 0.0 }, { 0, 0, 0 }, 45.0f);
 		check_gl_error();
 		findComponent<CameraController>()->setCamera(m_camera);
 		check_gl_error();
@@ -199,7 +211,8 @@ Engine::Engine() :
 		initPhysics();
 		check_gl_error();
 		post(std::make_unique<std::function<void()>>(std::function<void()>([&](void) {
-			std::cout << "FPS: " << m_avg_fps << std::endl;
+			std::cout << "FPS: " << m_fps << std::endl;
+			std::cout << "FPS(Avg): " << m_avg_fps << std::endl;
 		})), 3.0, true);
 
 	});
@@ -319,7 +332,10 @@ void Engine::initializeSystems() {
 		else
 		if (k == GLFW_KEY_T)
 			m_polygonMode = m_polygonMode == GL_FILL ? GL_LINE : GL_FILL;
-		
+		if (k == GLFW_KEY_1)
+			m_current_window = m_window.get();
+		if (k == GLFW_KEY_2)
+			m_current_window = m_window2.get();
 	});
 
 	keyboardInput->signal_key_press.connect([this](int key, int shift, int alpha, int mode) {
@@ -343,10 +359,15 @@ void Engine::initializeSystems() {
 	CameraController *cameraController = new CameraController();
 	coreSystem->add(cameraController);
 
-	omen::Transformer *transformer = new Transformer();
+	//omen::Transformer *transformer = new Transformer();
 
 	ecs::GraphicsSystem *graphicsSystem = new ecs::GraphicsSystem();
 	m_systems.push_back(graphicsSystem);
+
+	ecs::ScriptSystem *scriptSystem = new ecs::ScriptSystem();
+	m_systems.push_back(scriptSystem);
+
+	scriptSystem->add(new ecs::Script("scripts/main.cs"));
 
 	ecs::OpenVRSystem* openVRSystem = new ecs::OpenVRSystem();
 	m_systems.push_back(openVRSystem);
@@ -377,8 +398,8 @@ void Engine::getTextureMemoryInfo()
 
 void Engine::ray_cast_mouse()
 {
-	float x = (2.0f * m_mouse_x) / m_window->width() - 1.0f;
-	float y = 1.0f - (2.0f * m_mouse_y) / m_window->height();
+	float x = (2.0f * m_mouse_x) / m_current_window->width() - 1.0f;
+	float y = 1.0f - (2.0f * m_mouse_y) / m_current_window->height();
 	float z = 100.0f;
 	glm::vec3 ray_nds = glm::vec3(x, y, z);
 	
@@ -393,7 +414,7 @@ void Engine::ray_cast_mouse()
 }
 
 void Engine::update() {
-
+	allocations = 0;
 	/*ui::TextView* tv = dynamic_cast<ui::TextView*>(scene()->findEntity("TextView"));
 	if (tv != nullptr) {
 		std::wstringstream wstr;
@@ -408,8 +429,8 @@ void Engine::update() {
 	*/
 	float t = time();
 	glm::vec4 l(0, 1, 0, 1);
-	float la = std::any_cast<float>(properties["Azimuth"]) * ((glm::pi<float>())/ 180.0f);
-	float lz = (180.0f-std::any_cast<float>(properties["Zenith"])) * ((glm::pi<float>()) / 180.0f);
+	float la = 0.0f; // std::any_cast<float>(properties["Azimuth"]) * ((glm::pi<float>()) / 180.0f);
+	float lz = 45.0f; // (180.0f - std::any_cast<float>(properties["Zenith"])) * ((glm::pi<float>()) / 180.0f);
 	glm::mat4 m;
 	m = glm::rotate(m, la, glm::vec3(0, 1, 0));
 	m = glm::rotate(m, lz, glm::vec3(1, 0, 0));
@@ -427,11 +448,14 @@ void Engine::update() {
 	for (auto system : m_systems)
 		system->update(m_time, m_timeDelta);
 
+
 	signal_engine_update.notify(m_time, m_timeDelta);
+	
 	//glSampleCoverage(m_sample_coverage, GL_FALSE);
 	//doPhysics(m_timeDelta);
 	if (m_is_shutting_down)
 		exit(0);
+	//std::cout << "Allocations per frame: " << allocations << '\n';
 }
 
 omen::floatprec Engine::time() {
@@ -439,8 +463,13 @@ omen::floatprec Engine::time() {
 }
 
 void Engine::renderScene() {
+	omen::ecs::GraphicsSystem::resetDrawCounters();
 	if (m_scene != nullptr)
 		m_scene->render(m_camera->viewProjection(), m_camera->view());
+
+	//std::cout << "Draw Elements calls per frame: " << omen::ecs::GraphicsSystem::drawElementsCount << '\n';
+	//std::cout << "Draw Elements Intanced calls per frame: " << omen::ecs::GraphicsSystem::drawElementsInstancedCount << '\n';
+	//std::cout << "Draw Arrays calls per frame: " << omen::ecs::GraphicsSystem::drawArraysCount << '\n';
 }
 
 bool Engine::createFramebuffer() {
@@ -452,7 +481,7 @@ bool Engine::createFramebuffer() {
 	// Depth texture. Slower than a depth buffer, but you can sample it later in your shader
 	glGenTextures(1, &m_colorTexture);
 	glBindTexture(GL_TEXTURE_2D, m_colorTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_window->width(), m_window->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_current_window->width(), m_current_window->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -511,10 +540,11 @@ bool Engine::createShadowFramebuffer() {
 }
 
 void Engine::render() {
+	double t11 = glfwGetTime();
 	omen::floatprec t1 = time();
 
 	m_framecounter++;
-	m_window->start_rendering();
+	m_current_window->start_rendering();
 	
 	//
 	// Render FPS counter as text
@@ -534,21 +564,24 @@ void Engine::render() {
 	m_avg_fps /= q_fps.size();
 	
 	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	renderScene();
-	m_window->end_rendering();
+	m_current_window->end_rendering();
 
 	handle_task_queue();
-
-	float delta = (1000.0f/60.0f)-(m_timeDelta*1000.0f);
+	double t2 = glfwGetTime();
+	std::cout << "Raycast time: " << t2 - t11 << '\n';
+	/*float delta = (1000.0f/60.0f)-(m_timeDelta*1000.0f);
 	if(delta > 0 )
-		Sleep((int)(delta));
+		Sleep((int)(delta));*/
 }
 
 
 const std::unique_ptr<Window>& Engine::createWindow(unsigned int width, unsigned int height) {
 	m_window = std::make_unique<Window>();
+	m_current_window = m_window.get();
 	m_window->createWindow(width, height);
+
 	check_gl_error();
 	glFrontFace(GL_CCW);
 	check_gl_error();
@@ -663,8 +696,8 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &w);
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &h);
 			glBindTexture(GL_TEXTURE_2D, 0);
-			w = m_window->frameBufferWidth();
-			h = m_window->frameBufferHeight();
+			w = m_current_window->frameBufferWidth();
+			h = m_current_window->frameBufferHeight();
 			char *buf = new char[w * h * 4];
 			glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -688,11 +721,11 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 			CameraController *cc = findComponent<CameraController>();
 			if (cc->enabled()) {
 				cc->setEnabled(false);
-				m_window->showMouseCursor();
+				m_current_window->showMouseCursor();
 			}
 			else {
 				cc->setEnabled(true);
-				m_window->hideMouseCursor();
+				m_current_window->hideMouseCursor();
 			}
 
 		}
@@ -785,7 +818,7 @@ void Engine::renderText() {
 	//
 	// Render FPS counter as text
 	//
-	Window::_size s = m_window->size();
+	Window::_size s = m_current_window->size();
 	float sx = (float)(2.0 / s.width);
 	float sy = (float)(2.0 / s.height);
 	static std::vector<omen::floatprec> q_fps;

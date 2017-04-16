@@ -200,7 +200,7 @@ void OctreeRenderer::renderNode(Octree::Node* node, int level)
 		glDisable(GL_CULL_FACE);
 
 		if (m_indexBuffer != 0)
-			glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
+			drawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
 	}
 
 	for(auto& child : node->children)

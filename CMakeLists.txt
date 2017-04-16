@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.3)
 project(Omen)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-
+set(CMAKE_CXX_STANDARsD 17)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
 
@@ -130,6 +130,17 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
 #    message(FATAL_ERROR "FreeType not found")
 #endif ()
 
+######################################################################
+# OpenVR SDK
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openvr/headers)
+set(OPENVR_SDK_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openvr/lib/win32/openvr_api.lib)
+
+######################################################################
+# Mono SDK
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/include/mono-2.0)
+set(MONO_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/mono/lib/mono-2.0-sgen.lib)
 
 ######################################################################
 # BULLET PHYSICS
@@ -242,7 +253,7 @@ if (WINDOWS)
     SET(LIBRARIES Boxer glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${FREETYPE} ${BULLET_LIBRARIES})
 endif(WINDOWS)
 
-message(STATUS "Glew found at "${GLEW_INCLUDE_DIRS})
+message(STATUS "Glew found at " ${GLEW_INCLUDE_DIRS})
 
 
 include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
@@ -265,7 +276,7 @@ include_directories(${BULLET_INCLUDE_DIRS})
 set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
 include_directories(${PNG_INCLUDE_DIR})
 
-SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY} ${ZLIB_LIBRARY})
+SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${OPENVR_SDK_LIBRARY} ${MONO_LIBRARY})
 
 message(STATUS "Libs:" ${LIBRARIES})
 
@@ -293,13 +304,16 @@ Model.cpp
 MultipassShader.cpp
 Object.cpp
 Ocean.cpp
+Octree.cpp
+OctreeRenderer.cpp
 PointLight.cpp
 Renderable.cpp
 RenderBuffer.cpp
 Scene.cpp
 Shader.cpp
 Sky.cpp
-TextRenderer.cpp
+SkyRenderer.cpp
+SysInfo.cpp
 Texture.cpp
 Triangle.cpp
 utils.cpp
@@ -328,6 +342,8 @@ Model.h
 MultipassShader.h
 Object.h
 Ocean.h
+Octree.h
+OctreeRenderer.h
 Omen_OpenGL.h
 PointLight.h
 Renderable.h
@@ -336,6 +352,7 @@ Scene.h
 Shader.h
 Signal.h
 Sky.h
+SkyRenderer.h
 TextRenderer.h
 Texture.h
 Triangle.h
@@ -345,6 +362,7 @@ VertexArrayObject.h
 VertexBufferObject.h
 WavefrontLoader.h
 Window.h
+SysInfo.h
 
 #/component/
 component/BorderSprite.cpp
@@ -360,6 +378,7 @@ component/MeshRenderer.cpp
 component/MouseInput.cpp
 component/Picker.cpp
 component/Renderer.cpp
+component/Script.cpp
 component/Sprite.cpp
 component/SpriteRenderer.cpp
 component/TextRenderer.cpp
@@ -378,6 +397,7 @@ component/MeshRenderer.h
 component/MouseInput.h
 component/Picker.h
 component/Renderer.h
+component/Script.h
 component/Sprite.h
 component/SpriteRenderer.h
 component/TextRenderer.h
@@ -395,6 +415,8 @@ system/GraphicsSystem.h
 system/InputSystem.h
 system/PhysicsSystem.h
 system/System.h
+system/OpenVRSystem.cpp
+system/OpenVRSystem.h
 
 # /ui/
 ui/Button.cpp
@@ -421,6 +443,8 @@ Common/Common.h
 )
 add_executable(Omen ${SOURCE_FILES})
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)
+
+set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
 ######################################################################
 # Set the target link libraries
 ######################################################################

@@ -152,6 +152,7 @@ void MeshRenderer::onAttach(Entity* e) {
 			glVertexAttribPointer(VERTEX_ATTRIB_TCOORD, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			check_gl_error();
 			glDisableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
+			m_texture = m_meshController->mesh()->material()->texture();
 		}
 
 		// Create VBO for normals
@@ -312,6 +313,9 @@ void MeshRenderer::render(Shader* shader)
 
 		// Set matrix uniforms
 		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
+		glm::mat4 inverseMVP = glm::inverse(viewMatrix*entity()->tr()->tr());
+		pShader->setUniformMatrix4fv("InverseMVP", 1, glm::value_ptr(inverseMVP), false);
+
 		glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
 		glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
 		glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
@@ -347,11 +351,13 @@ void MeshRenderer::render(Shader* shader)
 		glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
 		pShader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
 		pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
+		pShader->setUniformMatrix4fv("ModelView", 1, glm::value_ptr(modelViewMatrix), false);
 		pShader->setUniform3fv("CameraPosition", 1, glm::value_ptr(viewPos));
+		pShader->setUniform1i("IsSelected", entity()->selected());
 		/********************/
 	}
 
-	pShader->setUniform1i("RenderNormals", m_renderNormals);
+	pShader->setUniform1i("RenderNormals", m_renderNormals); 
 	pShader->setUniform1i("ShadowBlur", Engine::ShadowBlur);
 	pShader->setUniform1f("MaterialShininess", Engine::MaterialShininess);
 	pShader->setUniform1f("LightIntensity", Engine::LightIntensity);
@@ -405,12 +411,12 @@ void MeshRenderer::render(Shader* shader)
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 	}
 
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 
 	if (m_indexBuffer != 0)
-		glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
+		drawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
 	else
-		glDrawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
+		drawArrays(GL_TRIANGLES, 0, m_meshController->mesh()->vertices().size());
 
 }

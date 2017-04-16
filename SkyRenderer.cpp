@@ -13,18 +13,19 @@ SkyRenderer::SkyRenderer(MeshController* mc) :
 	MeshRenderer(mc) {
 	glGenVertexArrays(1, &m_vao);
 	glGenBuffers(1, &m_vbo);
-	glGenBuffers(1, &m_ibo);
+
+	glm::vec2 v[4] = { { -1.0,1.0 },{ -1.0,-1.0 },{ 1.0, 1.0 },{ 1.0,-1.0 } };
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//m_shader = new Shader("shaders/sky.glsl");
 	m_shader = new Shader("shaders/spherical_sky.glsl");
 	uvTexMap = new Texture("textures/sky_daytime_blue.jpg");
 	uvEnvMap = new Texture("textures/sky_daytime_blue.jpg");
 
-	Engine::instance()->properties["SpotBrightness"].signal_property_changed.connect([&](std::any* prop) { 
-	   float miu = std::any_cast<float>(*prop);
-		this->m_spotBrightness = miu; 
-	});
-
+	Engine::instance()->properties["SpotBrightness"].signal_property_changed.connect([&](std::any* prop) {this->m_spotBrightness = std::any_cast<float>(*prop); });
 	Engine::instance()->properties["RayleighBrightness"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighBrightness = std::any_cast<float>(*prop); });
 	Engine::instance()->properties["MieBrightness"].signal_property_changed.connect([this](std::any* prop) { this->m_mieBrightness = std::any_cast<float>(*prop); });
 	Engine::instance()->properties["MieDistribution"].signal_property_changed.connect([this](std::any* prop) { this->m_mieDistribution = std::any_cast<float>(*prop); });
@@ -41,6 +42,26 @@ SkyRenderer::SkyRenderer(MeshController* mc) :
 	Engine::instance()->properties["HExtinctionBias"].signal_property_changed.connect([this](std::any* prop) { this->m_HExtinctionBias = std::any_cast<float>(*prop); });
 	Engine::instance()->properties["EyeExtinctionBias"].signal_property_changed.connect([this](std::any* prop) { this->m_EyeExtinctionBias = std::any_cast<float>(*prop); });
 	Engine::instance()->properties["RayleighFactor"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighFactor = std::any_cast<float>(*prop); });
+
+	Engine::instance()->properties["SpotBrightness"] = 480.9f;
+	Engine::instance()->properties["RayleighBrightness"] = 0.542f;
+	Engine::instance()->properties["MieBrightness"] = 0.454f;
+	Engine::instance()->properties["MieDistribution"] = 0.02534f;
+	Engine::instance()->properties["StepCount"] = 2;
+	Engine::instance()->properties["SurfaceHeight"] = 0.3817f;
+	Engine::instance()->properties["RayleighStrength"] = 0.207f;
+	Engine::instance()->properties["RayleighFactor"] = -0.2529f;
+	Engine::instance()->properties["MieStrength"] = 0.1085f;
+	Engine::instance()->properties["ScatterStrength"] = 0.3987f;
+	Engine::instance()->properties["RayleighCollectionPower"] = 0.8642f;
+	Engine::instance()->properties["MieCollectionPower"] = 0.1673f;
+	Engine::instance()->properties["IntensityRed"] = 1.0f;
+	Engine::instance()->properties["IntensityGreen"] = 1.0f;
+	Engine::instance()->properties["IntensityBlue"] = 1.0f;
+	Engine::instance()->properties["Azimuth"] = 1.0f;
+	Engine::instance()->properties["Zenith"] = 0.33f;
+	Engine::instance()->properties["HExtinctionBias"] = 0.35f;
+	Engine::instance()->properties["EyeExtinctionBias"] = 0.00015f;
 }
 
 
@@ -50,6 +71,7 @@ SkyRenderer::~SkyRenderer() {
 }
 
 void SkyRenderer::render(Shader* shader) {
+	auto start = std::chrono::high_resolution_clock::now();
 	omen::Window::_size s = Engine::instance()->window()->size();
 
 	m_shader->use();
@@ -58,18 +80,10 @@ void SkyRenderer::render(Shader* shader) {
 	glm::mat4 ipv = glm::inverse(proj*view);
 	glm::mat4 ip = glm::inverse(proj);
 	glm::mat4 iv = glm::inverse(view);
-	
-	glm::vec2 v[4] = { { -1.0,1.0 },{ -1.0,-1.0 },{ 1.0, 1.0 },{ 1.0,-1.0 } };
-	GLuint vbo = 0, vao = 0;
+		
+	glBindVertexArray(m_vao);
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	glGenBuffers(1, &vbo);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
 	glEnable(GL_TEXTURE_2D);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -87,26 +101,26 @@ void SkyRenderer::render(Shader* shader) {
 	m_shader->setUniformMatrix4fv("invPV", 1, glm::value_ptr(ipv), false);
 	m_shader->setUniformMatrix4fv("inv_proj", 1, glm::value_ptr(ip), false);
 	m_shader->setUniformMatrix4fv("inv_view_rot", 1, glm::value_ptr(iv), false);
-	
-	m_shader->setUniform1f("SpotBrightness", m_spotBrightness); 
+
+	m_shader->setUniform1f("SpotBrightness", m_spotBrightness);
 	m_shader->setUniform1f("RayleighBrightness", m_rayleighBrightness);
-	m_shader->setUniform1f("MieBrightness", m_mieBrightness); 
+	m_shader->setUniform1f("MieBrightness", m_mieBrightness);
 	m_shader->setUniform1f("MieDistribution", m_mieDistribution);
-	m_shader->setUniform1i("StepCount", m_stepCount); 
+	m_shader->setUniform1i("StepCount", m_stepCount);
 	m_shader->setUniform1f("SurfaceHeight", m_surfaceHeight);
 	m_shader->setUniform1f("RayleighStrength", m_rayleighStrength);
-	m_shader->setUniform1f("MieStrength", m_mieStrength); 
-	m_shader->setUniform1f("ScatterStrength", m_scatterStrength); 
-	m_shader->setUniform1f("RayleighCollectionPower", m_rayleighCollectionPower); 
-	m_shader->setUniform1f("MieCollectionPower", m_mieCollectionPower); 
-	m_shader->setUniform1f("IntensityRed", m_intensityRed); 
+	m_shader->setUniform1f("MieStrength", m_mieStrength);
+	m_shader->setUniform1f("ScatterStrength", m_scatterStrength);
+	m_shader->setUniform1f("RayleighCollectionPower", m_rayleighCollectionPower);
+	m_shader->setUniform1f("MieCollectionPower", m_mieCollectionPower);
+	m_shader->setUniform1f("IntensityRed", m_intensityRed);
 	m_shader->setUniform1f("IntensityGreen", m_intensityGreen);
-	m_shader->setUniform1f("IntensityBlue", m_intensityBlue); 
-	m_shader->setUniform1f("HExtinctionBias", m_HExtinctionBias); 
+	m_shader->setUniform1f("IntensityBlue", m_intensityBlue);
+	m_shader->setUniform1f("HExtinctionBias", m_HExtinctionBias);
 	m_shader->setUniform1f("EyeExtinctionBias", m_EyeExtinctionBias);
 	m_shader->setUniform1f("RayleighFactor", m_rayleighFactor);
 
-	glm::vec3 Kr = glm::vec3(0.18867780436772762*(0.5+0.5*m_intensityRed), 0.4978442963618773*(0.5 + 0.5*m_intensityGreen), 0.6616065586417131*(0.5 + 0.5*m_intensityBlue));
+	glm::vec3 Kr = glm::vec3(0.18867780436772762*(0.5 + 0.5*m_intensityRed), 0.4978442963618773*(0.5 + 0.5*m_intensityGreen), 0.6616065586417131*(0.5 + 0.5*m_intensityBlue));
 	m_shader->setUniform3fv("Kr", 1, glm::value_ptr(Kr));
 
 
@@ -117,7 +131,12 @@ void SkyRenderer::render(Shader* shader) {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	double ms = diff.count() * 1000.0f;
+	std::cout << "Sky render: " << ms << "ms.\n";
 }

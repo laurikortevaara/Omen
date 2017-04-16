@@ -44,19 +44,19 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 
 	switch (shaderType) {
 	case GL_VERTEX_SHADER:
-		full_source = "#version 410\n#define VERTEX_SHADER\n";
+		full_source = "#version 430\n#define VERTEX_SHADER\n";
 		break;
 	case GL_GEOMETRY_SHADER:
-		full_source = "#version 410\n#define GEOMETRY_SHADER\n";
+		full_source = "#version 430\n#define GEOMETRY_SHADER\n";
 		break;
 	case GL_TESS_CONTROL_SHADER:
-		full_source = "#version 410\n#define TESS_CONTROL_SHADER\n";
+		full_source = "#version 430\n#define TESS_CONTROL_SHADER\n";
 		break;
 	case GL_TESS_EVALUATION_SHADER:
-		full_source = "#version 410\n#define TESS_EVALUATION_SHADER\n";
+		full_source = "#version 430\n#define TESS_EVALUATION_SHADER\n";
 		break;
 	case GL_FRAGMENT_SHADER:
-		full_source = "#version 410\n#define FRAGMENT_SHADER\n";
+		full_source = "#version 430\n#define FRAGMENT_SHADER\n";
 		break;
 	default:
 		break;
@@ -67,6 +67,8 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 	full_source += "uniform vec2 iResolution;"; // WindowSize(width,height);
 	full_source += "uniform vec3 iMousePickRay;"; // WindowSize(width,height);
 	full_source += "uniform vec3 iCameraPosition;"; // WindowSize(width,height);
+	full_source += "uniform float MATH_PI;"; // WindowSize(width,height);
+	full_source += "uniform vec4 iViewPort;"; // Viewport [x,y,z,w];
 	full_source += shader_source;
 	full_source += "\0";
 
@@ -235,11 +237,17 @@ void Shader::use() {
 	glm::vec2 windowSize(Engine::instance()->window()->width(), Engine::instance()->window()->height());
 	setUniform2fv("iResolution", 1, glm::value_ptr(windowSize));
 
+	GLint vport[4];
+	glGetIntegerv(GL_VIEWPORT, vport);
+	setUniform4iv("iViewPort", 1, vport);
+
 	setUniform3fv("iMousePickRay", 1, glm::value_ptr(Engine::MousePickRay));
 
 	glm::vec3 cameraPosition = Engine::instance()->camera()->position();
 	cameraPosition.x *= -1.0f;
 	setUniform3fv("iCameraPosition", 1, glm::value_ptr(cameraPosition));
+
+	setUniform1f("MATH_PI", 3.141592653589793238462643383279502884);
 
 	check_gl_error();
 }

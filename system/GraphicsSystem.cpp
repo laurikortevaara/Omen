@@ -10,6 +10,10 @@
 using namespace omen;
 using namespace ecs;
 
+long long GraphicsSystem::drawElementsCount = 0;
+long long GraphicsSystem::drawArraysCount = 0;
+long long GraphicsSystem::drawElementsInstancedCount = 0;
+
 void GraphicsSystem::add(Component* component)
 {
 	m_components.push_back(component); 

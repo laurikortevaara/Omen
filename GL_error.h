@@ -9,7 +9,7 @@
 #include <iostream>
 #include <signal.h>
 
-#ifdef _DEBUG
+#ifdef A_DEBUG
 inline void check_gl_error(){ \
     GLenum error = glGetError();\
     if(error!=GL_NO_ERROR){\

@@ -6,7 +6,7 @@
 #include "GL_error.h"
 #include "Engine.h"
 #include "component/KeyboardInput.h"
-
+#include "system/GraphicsSystem.h"
 
 /* Constants rounded for 21 decimals. */
 #define M_E 2.71828182845904523536
@@ -363,15 +363,15 @@ void Ocean::render() {
             shader()->setUniformMatrix4fv("Model", 1, &glm::scale(Model,glm::vec3(5.f,5.f,5.f))[0][0], false);
 
             //glPatchParameteri(GL_PATCH_VERTICES, 3);
-            //glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_SHORT, 0);
-            //glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
-            glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
+            //drawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_SHORT, 0);
+            //drawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
+            drawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
       //  }
 
     /*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     shader()->setUniform4fv("Color", 1, &glm::vec4(0.5,0.7,0.8,1.0)[0] );
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_SHORT, 0);
+    drawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_SHORT, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
     check_gl_error();
 }

@@ -27,6 +27,7 @@ namespace omen {
 			glm::vec2 m_cursorPos;
 			bool m_is_hovered;
 			bool m_is_pressed;
+			bool m_is_selected;
 
 		public:
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalHovered_t;
@@ -41,6 +42,8 @@ namespace omen {
 			Entity(const std::string &name);
 			Entity* parent() const { return m_parent; }
 			void setParent(Entity* parent) { m_parent = parent; }
+
+			void setSelected(bool selected) { m_is_selected = selected;  }
 
             std::vector<std::unique_ptr<Entity>>& children() {return m_children;}
 			const std::vector<std::unique_ptr<Entity>>& children_const() const { return m_children; }
@@ -93,6 +96,7 @@ namespace omen {
 			bool hovered() const { return m_is_hovered; }
 			bool pressed() const { return m_is_pressed; }
 			void setPressed(bool pressed) { m_is_pressed = pressed;}
+			bool selected() const { return m_is_selected; }
 
         public:
             template<class type>
@@ -119,7 +123,7 @@ namespace omen {
 
             bool addComponent(std::unique_ptr<Component> c);
 
-			virtual ~Entity() {};
+			virtual ~Entity();
         };
     } // namespace ecs
 } // namespace omen

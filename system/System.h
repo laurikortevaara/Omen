@@ -21,7 +21,7 @@ namespace omen {
 
             virtual ~System() { };
 
-            virtual void add(Component *component) { m_components.push_back(component); };
+			virtual void add(Component *component);
 			virtual void shutDown() = 0;
 
             void remove(Component *component) {

@@ -65,16 +65,18 @@ Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, const glm::vec2&
 Sprite::~Sprite() = default;
 
 void Sprite::render() {
+	auto start = std::chrono::high_resolution_clock::now();
 	shader()->use();
-	texture()->bind();
+	
 
-	glDisable(GL_DEPTH_TEST);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	//glDisable(GL_DEPTH_TEST);
+	//glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
+	texture()->bind();
 
 	glm::mat4 model(1);
 	float fw = 2 * width() / (float)Engine::instance()->window()->width();
@@ -91,14 +93,17 @@ void Sprite::render() {
 	glBindVertexArray(vao());
 	glBindBuffer(GL_ARRAY_BUFFER, vbo());
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/, 0/*offset*/);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoord());
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/, 0/*offset*/);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo());
-	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+	drawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_DEPTH_TEST);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	double ms = diff.count() * 1000.0f;
+	std::cout << "Sprite render: " << ms << "ms.\n";
 }
 
 /*void Sprite::onAttach(ecs::Entity *e) {

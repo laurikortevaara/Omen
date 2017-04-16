@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <map>
+#include <tuple>
 
 namespace omen {
 
@@ -15,6 +16,7 @@ namespace omen {
     public:
         void connect(T obs) {
             m_observers.push_back(obs);
+
         }
 
         template<typename... a>
@@ -24,7 +26,8 @@ namespace omen {
         }
 
     private:
-        std::vector< T > m_observers;
+		std::vector<void*> m_owners;
+        std::vector<T> m_observers;
     };
 }
 

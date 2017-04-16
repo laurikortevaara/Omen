@@ -34,6 +34,7 @@
 #include "component/KeyboardInput.h"
 #include "Terrain.h"
 #include "Sky.h"
+#include "GroundGrid.h"
 #include "ShadowMap.h"
 #include "Octree.h"
 #include "Voxel.h"
@@ -59,7 +60,6 @@ namespace fs = std::experimental::filesystem;
 Scene::Scene() {
 	
 	Engine* e = Engine::instance();
-	Window* w = e->window();
 
 	// Two pass gauss blur for the background
 	quadShader = new Shader("shaders/quad.glsl");
@@ -72,18 +72,15 @@ Scene::Scene() {
 	renderBuffer2 = new RenderBuffer();
 
 	ms = new MultipassShader();
-	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+		renderBuffer->use();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		int textureMapLoc = shader->getUniformLocation("Texture");
 		glUniform1i(textureMapLoc, 0);
 		glActiveTexture(GL_TEXTURE0);
 		bgTexture->bind();
-
-		int w, h;
-		glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
-		Engine::instance()->setViewport(0, 0, w, h);
-
+				
 		bgShaderPass1->use();
 		bgShaderPass1->setUniform1f("Blur", blur);
 
@@ -102,9 +99,9 @@ Scene::Scene() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	}));*/
+		drawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		renderBuffer->unuse();
+	}));
 	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -113,7 +110,6 @@ Scene::Scene() {
 		gs->render(nullptr, 1);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		gs->render(nullptr, 2);
-		glClear(GL_DEPTH_BUFFER_BIT);
 		gs->render(nullptr, 3);
 	}));
 	
@@ -231,8 +227,9 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 		obj->tr()->rotate(time, glm::vec3(0.75, 0, 0));
 		obj->tr()->rotate(time, glm::vec3(0, 0.34, 0));
 		});*/
-		std::unique_ptr<ecs::OctreeRenderer> or = std::make_unique<ecs::OctreeRenderer>(std::move(octree));
-		obj->addCompnent(std::move(or));
+		
+		//std::unique_ptr<ecs::OctreeRenderer> or = std::make_unique<ecs::OctreeRenderer>(std::move(octree));
+		//obj->addCompnent(std::move(or));
 		addEntity(std::move(obj));
 
 	}
@@ -241,7 +238,10 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 }
 void omen::Scene::initialize()
 {
-	addEntity(std::move(std::make_unique<Sky>()));
+	
+	//addEntity(std::move(std::make_unique<Sky>()));
+	return;
+	//addEntity(std::move(std::make_unique<GroundGrid>()));
 
 	std::unique_ptr<ui::LinearLayout> sliderLayout = std::make_unique<ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), ui::LinearLayout::VERTICAL);
 
@@ -252,7 +252,7 @@ void omen::Scene::initialize()
 		Engine::instance()->properties["SpotBrightness"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_spot_brightness));
-
+	
 	std::unique_ptr<ui::Slider> slider_rayleigh_brightness = std::make_unique<ui::Slider>(nullptr, "Rayleigh Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
 	Engine::instance()->properties["RayleighBrightness"] = 5.42f;
 	slider_rayleigh_brightness->setCurrentValue(5.42f);
@@ -268,7 +268,7 @@ void omen::Scene::initialize()
 		Engine::instance()->properties["MieBrightness"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_mie_brightness));
-
+	/*
 	std::unique_ptr<ui::Slider> slider_mie_distribution = std::make_unique<ui::Slider>(nullptr, "Mie Distribution", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 0.18));
 	Engine::instance()->properties["MieDistribution"] = 0.02534f;
 	slider_mie_distribution->setCurrentValue(0.02534f);
@@ -396,7 +396,7 @@ void omen::Scene::initialize()
 		Engine::instance()->properties["EyeExtinctionBias"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_ebias));
-
+	*/
 	addEntity(std::move(sliderLayout));
 	/*std::unique_ptr<omen::ui::LinearLayout> mainLayout = std::make_unique<omen::ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), omen::ui::LinearLayout::VERTICAL);
 	for (int j = 0; j < 10; ++j)
@@ -410,6 +410,7 @@ void omen::Scene::initialize()
 		mainLayout->addChild(std::move(sliderLayout));
 	}
 	addEntity(std::move(mainLayout));*/
+
 }
 
 void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view) 
@@ -457,7 +458,7 @@ void Scene::renderArrow()
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	if( true )
 		return;
 
@@ -491,7 +492,7 @@ void Scene::renderBackground()
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	renderBuffer->unuse();
 	renderBuffer2->use();
@@ -503,7 +504,7 @@ void Scene::renderBackground()
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 
 	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
@@ -525,7 +526,7 @@ void Scene::renderBackground()
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glDeleteBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

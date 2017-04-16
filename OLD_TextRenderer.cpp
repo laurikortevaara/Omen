@@ -20,6 +20,7 @@
 #include <iostream>
 #include <freetype/ftstroke.h>
 #include "TextRenderer.h"
+#include "system/GraphicsSystem.h"
 
 using namespace omen;
 
@@ -106,7 +107,7 @@ void _TextRenderer::render_text(const wchar_t *text, float fontSize, float x, fl
 		};
 
 		glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		x += (g->advance.x >> 6) * sx;
 		y += (g->advance.y >> 6) * sy;
 	}

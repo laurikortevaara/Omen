@@ -152,8 +152,18 @@ Window::~Window() {
 }
 
 void Window::start_rendering() {
+	glfwMakeContextCurrent(m_window);
+/*	glEnable(GL_SCISSOR_TEST);
 	// Set the clear color
+	glViewport(0, 0, m_width, m_height);
+	glScissor(0, 0, m_width, m_height);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glFlush();
+	glViewport(0, 100, m_width, m_height - 100);
+	glScissor(0, 100, m_width, m_height - 100);
 	glClearColor(1, 0, 0, 1);
+	*/
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 }

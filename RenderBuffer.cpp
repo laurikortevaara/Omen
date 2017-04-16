@@ -34,7 +34,6 @@
 using namespace omen;
 
 RenderBuffer::RenderBuffer() : m_frame_buffer(0), m_colorTexture(0) {
-	m_window = Engine::instance()->window();
 	createRenderBuffer();
 }
 
@@ -46,7 +45,7 @@ bool RenderBuffer::createRenderBuffer() {
 	// Depth texture. Slower than a depth buffer, but you can sample it later in your shader
 	glGenTextures(1, &m_colorTexture);
 	glBindTexture(GL_TEXTURE_2D, m_colorTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_window->width(), m_window->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, Engine::instance()->window()->width(), Engine::instance()->window()->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

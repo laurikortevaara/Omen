@@ -85,7 +85,7 @@ namespace omen {
 		omen::floatprec time();
         void update();
         void render();
-        Window* window() {return m_window.get();};
+        Window* window() {return m_current_window;};
         Camera* camera() {return m_camera;};
 		void setViewport(int x, int y, int w, int h);
 
@@ -138,7 +138,9 @@ namespace omen {
 		const omen::floatprec fps() const { return m_fps; }
 		const omen::floatprec averageFps() const { return m_avg_fps; }
     private:
+		Window* m_current_window;
         std::unique_ptr<Window> m_window;
+		std::unique_ptr<Window> m_window2;
         Camera *m_camera;
         ui::Button *m_button;
         std::unique_ptr<Scene> m_scene;

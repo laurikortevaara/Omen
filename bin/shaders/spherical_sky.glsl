@@ -3,6 +3,8 @@
  */
 uniform sampler2D Texture;
 uniform samplerCube uTexEnv;
+uniform sampler2D TransmittanceSampler;
+
 uniform mat4 invPV;
 uniform mat4 inv_proj;
 uniform mat4 inv_view_rot;
@@ -53,6 +55,8 @@ void main() {
  * Fragment Shader
  *
  */
+
+ #include "ats_functions.include"
 
 vec3 getWorldNormal()
 {
@@ -111,12 +115,27 @@ vec3 absorb(float dist, vec3 color, float factor)
     return color-color*pow(Kr, vec3(factor/dist));
 }
 
+
+float opticalDepth(float H, float r, float mu)
+{
+    float result = 0.0;
+    float dx = limit(r, mu) / float(TRANSMITTANCE_INTEGRAL_SAMPLES);
+    float xi = 0.0;
+    float yi = exp(-(r - Rg) / H);
+    for (int i = 1; i <= TRANSMITTANCE_INTEGRAL_SAMPLES; ++i) {
+        float xj = float(i) * dx;
+        float yj = exp(-(sqrt(r * r + xj * xj + 2.0 * xj * r * mu) - Rg) / H);
+        result += (yi + yj) / 2.0 * dx;
+        xi = xj;
+        yi = yj;
+    }
+    return mu < -sqrt(1.0 - (Rg / r) * (Rg / r)) ? 1e9 : result;
+}
+
 in vec3 dir;
 out vec4 fragColor;
 void main()
 {
-	fragColor = texture(uTexEnv, dir);
-
     vec3 lightdir = normalize(-LightPos);
     vec3 eyedir = getWorldNormal();
     float alpha = dot(eyedir, lightdir);
@@ -157,7 +176,8 @@ void main()
 
     vec3 intensity = vec3(1); //vec3(IntensityRed, IntensityGreen, IntensityBlue);
 
-    for(int i=0; i < step_count; ++i)
+    //for(int i=0; i < step_count; ++i)
+    for(int i=0; i < 2; ++i)
     {
         float sample_distance = step_length*float(i);
         vec3 position = eye_position + eyedir*sample_distance;

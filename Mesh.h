@@ -38,7 +38,7 @@ namespace omen {
 		  Constructors and initialization
 		**/
 
-		Mesh::Mesh() : Object("Mesh") {}
+		Mesh::Mesh();
 		virtual ~Mesh() {};
 
 		/**
@@ -90,6 +90,8 @@ namespace omen {
 			m_vertex_indices = vertexIndices; 
 			return *this;
 		}
+
+		void calcBoundingBox();
 
 		Mesh& setBoundingBox(const BoundingBox& bb) {
 			m_bb = bb;

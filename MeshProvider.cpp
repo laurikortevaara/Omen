@@ -1672,6 +1672,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				mesh->setTangents(tangents); 
 				mesh->setBiTangents(bitangents); 
 
+				mesh->calcBoundingBox();
 				/**/
 				std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>(name);
 
@@ -1940,6 +1941,7 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 	mesh->setNormals(normals);
 	mesh->setTangents(tangents);
 	mesh->setUVs(uv);
+	mesh->calcBoundingBox();
 	//mesh->setVertexIndices(indices);
 	return std::move(mesh);
 }
@@ -1969,5 +1971,6 @@ std::unique_ptr<Mesh> MeshProvider::createPlane(float size, int subdiv)
 	mesh->setUVs(uv);
 	mesh->setVertexIndices(indices);
 	mesh->setMaterial(std::move(material));
+	mesh->calcBoundingBox();
 	return std::move(mesh);
 }

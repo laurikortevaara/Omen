@@ -30,11 +30,11 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	m_joystick(nullptr) {
 
 	omen::Engine *e = omen::Engine::instance();
-	omen::Window *w = e->window();
+	//omen::Window *w = e->window();
 
 	// Create View matrix
-	float aspect = (float)w->width() / (float)w->height();
-	m_view = glm::perspective(m_fov, aspect, m_near, m_far);
+	//float aspect = (float)w->width() / (float)w->height();
+	//m_view = glm::perspective(m_fov, aspect, m_near, m_far);
 
 	// Initialize forward and up vectors
 	m_forward = glm::vec3(0, 0, 1);

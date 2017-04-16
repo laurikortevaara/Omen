@@ -24,7 +24,6 @@ namespace omen {
 	private:
         GLuint m_frame_buffer;
 		GLuint m_colorTexture;
-		omen::Window* m_window;
 
         bool createRenderBuffer();
 

@@ -26,7 +26,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 	Picker* picker = Engine::instance()->findComponent<Picker>();
 	if (picker)
 		picker->signal_object_picked.connect([&](ecs::Entity* obj) {
-		this->setEnabled(obj == nullptr);
+		//this->setEnabled(obj == nullptr);
 	});
 
 	setEnabled(false);
@@ -35,7 +35,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 	MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
 	if (mi != nullptr) {
 		mi->signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) {
-			if (!enabled())
+			if (false || !enabled())
 				return;
 			static omen::floatprec old_x = x;
 			static omen::floatprec old_y = y;

@@ -21,7 +21,7 @@ namespace omen {
         virtual void onDetach(ecs::Entity* e);
     public:
         typedef omen::Signal<std::function<void(ecs::Entity*)> > ObjectPicked_t;
-        ObjectPicked_t signal_object_picked;
+        static ObjectPicked_t signal_object_picked;
 
     public:
         Picker();

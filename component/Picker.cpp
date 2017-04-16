@@ -14,6 +14,8 @@
 
 using namespace omen;
 
+Picker::ObjectPicked_t Picker::signal_object_picked;
+
 class Segment {
 public:
     Segment(glm::vec3 s, glm::vec3 e) : start(s), end(e) { };
@@ -88,7 +90,7 @@ Picker::Picker() {
 
     Engine::instance()->findComponent<MouseInput>()->
             signal_cursorpos_changed.connect([&](double x, double y) -> void {
-        //pick();
+        pick();
     });
 
     Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect([&](int key, int action, int mods, int t){
@@ -140,7 +142,7 @@ void Picker::pick() {
 			}
 		}
     }
-	if(pSelected!=nullptr && dynamic_cast<omen::ecs::GameObject*>(pSelected)!=nullptr)
+	//if(pSelected!=nullptr && dynamic_cast<omen::ecs::GameObject*>(pSelected)!=nullptr)
 		signal_object_picked.notify(pSelected);
 }
 

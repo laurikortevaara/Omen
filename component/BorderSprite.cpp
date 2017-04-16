@@ -71,6 +71,8 @@ BorderSprite::BorderSprite(const std::string& sprite, const glm::vec2& pos, cons
 BorderSprite::~BorderSprite() = default;
 
 void BorderSprite::render() {
+	auto start = std::chrono::high_resolution_clock::now();
+
 	shader()->use();
 	texture()->bind();
 
@@ -106,8 +108,13 @@ void BorderSprite::render() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/, 0/*stride*/, 0/*offset*/);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo());
-	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
+	drawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
 	glClear(GL_DEPTH_BUFFER_BIT);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	double ms = diff.count() * 1000.0f;
+	std::cout << "BorderSprite render: " << ms << "ms.\n";
 }
 
 void BorderSprite::initializeTexture() {

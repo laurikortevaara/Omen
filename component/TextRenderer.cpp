@@ -2,6 +2,7 @@
 // Created by Lauri Kortevaara(Intopalo) on 06/02/16.
 //
 
+#include <chrono>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -46,6 +47,7 @@ void TextRenderer::render(Shader* shader) {
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)
 {
+	auto start = std::chrono::high_resolution_clock::now();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -53,8 +55,8 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 	// Activate corresponding render state	
 	m_shader->use();
 
-	float width = Engine::instance()->window()->width();
-	float height = Engine::instance()->window()->height();
+	omen::floatprec width = static_cast<omen::floatprec>(Engine::instance()->window()->width());
+	omen::floatprec height = static_cast<omen::floatprec>(Engine::instance()->window()->height());
 
 	glm::mat4 model;
 	model = glm::scale(model, glm::vec3(1));
@@ -75,7 +77,7 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 
 	for (c = text.begin(); c != text.end(); c++)
 	{
-		Character ch = Characters[*c];
+		Character ch = Characters[static_cast<const char>(*c)];
 		if (*c == '\n') {
 			y -= (Characters['X'].Size.y + row_spacing)*scale;
 			x = origin_x;
@@ -117,12 +119,17 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		// Render quad
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		drawArrays(GL_TRIANGLES, 0, 6);
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	double ms = diff.count() * 1000.0f;
+	std::cout << "Text render: " << ms << "ms.\n";
 }
 
 bool TextRenderer::initializeFreeType() {
@@ -179,7 +186,7 @@ bool TextRenderer::initializeFreeType() {
 			texture,
 			glm::ivec2(m_fontFace->glyph->bitmap.width, m_fontFace->glyph->bitmap.rows),
 			glm::ivec2(m_fontFace->glyph->bitmap_left, m_fontFace->glyph->bitmap_top),
-			m_fontFace->glyph->advance.x
+			static_cast<GLuint>(m_fontFace->glyph->advance.x)
 		};
 		Characters.insert(std::pair<GLchar, Character>(c, character));
 	}
