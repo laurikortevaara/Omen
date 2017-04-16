@@ -359,7 +359,7 @@ void Engine::initializeSystems() {
 	CameraController *cameraController = new CameraController();
 	coreSystem->add(cameraController);
 
-	//omen::Transformer *transformer = new Transformer();
+	omen::Transformer *transformer = new Transformer();
 
 	ecs::GraphicsSystem *graphicsSystem = new ecs::GraphicsSystem();
 	m_systems.push_back(graphicsSystem);
@@ -570,7 +570,7 @@ void Engine::render() {
 
 	handle_task_queue();
 	double t2 = glfwGetTime();
-	std::cout << "Raycast time: " << t2 - t11 << '\n';
+	//std::cout << "Raycast time: " << t2 - t11 << '\n';
 	/*float delta = (1000.0f/60.0f)-(m_timeDelta*1000.0f);
 	if(delta > 0 )
 		Sleep((int)(delta));*/

@@ -15,6 +15,7 @@
 using namespace omen;
 
 Picker::ObjectPicked_t Picker::signal_object_picked;
+glm::vec3 Picker::IntersectPos = glm::vec3(0);
 
 class Segment {
 public:
@@ -26,6 +27,45 @@ class Ray {
 public:
     Ray() { };
     glm::vec3 origin, direction;
+
+	static bool rayIntersectsTriangle(glm::vec3& p, glm::vec3 d,
+		glm::vec3& v0, glm::vec3& v1, glm::vec3& v2, float& t) {
+
+		glm::vec3 e1, e2, h, s, q;
+		float a, f, u, v;
+		e1 = v1 - v0;
+		e2 = v2 - v0;
+
+		h = glm::cross(d,e2);
+		a = glm::dot(e1, h);
+
+		if (a > -0.00001 && a < 0.00001)
+			return(false);
+
+		f = 1 / a;
+		s = p - v0;
+		u = f * (glm::dot(s, h));
+
+		if (u < 0.0 || u > 1.0)
+			return(false);
+
+		q= glm::cross(s, e1);
+		v = f * glm::dot(d, q);
+
+		if (v < 0.0 || u + v > 1.0)
+			return(false);
+
+		// at this stage we can compute t to find out where
+		// the intersection point is on the line
+		t = f * glm::dot(e2, q);
+
+		if (t > 0.00001) // ray intersection
+			return(true);
+
+		else // this means that there is a line intersection
+			 // but not a ray intersection
+			return (false);
+	}
 
     bool raySlabIntersect(float smin, float smax, float r0, float r1, float &t0, float &t1) {
         float raydir = r1 - r0;
@@ -90,12 +130,14 @@ Picker::Picker() {
 
     Engine::instance()->findComponent<MouseInput>()->
             signal_cursorpos_changed.connect([&](double x, double y) -> void {
-        pick();
+        //pick();
     });
 
     Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect([&](int key, int action, int mods, int t){
-        if(key==GLFW_KEY_ESCAPE)
-            signal_object_picked.notify(nullptr);
+		if (key == GLFW_KEY_ESCAPE) {
+			IntersectPos = glm::vec3(0);
+			signal_object_picked.notify(nullptr, IntersectPos);
+		}
     });
 }
 
@@ -118,17 +160,18 @@ void Picker::pick() {
     Scene *scene = Engine::instance()->scene();
     float min_intersect =  std::numeric_limits<float>::max();
     ecs::Entity* pSelected = nullptr;
+	IntersectPos = glm::vec3(min_intersect);
     for (const auto& entity : scene->entities()) {
 		if (entity->getComponent<ecs::MeshController>()!=nullptr) {
 			omen::ecs::MeshController* ctr = entity->getComponent<ecs::MeshController>();
 			const std::unique_ptr<Mesh>& mesh = ctr->mesh();
 			float intersect;
 			BoundingBox b = mesh->boundingBox();
-			if (ray.segmentAABBoxIntersect(b, { v0, (v1 - v0) * 100.0f }, intersect)) {
-				signal_object_picked.notify(entity.get());
+			if (ray.segmentAABBoxIntersect(b, { v0, (v1 - v0) * 1000.0f }, intersect)) {
 				if (intersect < min_intersect) {
 					min_intersect = intersect;
 					pSelected = entity.get();
+					IntersectPos = v0 + (v1-v0) * 1000.0f * intersect;
 				}
 			}
 		}
@@ -142,8 +185,32 @@ void Picker::pick() {
 			}
 		}
     }
-	//if(pSelected!=nullptr && dynamic_cast<omen::ecs::GameObject*>(pSelected)!=nullptr)
-		signal_object_picked.notify(pSelected);
+
+	/** Precise triangle intersection */
+	if (false && pSelected != nullptr) {
+		omen::ecs::MeshController* ctr = pSelected->getComponent<ecs::MeshController>();
+		omen::Mesh* m = ctr->mesh().get();
+		if (m->vertices().size() == 0)
+			return;
+		for (int vi = 0; vi < ctr->mesh()->vertexIndices().size() - 3; ++vi) 
+		{
+			
+			std::vector<omen::Mesh::Vertex>& vs = m->vertices();
+			glm::vec3 p1 = vs[m->vertexIndices()[vi]];
+			glm::vec3 p2 = vs[m->vertexIndices()[vi+1]];
+			glm::vec3 p3 = vs[m->vertexIndices()[vi+2]];
+
+			p1 = glm::vec3((pSelected->tr()->tr() * glm::vec4(p1,1)));
+			p2 = glm::vec3((pSelected->tr()->tr() * glm::vec4(p2, 1)));
+			p3 = glm::vec3((pSelected->tr()->tr() * glm::vec4(p3, 1)));
+			float t;
+			if (Ray::rayIntersectsTriangle(v0, glm::normalize(v1 - v0), p1, p2, p3, t)) {
+				IntersectPos = v0 + glm::normalize(v1 - v0)*t;
+			}
+		}
+	}
+	if(pSelected!=nullptr && dynamic_cast<omen::ecs::GameObject*>(pSelected)!=nullptr)
+		signal_object_picked.notify(pSelected, IntersectPos);
 }
 
 Picker::~Picker() {

@@ -20,7 +20,7 @@ namespace omen {
         virtual void onAttach(ecs::Entity* e);
         virtual void onDetach(ecs::Entity* e);
     public:
-        typedef omen::Signal<std::function<void(ecs::Entity*)> > ObjectPicked_t;
+        typedef omen::Signal<std::function<void(ecs::Entity*, glm::vec3 intersectPos)> > ObjectPicked_t;
         static ObjectPicked_t signal_object_picked;
 
     public:
@@ -29,6 +29,8 @@ namespace omen {
         virtual ~Picker();
 
         glm::vec3 const &ray() const { return ray_world; }
+
+		static glm::vec3 IntersectPos;
 
     private:
         void pick();

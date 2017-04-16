@@ -47,7 +47,7 @@ bool Window::shouldClose() const {
 	return glfwWindowShouldClose(m_window) == GL_TRUE;
 }
 
-void Window::createWindow(unsigned int width, unsigned int height) {
+void Window::createWindow(int width, int height) {
 	int minor, major, rev;
 	glfwGetVersion(&major, &minor, &rev);
 	const char* versionstr = glfwGetVersionString();
@@ -80,6 +80,7 @@ void Window::createWindow(unsigned int width, unsigned int height) {
 		throw std::runtime_error(std::string(__FUNCTION__) + std::string(": Unable to create window"));
 #endif
 	}
+	glfwGetWindowSize(m_window, &width, &height);
 	m_width = width;
 	m_height = height;
 
@@ -153,13 +154,12 @@ Window::~Window() {
 
 void Window::start_rendering() {
 	glfwMakeContextCurrent(m_window);
-/*	glEnable(GL_SCISSOR_TEST);
+	glEnable(GL_SCISSOR_TEST);
 	// Set the clear color
 	glViewport(0, 0, m_width, m_height);
 	glScissor(0, 0, m_width, m_height);
 	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glFlush();
+	/*glFlush();
 	glViewport(0, 100, m_width, m_height - 100);
 	glScissor(0, 100, m_width, m_height - 100);
 	glClearColor(1, 0, 0, 1);

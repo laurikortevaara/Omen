@@ -10,6 +10,7 @@
 #include "../ui/Slider.h"
 #include "../ui/Slider.h"
 #include "KeyboardInput.h"
+#include "Picker.h"
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -362,6 +363,8 @@ void MeshRenderer::render(Shader* shader)
 	pShader->setUniform1f("MaterialShininess", Engine::MaterialShininess);
 	pShader->setUniform1f("LightIntensity", Engine::LightIntensity);
 	pShader->setUniform1f("AmbientFactor", Engine::AmbientFactor);
+	std::cout << "Ipos: " << Picker::IntersectPos.x << ", " << Picker::IntersectPos.y << ", " << Picker::IntersectPos.z << "\n";
+	pShader->setUniform3fv("IntersectPos", 1, glm::value_ptr(Picker::IntersectPos));
 
 	if (m_texture != nullptr && pShader == m_shader.get())
 	{

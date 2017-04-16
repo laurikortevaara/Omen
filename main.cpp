@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 	/* initialize random seed: */
 	srand(unsigned int(time(nullptr)));
 	omen::Engine *engine = omen::Engine::instance();
-	const std::unique_ptr<omen::Window>& window = engine->createWindow(1024,1024);
+	const std::unique_ptr<omen::Window>& window = engine->createWindow(1920,1920);
 	check_gl_error();
 
 	omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();

@@ -25,8 +25,8 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 
 	Picker* picker = Engine::instance()->findComponent<Picker>();
 	if (picker)
-		picker->signal_object_picked.connect([&](ecs::Entity* obj) {
-		//this->setEnabled(obj == nullptr);
+		picker->signal_object_picked.connect([&](ecs::Entity* obj, glm::vec3 intersectPos) {
+		this->setEnabled(obj == nullptr);
 	});
 
 	setEnabled(false);

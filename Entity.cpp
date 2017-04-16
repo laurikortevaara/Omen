@@ -24,7 +24,7 @@ Entity::Entity(const std::string &name) :
 	tr->setBounds(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	addComponent(std::move(tr));
 
-	Picker::signal_object_picked.connect([this](omen::ecs::Entity* obj) {
+	Picker::signal_object_picked.connect([this](omen::ecs::Entity* obj, glm::vec3 intersectPos) {
 		this->m_is_selected = obj == this;			
 	});
 

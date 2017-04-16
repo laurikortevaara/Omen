@@ -28,15 +28,16 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-		picker->signal_object_picked.connect([&](ecs::Entity* obj) {
-		if (obj) {
+		picker->signal_object_picked.connect([&](ecs::Entity* obj, glm::vec3 intersectPos) 
+		{
 			setEnabled(obj != nullptr);
-			m_obj = dynamic_cast<omen::ecs::GameObject*>(obj);
 			if (obj) {
-				m_tr = m_obj->tr();
-			}
-			else
-				m_tr = nullptr;
+				m_obj = dynamic_cast<omen::ecs::GameObject*>(obj);
+				if (obj) {
+					m_tr = m_obj->tr();
+				}
+				else
+					m_tr = nullptr;
 		}
         });
 
@@ -70,6 +71,10 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
         // acceleration = m/s^2
         Engine* e = Engine::instance();
         KeyboardInput* ki = e->findComponent<KeyboardInput>();
+
+		if (ki->keyPressed(GLFW_KEY_ESCAPE)) {
+			setEnabled(false);
+		}
 
         if (m_tr != nullptr) {
             deltaTime *= 100.0f;

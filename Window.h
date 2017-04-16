@@ -35,7 +35,7 @@ namespace omen {
 
     public:
         ~Window();
-        void createWindow(unsigned int width, unsigned int height);
+        void createWindow(int width, int height);
         void destroy();
 
         bool shouldClose() const;
