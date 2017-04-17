@@ -332,10 +332,22 @@ void Engine::initializeSystems() {
 		else
 		if (k == GLFW_KEY_T)
 			m_polygonMode = m_polygonMode == GL_FILL ? GL_LINE : GL_FILL;
+
+		if (k == GLFW_KEY_0) {
+			camera()->yaw() = 0.0f;
+			camera()->pitch() = 0.0f;
+			camera()->setPosition({ 0.0f,0.0f,0.0f });
+		}
 		if (k == GLFW_KEY_1)
-			m_current_window = m_window.get();
+			camera()->yaw() += 90.0f;
 		if (k == GLFW_KEY_2)
-			m_current_window = m_window2.get();
+			camera()->yaw() -= 90.0f;
+		if (k == GLFW_KEY_3)
+			camera()->pitch() += 90.0f;
+		if (k == GLFW_KEY_4)
+			camera()->pitch() -= 90.0f;
+		
+		
 	});
 
 	keyboardInput->signal_key_press.connect([this](int key, int shift, int alpha, int mode) {

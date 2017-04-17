@@ -32,6 +32,7 @@ namespace omen {
 			}
 
 			virtual void render(Shader* shader = nullptr);
+			void render2(Shader* shader = nullptr);
 			void renderShadows(Shader* shader);
 			
 			void setShininess(float value) { m_shininess = value; }

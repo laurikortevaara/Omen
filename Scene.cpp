@@ -437,7 +437,7 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view)
 	// Render scene on screen
 	ms->render();
 
-	// Render the foo
+	// Render the depth texture
 	quadShader->use();
 
 	glm::vec2 v[4] = { { -0.1,0.1 },{ -0.1,-0.1 },{ 0.1, 0.1 },{ 0.1,-0.1 } };
@@ -469,6 +469,69 @@ void Scene::render(const glm::mat4 &viewProjection, const glm::mat4 &view)
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
+
+	// Render the camera frustum
+	/*lineShader->use();
+
+	float h = Engine::instance()->window()->height();
+	float w = Engine::instance()->window()->width();
+	float fov = Engine::instance()->camera()->fov()*2.0;
+	float ar = Engine::instance()->window()->height() / (float)Engine::instance()->window()->width();
+
+	float tanHalfHFOV = tanf(glm::radians(fov / 2.0f));
+	float tanHalfVFOV = tanf(glm::radians((fov * ar) / 2.0f));
+
+	int NUM_CASCADES = 1;
+	const int NUM_FRUSTUM_CORNERS = 8;
+	float cascadeEnd[2] = { Engine::instance()->camera()->zNear(), Engine::instance()->camera()->zFar() };
+
+	float xn = cascadeEnd[0]	 * tanHalfHFOV;
+	float xf = cascadeEnd[0 + 1] * tanHalfHFOV;
+	float yn = cascadeEnd[0]	 * tanHalfVFOV;
+	float yf = cascadeEnd[0 + 1] * tanHalfVFOV;
+
+	glm::vec4 frustumCorners[NUM_FRUSTUM_CORNERS] = {
+		// near face
+		glm::vec4(xn, yn, cascadeEnd[0], 1.0),
+		glm::vec4(-xn, yn, cascadeEnd[0], 1.0),
+		glm::vec4(xn, -yn, cascadeEnd[0], 1.0),
+		glm::vec4(-xn, -yn, cascadeEnd[0], 1.0),
+
+		// far face
+		glm::vec4(xf, yf, cascadeEnd[0 + 1], 1.0),
+		glm::vec4(-xf, yf, cascadeEnd[0 + 1], 1.0),
+		glm::vec4(xf, -yf, cascadeEnd[0 + 1], 1.0),
+		glm::vec4(-xf, -yf, cascadeEnd[0 + 1], 1.0)
+	};
+
+	GLuint vbo = 0, vao = 0;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(frustumCorners), frustumCorners, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	int loc = glGetUniformLocation(quadShader->m_shader_program, "Texture");
+	if (loc >= 0)
+		glUniform1i(loc, GL_TEXTURE0);
+
+	GLuint texId = shadowMap->depthTexture;
+	glBindTexture(GL_TEXTURE_2D, texId);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);*/
 }
 
 void Scene::renderArrow()

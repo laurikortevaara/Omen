@@ -135,13 +135,13 @@ void Window::createWindow(int width, int height) {
 
 	Engine* e = Engine::instance();
 	KeyboardInput* ki = (KeyboardInput*)e->findComponent<KeyboardInput>();
-	ki->signal_key_press.connect([&](int k, int s, int a, int m) {
+	/*ki->signal_key_press.connect([&](int k, int s, int a, int m) {
 		if (k == GLFW_KEY_0 || k == GLFW_KEY_F) {
 			m_swapInterval = m_swapInterval == 60 ? 0 : 60;
 			glfwSwapInterval(m_swapInterval);
 		}
 
-	});
+	});*/
 
 	hideMouseCursor();
 }

@@ -29,6 +29,7 @@ namespace omen {
         glm::vec3 m_velocity;
 
         glm::mat4 m_view;
+		glm::mat4 m_rotation;
         glm::mat4 m_projection;
 
         Joystick *m_joystick;
@@ -45,10 +46,15 @@ namespace omen {
         glm::mat4x4 &viewProjection();
         glm::mat4x4 &projection();
         glm::mat4x4 &view();
+		glm::mat4x4 &rotation(); // Rotation matrix;
+		glm::mat4x4 inverseRotation();
 
         void setPosition(glm::vec3 position);
         glm::vec3 position() const {return m_pos;}
 
+		float fov() const { return glm::degrees(m_fov); }
+		float zNear() const { return m_near; }
+		float zFar() const { return m_far; }
         float & yaw();
 
         float & pitch();

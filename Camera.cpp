@@ -22,7 +22,7 @@ using namespace omen;
 Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 &lookAt, omen::floatprec fov) :
 	GameObject(name),
 	m_pos(pos),
-	m_near(1.0f), m_far(10000.0f),
+	m_near(1.0f), m_far(200.0f),
 	m_yaw(.0f), m_pitch(0.0f), m_roll(.0f),
 	m_lookAt(lookAt),
 	m_fov(fov*glm::pi<float>() / 180.0f),
@@ -41,11 +41,13 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	m_up = glm::vec3(0, 1, 0);
 	m_pos.z *= -1;
 
+	
+
 	// connect to engine update signal
 	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
-		glm::mat4 m = glm::rotate(glm::mat4(1), m_yaw*glm::pi<float>() / 180.0f, glm::vec3(0, 1, 0));
-		m = glm::rotate(m, m_pitch*glm::pi<float>() / 180.0f, glm::vec3(1, 0, 0));
-		m_forward = glm::vec3(m * glm::vec4(0, 0, 1, 0));
+		m_rotation = glm::rotate(glm::mat4(1), m_yaw*glm::pi<float>() / 180.0f, glm::vec3(0, 1, 0));
+		m_rotation = glm::rotate(m_rotation, m_pitch*glm::pi<float>() / 180.0f, glm::vec3(1, 0, 0));
+		m_forward = glm::vec3(m_rotation * glm::vec4(0, 0, 1, 0));
 
 		glm::vec3 cameraRight = glm::normalize(glm::cross(m_up, m_forward));
 		glm::vec3 cameraUp = glm::cross(m_forward, cameraRight);
@@ -83,6 +85,20 @@ glm::mat4x4 &Camera::viewProjection() {
  */
 glm::mat4x4 &Camera::view() {
 	return m_view;
+}
+
+/**
+* Return Rotation Matrix
+*/
+glm::mat4x4 &Camera::rotation() {
+	return m_rotation;
+}
+
+/**
+* Return Inverse Rotation Matrix
+*/
+glm::mat4x4 Camera::inverseRotation() {
+	return glm::inverse(m_rotation);
 }
 
 /**
