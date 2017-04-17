@@ -39,7 +39,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	// Initialize forward and up vectors
 	m_forward = glm::vec3(0, 0, 1);
 	m_up = glm::vec3(0, 1, 0);
-	m_pos.z *= -1;
+	//m_pos.z *= -1;
 
 	
 

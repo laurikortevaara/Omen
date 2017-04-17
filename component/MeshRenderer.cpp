@@ -13,6 +13,7 @@
 #include "../ui/Slider.h"
 #include "KeyboardInput.h"
 #include "Picker.h"
+#include "../ui/TextView.h"
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -20,7 +21,7 @@ float points[] = {
 	0.5f, -0.5f,  -1.0f
 };
 
-glm::vec3 lightInvDir = -glm::vec3(1, -1, 1);
+glm::vec3 lightInvDir = glm::vec3(0.00000000000001, -1.0, 0.00000001);
 
 static GLuint blend_modes[] = {
 	GL_ZERO,
@@ -218,7 +219,6 @@ void MeshRenderer::onAttach(Entity* e) {
 
 	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
 	{
-		std::cout << "MeshRenderer:signa_key_press" << std::endl;
 		if (action == GLFW_KEY_DOWN)
 			return;
 		int isN = key == GLFW_KEY_N;
@@ -294,13 +294,13 @@ void MeshRenderer::onDetach(Entity* e) {
 
 void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 {
-	glm::mat4 lightView = glm::lookAt(glm::vec3(0), lightDir, glm::vec3(0, 1, 0));
+	glm::mat4 lightView = glm::lookAt( glm::vec3(0), lightDir, glm::vec3(0, 1, 0));
 
 	Window* win = Engine::instance()->window();
 	Camera* cam = Engine::instance()->camera();
 	float nearPlane = cam->zNear();
 	float farPlane = cam->zFar();
-	float fov = cam->fov();
+	float fov = glm::radians(cam->fov());
 	float width = win->width();
 	float height = win->height();
 
@@ -315,7 +315,7 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 	const glm::mat4 invRot = cam->rotation();
 	const glm::vec4 viewDir = invRot * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
 	const glm::vec4 upDir = invRot * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-	const glm::vec4 rightDir = invRot * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+		const glm::vec4 rightDir = invRot * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 	const glm::vec4 nc = cameraPos + viewDir * nearPlane; // near center
 	const glm::vec4 fc = cameraPos + viewDir * farPlane; // far center
 
@@ -339,7 +339,21 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 		frustumMin = glm::min(frustumMin, vertices[vertId]);
 		frustumMax = glm::max(frustumMax, vertices[vertId]);
 	}
-	proj = glm::ortho(frustumMin.x, frustumMax.x, frustumMin.y, frustumMax.y, frustumMin.z, frustumMax.z);	
+/*	std::cout << "Camera Frustum:";
+	for (int i = 0; i < 8; ++i)
+		std::cout << "[" << vertices[i].x << "," << vertices[i].y << "," << vertices[i].z << "," << vertices[i].w << "]\n";
+	std::cout << "\nLight Frustum:";
+	std::cout << "[" << frustumMin.x << "," << frustumMin.y << "," << frustumMin.z << "," << frustumMin.w << "]\n";
+	std::cout << "[" << frustumMax.x << "," << frustumMax.y << "," << frustumMax.z << "," << frustumMax.w << "]\n";*/
+	proj = glm::ortho(-frustumMin.x, -frustumMax.x, frustumMin.y, frustumMax.y, frustumMin.z, frustumMax.z);
+
+	ui::TextView* tv = (ui::TextView*)Engine::instance()->scene()->findEntity("textview");
+	WCHAR wc[512] = { '\0' };
+	wcscpy(wc, L"Frustum:\n");
+	for (int i = 0; i < 8; ++i)
+		swprintf(wc, L"%s\n% 8.3f,  % 8.3f,  % 8.3f", wc, vertices[i].x, vertices[i].y, vertices[i].z);
+	swprintf(wc, L"%s\n\nLFRMin/Max\n% 8.3f,  % 8.3f,  % 8.3f\n% 8.3f,  % 8.3f,  % 8.3f", wc, frustumMin.x, frustumMin.y, frustumMin.z, frustumMax.x, frustumMax.y, frustumMax.z);
+	tv->setText(wc);
 }
 
 void MeshRenderer::render(Shader* shader)
@@ -360,11 +374,11 @@ void MeshRenderer::render(Shader* shader)
 	glm::mat3 normalMatrix			= glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos				= Engine::instance()->camera()->position();
 	glm::vec3 lightPos				= Engine::LightDistance*Engine::LightPos;
-	glm::vec4 diffuseColor = glm::vec4(1); // m_meshController->mesh()->material()->const_diffuseColor();
+	glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
 	glm::vec4 emissiveColor			= m_meshController->mesh()->material()->const_emissiveColor();
 	float size = 10.0f;
 	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
-	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
 	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
 	CalcProj(viewMatrix, lightInvDir, depthProjectionMatrix);
 	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
@@ -481,7 +495,7 @@ void MeshRenderer::render2(Shader* shader)
 		pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
 		float size = 10.0f; // Engine::ShadowFrustumSize;
 		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
-		glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
 
 		glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
 		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
@@ -578,7 +592,7 @@ void MeshRenderer::renderShadows(Shader* shader)
 	glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
 	float size = 10.0f;
 	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
-	glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
 	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
 	glm::mat4 viewMatrix = Engine::instance()->camera()->view();
 	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();

@@ -81,8 +81,8 @@ void main() {
     if (  fDepth < compare  )
         visibility = 0.5;
 
-	out_color = HasTexture ? texture(TextureMap, uv) : MaterialDiffuse;
-	out_color = vec4(abs(dataIn.normal),1)*visibility;
+	//out_color = HasTexture ? texture(TextureMap, uv) : MaterialDiffuse;
+	out_color = visibility * MaterialDiffuse;
 	out_color.a = 1;
 }
 

@@ -10,6 +10,8 @@
 
 using namespace omen;
 
+const int ShadowMapSize = 1024;
+
 ShadowMap::ShadowMap()
 {
 
@@ -26,7 +28,7 @@ bool ShadowMap::init()
 	engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap = depthTexture;
 
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, ShadowMapSize, ShadowMapSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -52,7 +54,8 @@ void ShadowMap::render()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 	check_gl_error();
-	Engine::instance()->setViewport(0, 0, 1024, 1024);
+	glDisable(GL_SCISSOR_TEST);
+	Engine::instance()->setViewport(0, 0, ShadowMapSize, ShadowMapSize);
 	//glEnable(GL_CULL_FACE);
 	glDisable(GL_CULL_FACE);
 	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles

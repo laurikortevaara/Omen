@@ -250,6 +250,10 @@ void omen::Scene::initialize()
 {
 	shadowMap = new ShadowMap();
 	shadowMap->init();
+
+	std::unique_ptr<ui::TextView> t = std::make_unique<ui::TextView>(nullptr, "textview", glm::vec2(100, 100), glm::vec2(1024, 1024));
+	t->setText(L"Hello world");
+	addEntity(std::move(t));
 	//addEntity(std::move(std::make_unique<Sky>()));
 	return;
 	//addEntity(std::move(std::make_unique<GroundGrid>()));
