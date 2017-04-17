@@ -299,7 +299,7 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 	Window* win = Engine::instance()->window();
 	Camera* cam = Engine::instance()->camera();
 	float nearPlane = cam->zNear();
-	float farPlane = cam->zFar();
+	float farPlane = cam->zFar()*0.75;
 	float fov = glm::radians(cam->fov());
 	float width = win->width();
 	float height = win->height();
@@ -315,7 +315,7 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 	const glm::mat4 invRot = cam->rotation();
 	const glm::vec4 viewDir = invRot * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
 	const glm::vec4 upDir = invRot * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-		const glm::vec4 rightDir = invRot * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+	const glm::vec4 rightDir = invRot * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 	const glm::vec4 nc = cameraPos + viewDir * nearPlane; // near center
 	const glm::vec4 fc = cameraPos + viewDir * farPlane; // far center
 

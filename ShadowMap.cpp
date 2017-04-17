@@ -10,7 +10,7 @@
 
 using namespace omen;
 
-const int ShadowMapSize = 1024;
+const int ShadowMapSize = 8192;
 
 ShadowMap::ShadowMap()
 {
@@ -56,9 +56,9 @@ void ShadowMap::render()
 	check_gl_error();
 	glDisable(GL_SCISSOR_TEST);
 	Engine::instance()->setViewport(0, 0, ShadowMapSize, ShadowMapSize);
-	//glEnable(GL_CULL_FACE);
-	glDisable(GL_CULL_FACE);
-	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
+	glEnable(GL_CULL_FACE);
+	//glDisable(GL_CULL_FACE);
+	glCullFace(GL_FRONT); // Cull back-facing triangles -> draw only front-facing triangles
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the depth buffer
 
 	m_shader->use();
