@@ -21,7 +21,7 @@ float points[] = {
 	0.5f, -0.5f,  -1.0f
 };
 
-glm::vec3 lightInvDir = glm::vec3(0.00000000000001, -1.0, 0.00000001);
+glm::vec3 lightInvDir = glm::normalize( glm::vec3(100, -100.0, 50.0) );
 
 static GLuint blend_modes[] = {
 	GL_ZERO,
@@ -63,6 +63,13 @@ MeshRenderer::MeshRenderer(MeshController* meshController) :
 	m_shaderBlur(1)
 {
 	m_shader = std::make_unique<omen::Shader>("shaders/pass_through_with_shadow.glsl");
+
+	Engine::instance()->signal_engine_update.connect([this](float t, float dt) {
+		lightInvDir = glm::normalize(glm::vec3(100, -100.0, 50.0));
+		lightInvDir.x *= cos(t);
+		lightInvDir.z *= sin(t);
+		lightInvDir = -Engine::LightPos;
+	});
 }
 
 void MeshRenderer::connectSlider(ui::Slider* slider) {
@@ -298,8 +305,8 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 
 	Window* win = Engine::instance()->window();
 	Camera* cam = Engine::instance()->camera();
-	float nearPlane = cam->zNear();
-	float farPlane = cam->zFar()*0.75;
+	float nearPlane = -cam->zNear();
+	float farPlane = cam->zFar();
 	float fov = glm::radians(cam->fov());
 	float width = win->width();
 	float height = win->height();
@@ -364,6 +371,7 @@ void MeshRenderer::render(Shader* shader)
 	
 	// Get matrices
 	glm::mat4 viewMatrix			= Engine::instance()->camera()->view();
+	glm::mat4 inverseViewMatrix		= glm::inverse(viewMatrix);
 	glm::mat4 modelMatrix			= entity()->getComponent<Transform>()->tr();
 	glm::mat4 modelViewMatrix		= viewMatrix * modelMatrix;
 	glm::mat4 viewprojMatrix		= Engine::instance()->camera()->viewProjection();
@@ -373,9 +381,7 @@ void MeshRenderer::render(Shader* shader)
 	glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
 	glm::mat3 normalMatrix			= glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos				= Engine::instance()->camera()->position();
-	glm::vec3 lightPos				= Engine::LightDistance*Engine::LightPos;
-	glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
-	glm::vec4 emissiveColor			= m_meshController->mesh()->material()->const_emissiveColor();
+	glm::vec3 lightPos = lightInvDir; // Engine::LightPos;
 	float size = 10.0f;
 	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
 	glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
@@ -390,17 +396,45 @@ void MeshRenderer::render(Shader* shader)
 	);
 	glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
 
+	// Material properties
+	const Material* m = m_meshController->mesh()->material();
+	glm::vec4 ambientColor = m->ambientColor();
+	glm::vec4 diffuseColor = m->diffuseColor();
+	glm::vec4 emissiveColor = m->emissiveColor();
+	glm::vec4 specularColor = m->specularColor();
+	float specularCoeff = m->specularCoeff();
+
+	// Matrices to shader
+	pShader->setUniformMatrix4fv("InverseView", 1, glm::value_ptr(inverseViewMatrix), false);
 	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
 	pShader->setUniformMatrix3fv("ModelView3x3", 1, glm::value_ptr(mv3x3), false);
+	pShader->setUniformMatrix4fv("ModelView", 1, glm::value_ptr(modelViewMatrix), false);
+	pShader->setUniformMatrix4fv("ModelMatrix", 1, glm::value_ptr(modelMatrix), false);
 	pShader->setUniformMatrix4fv("InverseViewProjection", 1, glm::value_ptr(inverseViewProjMatrix), false);
 	pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
-	pShader->setUniform1f("DepthBias", depth_bias);
-	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
 	pShader->setUniformMatrix4fv("depthMVP", 1, glm::value_ptr(depthMVP), false);
-	pShader->setUniformMatrix4fv("ModelView", 1, glm::value_ptr(modelViewMatrix), false);
-	pShader->setUniform3fv("CameraPosition", 1, glm::value_ptr(viewPos));
+	
+	// Light, camera and depth bias for shadow rendering
+	pShader->setUniform1f("DepthBias", depth_bias);
+	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(Engine::LightPos));
+	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
+	// Material properties to shader
+	pShader->setUniform4fv("MaterialAmbient", 1, glm::value_ptr(ambientColor));
 	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 	pShader->setUniform4fv("MaterialEmissive", 1, glm::value_ptr(emissiveColor));
+	pShader->setUniform4fv("MaterialSpecular", 1, glm::value_ptr(specularColor));
+	pShader->setUniform1f("MaterialShininess", specularCoeff);
+
+	int textureLoc = pShader->getUniformLocation("TextureMap");
+	if (textureLoc >= 0 && m_texture != nullptr && m_texture->id() >= 0) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBindTexture(GL_TEXTURE_2D, m_texture->id());
+		glUniform1i(textureLoc, 0);
+		glBindTexture(GL_TEXTURE_2D, m_texture->id());
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_texture->id());
+	}
 
 	int shadowLoc = pShader->getUniformLocation("shadowMap");
 	if (shadowLoc >= 0) {
@@ -437,9 +471,8 @@ void MeshRenderer::render(Shader* shader)
 		glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 	}
 
-	glDisable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	drawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
 }
 
@@ -463,6 +496,7 @@ void MeshRenderer::render2(Shader* shader)
 	else
 	{
 		glm::mat4 viewMatrix = Engine::instance()->camera()->view();
+		glm::mat4 inverseViewMatrix = glm::inverse(viewMatrix);
 		glm::mat4 viewprojMatrix = Engine::instance()->camera()->viewProjection();
 		MVP = viewprojMatrix * entity()->tr()->tr();
 
@@ -470,14 +504,13 @@ void MeshRenderer::render2(Shader* shader)
 		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
 		glm::mat4 inverseMVP = glm::inverse(viewMatrix*entity()->tr()->tr());
 		pShader->setUniformMatrix4fv("InverseMVP", 1, glm::value_ptr(inverseMVP), false);
-
 		glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
 		glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
 		glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
 		glm::mat3 normalMatrix = glm::mat3(glm::inverseTranspose(modelViewMatrix));
 		glm::vec3 viewPos = Engine::instance()->camera()->position();
 
-		glm::vec4 diffuseColor = m_meshController->mesh()->material()->const_diffuseColor();
+		glm::vec4 diffuseColor = m_meshController->mesh()->material()->diffuseColor();
 		pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 
 		glm::vec4 emissiveColor = m_meshController->mesh()->material()->const_emissiveColor();
@@ -589,7 +622,7 @@ void MeshRenderer::renderShadows(Shader* shader)
 
 	/*Setup the DepthMVP*/
 	// Compute the MVP matrix from the light's point of view
-	glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
+	glm::vec3 lightPos = lightInvDir;
 	float size = 10.0f;
 	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
 	glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));

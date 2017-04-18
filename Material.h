@@ -26,43 +26,45 @@ namespace omen {
     public:
         Material();
 
+		// Ambient color
+		void setAmbientColor(glm::vec4 color) { m_ambient_color = color; }
+		glm::vec4 &ambientColor() { return m_ambient_color; }
+		glm::vec4 ambientColor() const { return m_ambient_color; }
+		
+		// Diffuse/Albedo color
+		void setDiffuseColor(glm::vec4 color) { m_diffuse_color = color; }
         glm::vec4 &diffuseColor() { return m_diffuse_color; }
-		glm::vec4 const &const_diffuseColor()const { return m_diffuse_color; }
+		glm::vec4 diffuseColor() const { return m_diffuse_color; }
 
-        void setDiffuseColor(glm::vec4 color) { m_diffuse_color = color; }
-
-        glm::vec4 &ambientColor() { return m_ambient_color; }
-
-        void setAmbientColor(glm::vec4 color) { m_ambient_color = color; }
-
-        glm::vec4 &specularColor() { return m_specular_color; }
-
-        void setSpecularColor(glm::vec4 color) { m_specular_color = color; }
-
-		glm::vec4 const &const_emissiveColor() const { return m_emissive_color; }
-		glm::vec4 &emissiveColor() { return m_emissive_color; }
-
+		// Emissive color
 		void setEmissiveColor(glm::vec4 color) { m_emissive_color = color; }
+		glm::vec4 const &const_emissiveColor() const { return m_emissive_color; }
+		glm::vec4 emissiveColor() const { return m_emissive_color; }
 
-        float &specularCoeff() { return m_spec_coeff; }
+		// Specular color
+		void setSpecularColor(glm::vec4 color) { m_specular_color = color; }
+		glm::vec4 &specularColor() { return m_specular_color; }
+		glm::vec4 specularColor() const { return m_specular_color; }
+		
+		// Specular reflection coeff
+		void setSpecularCoeff(float coeff) { m_spec_coeff = coeff; }
+		float specularCoeff() const { return m_spec_coeff; }
+		
+		// Diffuse texture map
+		void setTexture(Texture *texture) { m_texture = texture; }
+		Texture *texture() const { return m_texture; }
 
-        void setSpecularCoeff(float coeff) { m_spec_coeff = coeff; }
-
-        Texture *texture() const { return m_texture; }
-
-        void setTexture(Texture *texture) { m_texture = texture; }
-
+		// Normal texture map
+		void setTextureNormal(Texture *texture_normal) { m_texture_normal = texture_normal; }
 		Texture *texture_normal() const { return m_texture_normal; }
 
-		void setTextureNormal(Texture *texture_normal) { m_texture_normal = texture_normal; }
+		// Mapcap texture
+		void setMatcapTexture(Texture *texture) { m_matcapTexture = texture; }
+		Texture *matcapTexture() { return m_matcapTexture; }
 
-        Texture *matcapTexture() { return m_matcapTexture; }
-
-        void setMatcapTexture(Texture *texture) { m_matcapTexture = texture; }
-
-        bool twoSided() const { return m_isTwoSided; }
-
-        void setTwoSided(bool twoSided = true) { m_isTwoSided = twoSided; }
+        // Boolean flag describing whether this material is two_sided (no face culling)
+		void setTwoSided(bool twoSided = true) { m_isTwoSided = twoSided; }
+		bool twoSided() const { return m_isTwoSided; }
     };
 } // namespace omen
 

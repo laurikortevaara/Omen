@@ -177,16 +177,16 @@ float PCF2(sampler2D depths, vec2 size, vec2 uv, float compare)
 
 
 float linstep(float low, float high, float v){
-return clamp((v-low)/(high-low), 0.0, 1.0);
+	return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 
 float VSM(sampler2D depths, vec2 uv, float compare){
-vec2 moments = texture2D(depths, uv).xy;
-float p = smoothstep(compare-0.02, compare, moments.x);
-float variance = max(moments.y - moments.x*moments.x, -0.001);
-float d = compare - moments.x;
-float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
-return clamp(max(p, p_max), 0.0, 1.0);
+	vec2 moments = texture2D(depths, uv).xy;
+	float p = smoothstep(compare-0.02, compare, moments.x);
+	float variance = max(moments.y - moments.x*moments.x, -0.001);
+	float d = compare - moments.x;
+	float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
+	return clamp(max(p, p_max), 0.0, 1.0);
 }
 
 #endif

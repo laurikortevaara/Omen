@@ -59,7 +59,7 @@ GLfloat Engine::ShadowFrustumFar = 1500.0f;
 GLfloat Engine::LightDistance = 1.0f;
 GLfloat Engine::ShadowFrustumSize = 1000.0f;
 glm::vec3 Engine::MousePickRay(0, 0, 0);
-glm::vec3 Engine::LightPos(100, 100, 0);
+glm::vec3 Engine::LightPos(0.00000000000001, -1.0, 0.00000001);
 
 float     Engine::AmbientFactor = 1.0;
 float     Engine::MaterialShininess = 32;

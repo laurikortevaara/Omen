@@ -899,11 +899,12 @@ void DisplayTexture(FbxGeometry* pGeometry, std::map<std::string, std::list<std:
 	}// end for lMaterialIndex     
 }
 
-void GetMaterials(FbxNode* pNode, 
+void GetMaterials(FbxNode* pNode,
 	std::vector<FbxColor>& Ambients,
 	std::vector<FbxColor>& Diffuses,
 	std::vector<FbxColor>& Speculars,
 	std::vector<FbxColor>& Emissives,
+	std::vector<float>& Shininesses,
 	std::vector<std::string>& textureFiles)
 {
 	if (!pNode)
@@ -940,6 +941,9 @@ void GetMaterials(FbxNode* pNode,
 			lKFbxDouble3 = materialPhong->Emissive;
 			Emissive.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
 			Emissives.push_back(Emissive);
+
+			float shininess = materialPhong->Shininess;
+			Shininesses.push_back(shininess);
 
 			for (int is = 0; is < materialPhong->Diffuse.GetSrcObjectCount(); ++is) {
 				FbxObject* pobj = materialPhong->Diffuse.GetSrcObject<FbxObject>(is);
@@ -1034,7 +1038,7 @@ void GetUVCoordinates(FbxNode* pNode, std::vector< glm::vec2 >& uv)
 
 						lUVValue = UVElement->GetDirectArray().GetAt(lUVIndex);
 						int lPolyVertIndex = lMesh->GetPolygonVertex(lPolyIndex, lVertIndex);
-						uv[lPolyVertIndex] = glm::vec2(lUVValue.mData[0], lUVValue.mData[1]);
+						uv[lPolyVertIndex] = glm::vec2(lUVValue.mData[0], 1.0-lUVValue.mData[1]);
 
 						lPolyIndexCounter++;
 					}
@@ -1751,8 +1755,9 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 		std::vector<FbxColor> Diffuses;
 		std::vector<FbxColor> Speculars;
 		std::vector<FbxColor> Emissives;
+		std::vector<float> Shininesses;
 		std::vector<std::string> textureFiles;
-		GetMaterials(pNode, Ambients, Diffuses, Speculars, Emissives, textureFiles);
+		GetMaterials(pNode, Ambients, Diffuses, Speculars, Emissives, Shininesses, textureFiles);
 		unsigned int iMesh = 0;
 		for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
 		{
@@ -1764,7 +1769,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxDouble3 lRotation = pNode->LclRotation.Get();
 				FbxDouble3 lScaling = pNode->LclScaling.Get();
 
-				Engine::LightPos = glm::vec3(lTranslation.mData[0] / lScaling[0], lTranslation.mData[1] / lScaling[1], lTranslation.mData[2] / lScaling[2]);
+				Engine::LightPos = glm::vec3(lTranslation.mData[0] / lScaling[0], lTranslation.mData[1] / lScaling[1], -lTranslation.mData[2] / lScaling[2]);
 				Engine::instance()->scene()->lights().push_back(std::make_unique<omen::PointLight>(Engine::LightPos, glm::vec3(1), 1.0f));
 			}
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMesh)
@@ -1788,6 +1793,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxColor Ambient = iMesh + 1 > Ambients.size() ? FbxColor(0.5, 0.5, 0.5,1.0) : Ambients[iMesh];
 				FbxColor Diffuse = iMesh + 1 > Diffuses.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Diffuses[iMesh];
 				FbxColor Specular = iMesh + 1 > Speculars.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Speculars[iMesh];
+				float Shininess = iMesh + 1 > Shininesses.size() ? 0.0f : Shininesses[iMesh];
 				FbxColor Emissive = iMesh + 1 > Emissives.size() ? FbxColor(0, 0, 0, 0) : Emissives[iMesh];
 
 				std::string textureFile = iMesh+1 > textureFiles.size() ? "" : textureFiles[iMesh];
@@ -1832,7 +1838,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 					glm::vec3 dp1 = v1.pos - v0.pos;
 					glm::vec3 dp2 = v2.pos - v0.pos;
 
-					glm::vec3 normal = glm::normalize(glm::cross(dp1, dp2));
+					glm::vec3 normal = glm::normalize(glm::cross(dp2, dp1));
 					// 3x normal
 					normals[ti1] = normal; normals[ti2] = normal; normals[ti3] = normal;
 
@@ -1874,6 +1880,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				material->setDiffuseColor(glm::vec4(Diffuse.mRed, Diffuse.mGreen, Diffuse.mBlue, Diffuse.mAlpha));
 				material->setSpecularColor(glm::vec4(Specular.mRed, Specular.mGreen, Specular.mBlue, Specular.mAlpha));
 				material->setEmissiveColor(glm::vec4(Emissive.mRed, Emissive.mGreen, Emissive.mBlue, Emissive.mAlpha));
+				material->setSpecularCoeff(Shininess);
 				if (!textureFile.empty())
 				{
 					std::cout << "Loading texture: " << textureFile << std::endl;
@@ -1912,7 +1919,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 
 				obj->tr()->pos().x = static_cast<omen::floatprec>(lTranslation[0] / lScaling[0]);
 				obj->tr()->pos().y = static_cast<omen::floatprec>(lTranslation[1] / lScaling[1]);
-				obj->tr()->pos().z = static_cast<omen::floatprec>(lTranslation[2] / lScaling[2]);
+				obj->tr()->pos().z = static_cast<omen::floatprec>(-lTranslation[2] / lScaling[2]);
 
 				obj->tr()->rotate(static_cast<omen::floatprec>(lRotation[0]), glm::vec3(1, 0, 0));
 				obj->tr()->rotate(static_cast<omen::floatprec>(lRotation[1]), glm::vec3(0, 1, 0));
