@@ -32,6 +32,8 @@ void Window::init()
 
 void Window::windowSizeChanged(GLFWwindow *window, int width, int height) {
 	// notify about window size changed event
+	m_width = width;
+	m_height = height;
 	signal_window_size_changed.notify(width, height);
 }
 
