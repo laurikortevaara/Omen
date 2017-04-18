@@ -10,14 +10,7 @@
 #include "Light.h"
 
 namespace omen {
-    class PointLight : public Light {
-    public:
-        PointLight(const glm::vec3 &position,
-                   const glm::vec3 &color,
-                   float intensity) : Light(position,{},{}, color, intensity) { }
-
-        virtual LightType type() const {return POINT;}
-    };
+    
 } // namespace omen
 
 

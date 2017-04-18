@@ -1765,12 +1765,56 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eLight)
 			{
+				const char* lightName = pNode->GetName();
+				FbxLight* light = (FbxLight*)pNode->GetNodeAttribute();
+				
 				FbxDouble3 lTranslation = pNode->LclTranslation.Get();
-				FbxDouble3 lRotation = pNode->LclRotation.Get();
+				glm::vec3 lRotation = glm::vec3(pNode->LclRotation.Get()[0], pNode->LclRotation.Get()[1], pNode->LclRotation.Get()[2]);
 				FbxDouble3 lScaling = pNode->LclScaling.Get();
+				
+				glm::vec3 lColor = glm::vec3({ light->Color.Get()[0], light->Color.Get()[1], light->Color.Get()[2] });
+				float lIntensity = light->Intensity.Get();
+				bool lCastShadows = light->CastShadows.Get();
+				Light::LightFalloff falloff = Light::InverseSquare;
+				FbxLight::EDecayType decayType = light->DecayType.Get();
+				switch (light->DecayType.Get()) 
+				{
+					case FbxLight::eNone: falloff = Light::Constant; break;
+					case FbxLight::eLinear: falloff = Light::InverseLinear; break;
+					case FbxLight::eQuadratic: falloff = Light::InverseSquare; break;
+					case FbxLight::eCubic: falloff = Light::InverseCubic; break;
+				}
+
+				float innerAngle = light->InnerAngle;
+				float outerAngle = light->OuterAngle;
 
 				Engine::LightPos = glm::vec3(lTranslation.mData[0] / lScaling[0], lTranslation.mData[1] / lScaling[1], -lTranslation.mData[2] / lScaling[2]);
-				Engine::instance()->scene()->lights().push_back(std::make_unique<omen::PointLight>(Engine::LightPos, glm::vec3(1), 1.0f));
+
+				std::unique_ptr<Light> pLight;
+				const char* lLightTypes[] = { "Point", "Directional", "Spot", "Area", "Volume" };
+				const char* lType = lLightTypes[light->LightType.Get()];
+				FbxLight::EType type = light->LightType.Get();
+				switch (light->LightType.Get()) {
+				case FbxLight::ePoint:
+					pLight = std::make_unique<omen::PointLight>(Engine::LightPos, lColor, lIntensity);
+					break;
+				case FbxLight::eDirectional:
+					pLight = std::make_unique<omen::DirectionalLight>(Engine::LightPos, lColor, lIntensity);
+					break;
+				case FbxLight::eSpot:
+					pLight = std::make_unique<omen::SpotLight>(Engine::LightPos, lRotation, lColor, lIntensity, innerAngle, outerAngle);
+					break;
+				case FbxLight::eArea:
+					pLight = std::make_unique<omen::AreaLight>(Engine::LightPos, lColor, lIntensity );
+					break;
+				case FbxLight::eVolume:
+					//"Volumentric light not implemented!"
+					assert(false);
+					break;
+				}
+				
+				if(pLight != nullptr)
+					Engine::instance()->scene()->lights().push_back(std::move(pLight));
 			}
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
