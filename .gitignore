@@ -1,8 +1,11 @@
 bin/Debug/
 bin/Omen
+bin/fonts
+bin/textures
+bin/mono
+bin/models
 .idea/
 build/
-bin
 html
 latex
 *.orig
