@@ -29,6 +29,23 @@ ImageView::ImageView(View* parentView, const std::string &name,const std::string
 	addComponent(std::move(sr));
 }
 
+
+ImageView::ImageView(View* parentView, const std::string &name, const std::string &spriteName, const glm::vec2& pos, const glm::vec2& size, bool bsprite) :
+	View(parentView, name, pos, size)
+{
+	std::unique_ptr<omen::ecs::Sprite> sprite = nullptr;
+	sprite = std::make_unique<omen::ecs::BorderSprite>(spriteName, pos, size, 2, 2, 87, 2);
+
+	if (width() == -1 && height() == -1)
+	{
+		setSize2D(sprite->size());
+		tr()->setBounds(glm::vec3(0, 0, 0), glm::vec3(sprite->width(), sprite->height(), 0));
+	}
+
+	std::unique_ptr<omen::ecs::SpriteRenderer> sr = std::make_unique<omen::ecs::SpriteRenderer>(std::move(sprite));
+	addComponent(std::move(sr));
+}
+
 void ImageView::updateLayout() {
 
 }

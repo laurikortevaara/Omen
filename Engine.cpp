@@ -153,6 +153,7 @@ void operator delete(void* ptr) noexcept
 }
 #endif
 Engine::Engine() :
+	Object("Omen_Engine"),
 	m_scene(nullptr),
 	m_camera(nullptr),
 	m_window(nullptr),
@@ -174,7 +175,7 @@ Engine::Engine() :
 
 	SysInfo info;
 
-	Window::signal_window_created.connect([this](Window* window) {
+	Window::signal_window_created.connect(this,[this](Window* window) {
 		if (window != m_window.get())
 			return;
 		initializeSystems();
@@ -217,7 +218,7 @@ Engine::Engine() :
 
 	});
 
-	MouseInput::signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) -> void {
+	MouseInput::signal_cursorpos_changed.connect(this,[&](omen::floatprec x, omen::floatprec y) -> void {
 		m_mouse_x = x;
 		m_mouse_y = y;
 	});
@@ -299,34 +300,34 @@ void Engine::initializeSystems() {
 
 	// Keyboard input
 	KeyboardInput *keyboardInput = new KeyboardInput();
-	inputSystem->add(keyboardInput);
+	inputSystem->addComponent(keyboardInput);
 
 	// Mouse input
 	MouseInput *mouseInput = new MouseInput();
-	inputSystem->add(mouseInput);
+	inputSystem->addComponent(mouseInput);
 
 	// Picker component
 	Picker *picker = new Picker();
-	inputSystem->add(picker);
+	inputSystem->addComponent(picker);
 
 	// Joystick input
 	JoystickInput *joystickInput = new JoystickInput();
-	inputSystem->add(joystickInput);
+	inputSystem->addComponent(joystickInput);
 
-	joystickInput->joystick_connected.connect([&](Joystick *joystick) {
+	joystickInput->joystick_connected.connect(this,[&](Joystick *joystick) {
 		m_joystick = joystick;
 	});
-	joystickInput->joystick_disconnected.connect([&](Joystick *joystick) {
+	joystickInput->joystick_disconnected.connect(this,[&](Joystick *joystick) {
 		m_joystick = nullptr;
 	});
 
 
 	// Connect key-hit, -press and -release signals to observers
-	keyboardInput->signal_key_hit.connect([this](int k, int s, int a, int m) {
+	keyboardInput->signal_key_hit.connect(this,[this](int k, int s, int a, int m) {
 		keyHit(k, s, a, m);
 	});
 	
-	keyboardInput->signal_key_release.connect([this](int k, int s, int a, int m) {
+	keyboardInput->signal_key_release.connect(this,[this](int k, int s, int a, int m) {
 		if (k == GLFW_KEY_Y)
 			this->m_bMeshRendererEnabled = this->m_bMeshRendererEnabled ? false : true;
 		else
@@ -350,7 +351,7 @@ void Engine::initializeSystems() {
 		
 	});
 
-	keyboardInput->signal_key_press.connect([this](int key, int shift, int alpha, int mode) {
+	keyboardInput->signal_key_press.connect(this,[this](int key, int shift, int alpha, int mode) {
 		if (key == GLFW_KEY_PAGE_UP) {
 			Engine::blend_mode += 1;
 			Engine::blend_mode = Engine::blend_mode < 14 ? Engine::blend_mode : 13;
@@ -363,13 +364,13 @@ void Engine::initializeSystems() {
 	} );
 
 	// Connect key-hit, -press and -release signals to observers
-	m_window->signal_window_size_changed.connect([this](int width, int height) {
+	m_window->signal_window_size_changed.connect(this,[this](int width, int height) {
 		m_camera->onWindowSizeChanged(width, height);
 	});
 
 
 	CameraController *cameraController = new CameraController();
-	coreSystem->add(cameraController);
+	coreSystem->addComponent(cameraController);
 
 	omen::Transformer *transformer = new Transformer();
 
@@ -379,7 +380,7 @@ void Engine::initializeSystems() {
 	ecs::ScriptSystem *scriptSystem = new ecs::ScriptSystem();
 	m_systems.push_back(scriptSystem);
 
-	scriptSystem->add(new ecs::Script("scripts/main.cs"));
+	scriptSystem->addComponent(new ecs::Script("scripts/main.cs"));
 
 	ecs::OpenVRSystem* openVRSystem = new ecs::OpenVRSystem();
 	m_systems.push_back(openVRSystem);

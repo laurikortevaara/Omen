@@ -23,25 +23,25 @@ SkyRenderer::SkyRenderer(MeshController* mc) :
 	//m_shader = new Shader("shaders/sky.glsl");
 	m_shader = new Shader("shaders/spherical_sky.glsl");
 	uvTexMap = new Texture("textures/sky_daytime_blue.jpg");
-	uvEnvMap = new Texture("textures/sky_daytime_blue.jpg");
+	uvEnvMap = new Texture("textures/hemispherical_006.jpg");
 
-	Engine::instance()->properties["SpotBrightness"].signal_property_changed.connect([&](std::any* prop) {this->m_spotBrightness = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["RayleighBrightness"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighBrightness = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["MieBrightness"].signal_property_changed.connect([this](std::any* prop) { this->m_mieBrightness = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["MieDistribution"].signal_property_changed.connect([this](std::any* prop) { this->m_mieDistribution = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["StepCount"].signal_property_changed.connect([this](std::any* prop) { this->m_stepCount = std::any_cast<int>(*prop); });
-	Engine::instance()->properties["SurfaceHeight"].signal_property_changed.connect([this](std::any* prop) { this->m_surfaceHeight = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["RayleighStrength"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighStrength = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["MieStrength"].signal_property_changed.connect([this](std::any* prop) { this->m_mieStrength = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["ScatterStrength"].signal_property_changed.connect([this](std::any* prop) { this->m_scatterStrength = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["RayleighCollectionPower"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighCollectionPower = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["MieCollectionPower"].signal_property_changed.connect([this](std::any* prop) { this->m_mieCollectionPower = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["IntensityRed"].signal_property_changed.connect([this](std::any* prop) { this->m_intensityRed = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["IntensityGreen"].signal_property_changed.connect([this](std::any* prop) { this->m_intensityGreen = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["IntensityBlue"].signal_property_changed.connect([this](std::any* prop) { this->m_intensityBlue = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["HExtinctionBias"].signal_property_changed.connect([this](std::any* prop) { this->m_HExtinctionBias = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["EyeExtinctionBias"].signal_property_changed.connect([this](std::any* prop) { this->m_EyeExtinctionBias = std::any_cast<float>(*prop); });
-	Engine::instance()->properties["RayleighFactor"].signal_property_changed.connect([this](std::any* prop) { this->m_rayleighFactor = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["SpotBrightness"].signal_property_changed.connect(this,[&](std::any* prop) {this->m_spotBrightness = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighBrightness"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_rayleighBrightness = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieBrightness"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_mieBrightness = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieDistribution"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_mieDistribution = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["StepCount"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_stepCount = std::any_cast<int>(*prop); });
+	Engine::instance()->properties["SurfaceHeight"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_surfaceHeight = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighStrength"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_rayleighStrength = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieStrength"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_mieStrength = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["ScatterStrength"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_scatterStrength = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighCollectionPower"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_rayleighCollectionPower = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["MieCollectionPower"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_mieCollectionPower = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["IntensityRed"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_intensityRed = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["IntensityGreen"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_intensityGreen = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["IntensityBlue"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_intensityBlue = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["HExtinctionBias"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_HExtinctionBias = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["EyeExtinctionBias"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_EyeExtinctionBias = std::any_cast<float>(*prop); });
+	Engine::instance()->properties["RayleighFactor"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_rayleighFactor = std::any_cast<float>(*prop); });
 
 	Engine::instance()->properties["SpotBrightness"] = 480.9f;
 	Engine::instance()->properties["RayleighBrightness"] = 0.542f;
@@ -88,7 +88,7 @@ void SkyRenderer::render(Shader* shader) {
 	glEnable(GL_TEXTURE_2D);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	GLint uvMapLoc = m_shader->getUniformLocation("Texture");
+	/*GLint uvMapLoc = m_shader->getUniformLocation("Texture");
 	glUniform1i(uvMapLoc, 0);
 	glActiveTexture(GL_TEXTURE0);
 	uvTexMap->bind();
@@ -96,7 +96,7 @@ void SkyRenderer::render(Shader* shader) {
 	GLint uvEnvMapLoc = m_shader->getUniformLocation("uTexEnv");
 	glUniform1i(uvMapLoc, 1);
 	glActiveTexture(GL_TEXTURE1);
-	uvEnvMap->bind();
+	uvEnvMap->bind();*/
 
 	m_shader->setUniformMatrix4fv("invPV", 1, glm::value_ptr(ipv), false);
 	m_shader->setUniformMatrix4fv("inv_proj", 1, glm::value_ptr(ip), false);
@@ -126,6 +126,20 @@ void SkyRenderer::render(Shader* shader) {
 
 	glm::vec3 lpos = std::any_cast<glm::vec3>(Engine::LightPos);
 	m_shader->setUniform3fv("LightPos", 1, glm::value_ptr(lpos));
+
+	m_shader->setUniform1i("HasTexture", false);
+	int textureLoc = m_shader->getUniformLocation("DiffuseColorMap");
+	if (textureLoc >= 0 && uvEnvMap != nullptr && uvEnvMap->id() >= 0) {
+		m_shader->setUniform1i("HasDiffuseTexture", true);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(textureLoc, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, uvEnvMap->id());
+	}
+	else
+		m_shader->setUniform1i("HasDiffuseTexture", false);
+
 
 
 	glClear(GL_DEPTH_BUFFER_BIT);

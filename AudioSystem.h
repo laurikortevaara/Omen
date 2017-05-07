@@ -21,7 +21,6 @@ namespace omen {
 		public:
 			AudioSystem();
 
-			virtual void add(Component *component);
 			virtual void shutDown() {};
 
 			void playAudio();

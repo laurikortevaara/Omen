@@ -11,6 +11,8 @@
 #include "Component.h"
 
 namespace omen {
+	namespace ecs { class Entity; }
+
     class Transform : public ecs::Component {
         glm::mat4   m_tr;
         glm::vec3   m_scale;
@@ -23,6 +25,11 @@ namespace omen {
         virtual void onAttach(ecs::Entity* e);
         virtual void onDetach(ecs::Entity* e);
     public:
+
+		typedef omen::Signal<std::function<void(ecs::Entity*, omen::Transform*)> > TransformChanged_t;
+		TransformChanged_t signal_transform_changed;
+
+
         Transform() : m_scale(1), m_tr(1), m_rotation(0), m_position(0) {};
         Transform(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale):
                 m_position(position),m_rotation(rotation), m_scale(scale){}
@@ -49,14 +56,16 @@ namespace omen {
             return m_tr;
         }
 
+		glm::mat4 world_tr();
+
         virtual void update(double time, double deltaTime);
 
-		glm::mat4 setPos(const glm::vec3& pos) { m_position = pos; return tr(); }
-        glm::mat4 translate(const glm::vec3 &translation) { m_position += translation; return tr(); }
-        glm::mat4 rotate(float angle, const glm::vec3 &axis) { m_rotation.y = angle; return m_tr;}
-        glm::mat4 scale(const glm::vec3 &scale) { m_tr = glm::scale(m_tr, scale); return m_tr; }
+		glm::mat4 setPos(const glm::vec3& pos) { m_position = pos; signal_transform_changed.notify(nullptr, this);  return tr(); }
+        glm::mat4 translate(const glm::vec3 &translation) { m_position += translation; signal_transform_changed.notify(nullptr, this); return tr(); }
+        glm::mat4 rotate(float angle, const glm::vec3 &axis) { m_rotation.y = angle; signal_transform_changed.notify(nullptr, this); return m_tr;}
+        glm::mat4 scale(const glm::vec3 &scale) { m_tr = glm::scale(m_tr, scale); signal_transform_changed.notify(nullptr, this); return m_tr; }
 
-        void setBounds(glm::vec3 min, glm::vec3 max) {m_bounds_max = max; m_bounds_min = min;}
+		void setBounds(glm::vec3 min, glm::vec3 max) { m_bounds_max = max; m_bounds_min = min; signal_transform_changed.notify(nullptr, this); }
         void getBounds(glm::vec3& min, glm::vec3& max)const {max = m_bounds_max ; min = m_bounds_min;}
 		glm::vec3 boundsMax() const;
 		glm::vec3 boundsMin() const;

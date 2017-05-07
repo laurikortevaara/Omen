@@ -49,6 +49,7 @@ namespace omen {
 			float m_specularCoeff;
 			Texture* m_texture;
 			Texture* m_textureNormal;
+			Texture* m_textureSpecularColor;
 			Sprite * m_sprite;
 			omen::ecs::MeshController* m_meshController;
 			glm::vec3 m_lightDir;

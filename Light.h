@@ -48,6 +48,12 @@ namespace omen {
 		float falloffDistance() const { return m_falloffDistance; }
 		void setFalloffDistance(float distance) { m_falloffDistance = distance; }
 
+		const std::string& name() const { return m_name; }
+		void setName(const std::string& name) { m_name = name; }
+
+		void setPosition(glm::vec3& position) { m_transform.setPos(position); }
+		const glm::vec3& position() { return m_transform.pos(); }
+
     private:
         float m_intensity;
         glm::vec3 m_color;
@@ -55,6 +61,7 @@ namespace omen {
 		LightFalloff m_falloff;
 		float	m_falloffDistance;
 		bool m_bCastShadows;
+		std::string m_name;
 
     };
 

@@ -13,15 +13,23 @@
 namespace omen {
     namespace ecs {
         class System {
-        protected:
+        private:
             std::vector<Component *> m_components;
+		
+		protected:
+			void add(Component *component);
+			std::vector<Component *>& components() {
+				return m_components;
+			};
 
         public:
             System();
 
             virtual ~System() { };
-
-			virtual void add(Component *component);
+						
+			virtual void addComponent(Component* component) {
+				add(component);
+			};
 			virtual void shutDown() = 0;
 
             void remove(Component *component) {

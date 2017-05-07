@@ -899,67 +899,134 @@ void DisplayTexture(FbxGeometry* pGeometry, std::map<std::string, std::list<std:
 	}// end for lMaterialIndex     
 }
 
-void GetMaterials(FbxNode* pNode,
-	std::vector<FbxColor>& Ambients,
-	std::vector<FbxColor>& Diffuses,
-	std::vector<FbxColor>& Speculars,
-	std::vector<FbxColor>& Emissives,
-	std::vector<float>& Shininesses,
-	std::vector<std::string>& textureFiles)
+FbxSurfacePhong* GetPhongMaterial(FbxNode* node, int iMesh)
 {
-	if (!pNode)
-		return;
-		
-	for (int iSrcObj = 0; iSrcObj < pNode->GetSrcObjectCount(); ++iSrcObj) 
-	{
-		FbxObject* obj = pNode->GetSrcObject<FbxObject>(iSrcObj);
-		FbxSurfacePhong* materialPhong = pNode->GetSrcObject < FbxSurfacePhong >(iSrcObj);
-		FbxSurfaceLambert* materialLamb = pNode->GetSrcObject< FbxSurfaceLambert >(iSrcObj);
-		FbxSurfaceMaterial* material = pNode->GetSrcObject< FbxSurfaceMaterial>(iSrcObj);
-
-		int i = 1;
-		if (materialPhong != nullptr) {
-
-			FbxPropertyT<FbxDouble3> lKFbxDouble3;
-
-			lKFbxDouble3 = materialPhong->Ambient;
-			FbxColor Ambient;
-			Ambient.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-			Ambients.push_back(Ambient);
-
-			lKFbxDouble3 = materialPhong->Diffuse;
-			FbxColor Diffuse;
-			Diffuse.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-			Diffuses.push_back(Diffuse);
-
-			lKFbxDouble3 = materialPhong->Specular;
-			FbxColor Specular;
-			Specular.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-			Speculars.push_back(Specular);
-
-			FbxColor Emissive;
-			lKFbxDouble3 = materialPhong->Emissive;
-			Emissive.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-			Emissives.push_back(Emissive);
-
-			float shininess = materialPhong->Shininess;
-			Shininesses.push_back(shininess);
-
-			for (int is = 0; is < materialPhong->Diffuse.GetSrcObjectCount(); ++is) {
-				FbxObject* pobj = materialPhong->Diffuse.GetSrcObject<FbxObject>(is);
-				FbxFileTexture* fTexture = materialPhong->Diffuse.GetSrcObject<FbxFileTexture>(is);
-				if (fTexture != nullptr) {
-					const char* fname = fTexture->GetFileName();
-					std::cout << "Texture found: " << fname << std::endl;
-					textureFiles.push_back(fname);
-				}
-				else
-					textureFiles.push_back("no_texture");
-			}
-		}
-	}
+	return node->GetSrcObject<FbxSurfacePhong>(iMesh);
 }
 
+/**
+* GetPhongAmbient returns the same as Material Ambient factor in Blender[0..1]
+*/
+glm::vec4 GetPhongAmbient(FbxSurfacePhong* phong)
+{
+	FbxDouble3 ambient = phong->Ambient;
+	return glm::vec4(ambient.mData[0], ambient.mData[1], ambient.mData[2], 1.0f);
+}
+
+/**
+* GetPhongDiffuse returns the same as Material Diffuse scaled with it's Intensity in Blender 3x[0..1]
+*/
+glm::vec4 GetPhongDiffuse(FbxSurfacePhong* phong)
+{
+	FbxDouble3 diffuse = phong->Diffuse;
+	return glm::vec4(diffuse.mData[0], diffuse.mData[1], diffuse.mData[2], 1.0f);
+}
+
+/**
+* GetPhongDiffuseIntensity returns the same as Material Diffuse scaled with it's Intensity in Blender 3x[0..1]
+*/
+double GetPhongDiffuseIntensity(FbxSurfacePhong* phong)
+{
+	FbxDouble diffuse = phong->DiffuseFactor;
+	return diffuse;
+}
+
+glm::vec4 GetPhongSpecular(FbxSurfacePhong* phong)
+{
+	FbxDouble3 specular = phong->Specular;
+	return glm::vec4(specular.mData[0], specular.mData[1], specular.mData[2], 1.0f);
+}
+
+/**
+* GetPhongSpecularFactor returns the same as Specular Intensity in Blender[0..1]
+*/
+double GetPhongSpecularFactor(FbxSurfacePhong* phong)
+{
+	FbxDouble specular = phong->SpecularFactor;
+	return specular;
+}
+
+/**
+* GetPhongShininess returns the same as Specular Hardness in Blender[0..511]
+*/
+double GetPhongShininess(FbxSurfacePhong* phong)
+{
+	FbxDouble shininess = phong->Shininess;
+	return shininess;
+}
+
+/**
+* GetPhongEmissive returns the same as Emissive in Blender[0..1]
+*/
+glm::vec4 GetPhongEmissive(FbxSurfacePhong* phong)
+{
+	FbxDouble3 emissive = phong->Emissive;
+	return glm::vec4(emissive.mData[0], emissive.mData[1], emissive.mData[2], 1.0f);
+}
+
+/**
+* GetPhongEmissiveFactor returns the same as Emissive in Blender[0..511]
+*/
+double GetPhongEmissiveFactor(FbxSurfacePhong* phong)
+{
+	FbxDouble emissivef = phong->EmissiveFactor;
+	return emissivef;
+}
+
+std::string GetPhongDiffuseTexture(FbxSurfacePhong* phong)
+{
+	std::list<std::string> textureFiles;
+	
+	for (int is = 0; is < phong->Diffuse.GetSrcObjectCount(); ++is) {
+		FbxObject* pobj = phong->Diffuse.GetSrcObject<FbxObject>(is);
+		FbxFileTexture* fTexture = phong->Diffuse.GetSrcObject<FbxFileTexture>(is);
+		if (fTexture != nullptr) {
+			const char* fname = fTexture->GetFileName();
+			std::cout << "Texture found: " << fname << std::endl;
+			textureFiles.push_back(fname);
+		}
+		else
+			textureFiles.push_back("no_texture");
+	}
+	return textureFiles.empty()?"":textureFiles.front();
+}
+
+
+std::string GetPhongNormalTexture(FbxSurfacePhong* phong)
+{
+	std::list<std::string> textureFiles;
+
+	for (int is = 0; is < phong->NormalMap.GetSrcObjectCount(); ++is) {
+		FbxObject* pobj = phong->NormalMap.GetSrcObject<FbxObject>(is);
+		FbxFileTexture* fTexture = phong->NormalMap.GetSrcObject<FbxFileTexture>(is);
+		if (fTexture != nullptr) {
+			const char* fname = fTexture->GetFileName();
+			std::cout << "Texture found: " << fname << std::endl;
+			textureFiles.push_back(fname);
+		}
+		else
+			textureFiles.push_back("no_texture");
+	}
+	return textureFiles.empty() ? "" : textureFiles.front();
+}
+
+std::string GetPhongSpecularTexture(FbxSurfacePhong* phong)
+{
+	std::list<std::string> textureFiles;
+
+	for (int is = 0; is < phong->Specular.GetSrcObjectCount(); ++is) {
+		FbxObject* pobj = phong->Specular.GetSrcObject<FbxObject>(is);
+		FbxFileTexture* fTexture = phong->Specular.GetSrcObject<FbxFileTexture>(is);
+		if (fTexture != nullptr) {
+			const char* fname = fTexture->GetFileName();
+			std::cout << "Texture found: " << fname << std::endl;
+			textureFiles.push_back(fname);
+		}
+		else
+			textureFiles.push_back("no_texture");
+	}
+	return textureFiles.empty() ? "" : textureFiles.front();
+}
 void GetUVElement(FbxNode* pNode, FbxGeometryElementUV*& UVElement)
 {
 	if (!pNode->GetMesh())
@@ -1719,12 +1786,29 @@ void DisplayListCurveKeys(FbxAnimCurve* pCurve, FbxProperty* pProperty)
 }
 /*ANIAMTION*/
 
-std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(const std::string& filename)
+#define THRESHOLD 10e-5
+#define ROUND(number)\
+std::abs(number) < THRESHOLD? 0.0f : number
+
+std::unique_ptr<omen::ecs::GameObject> MeshProvider::loadObject(const std::string& filename)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
 	bool lResult;
 
+	// Create the object name from the filename
+	std::string objectName = filename;
+	while (objectName.find('\\')!=std::string::npos)
+		objectName.replace(objectName.begin()+objectName.find_first_of('\\'), objectName.begin() + objectName.find_first_of('\\') + 1, "/");
+	objectName = objectName.substr(objectName.find_last_of('/') + 1);
+	objectName = objectName.substr(0, objectName.find_first_of('.'));
+
+	std::unique_ptr<omen::ecs::GameObject> gameObject = std::make_unique<omen::ecs::GameObject>(objectName);
+	if (filename.compare("models/base_arrows.fbx") != 0)
+	{
+		std::unique_ptr<omen::ecs::GameObject> baseArrows = loadObject("models/base_arrows.fbx");
+		//gameObject->addChild(std::move(baseArrows));
+	}
 	// Prepare the FBX SDK.
 	InitializeSdkObjects(lSdkManager, lScene);
 
@@ -1743,7 +1827,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 	
 	//get root node of the fbx scene
 	FbxNode* lRootNode = lScene->GetRootNode();
-	std::list< std::unique_ptr<omen::ecs::GameObject> > meshes;
+	std::list< std::unique_ptr<omen::ecs::GameObject> > childObjects;
 
 	DisplayAnimation(lScene);
 
@@ -1751,18 +1835,47 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 	for (int i = 0; i < childCount; ++i) 
 	{
 		FbxNode* pNode = lRootNode->GetChild(i);
-		std::vector<FbxColor> Ambients;
-		std::vector<FbxColor> Diffuses;
-		std::vector<FbxColor> Speculars;
-		std::vector<FbxColor> Emissives;
-		std::vector<float> Shininesses;
-		std::vector<std::string> textureFiles;
-		GetMaterials(pNode, Ambients, Diffuses, Speculars, Emissives, Shininesses, textureFiles);
 		unsigned int iMesh = 0;
 		for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
 		{
 			FbxNodeAttribute* pAttrib = pNode->GetNodeAttributeByIndex(i);
 
+			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMarker)
+			{
+				const char* markerName = pNode->GetName();
+				FbxMarker* marker = (FbxMarker*) pNode->GetNodeAttribute();
+				int i = 1;
+
+			}
+			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eCamera)
+			{
+				const char* cameraName = pNode->GetName();
+				FbxCamera* camera = (FbxCamera*)pNode->GetNodeAttribute();
+				FbxDouble focalLength = camera->FocalLength;
+				FbxDouble aspectH = camera->AspectHeight;
+				FbxDouble aspectW = camera->AspectWidth;
+				FbxDouble3 _position = camera->Position.Get();
+				FbxDouble3 _up = camera->UpVector.Get();
+				FbxDouble3 _lookAtPos = camera->InterestPosition.Get();
+				FbxDouble roll = camera->Roll.Get();
+				
+				glm::vec3 position = glm::vec3(_position.mData[0], _position.mData[1], -_position.mData[2])*0.01f;
+				glm::vec3 up = glm::normalize(glm::vec3((_up.mData[0]), (_up.mData[1]), (_up.mData[2])));
+				glm::vec3 lookAt = glm::vec3((_lookAtPos.mData[0]), (_lookAtPos.mData[1]), (-_lookAtPos.mData[2]))*0.01f;
+				glm::vec3 forward = (lookAt - position);
+
+				
+				float yaw = glm::degrees(atan(forward.x / -forward.y));
+				float pitch = glm::degrees(atan(sqrt(forward.x*forward.x + forward.y*forward.y) / forward.z));
+
+				Camera* pCurrentCamera = Engine::instance()->camera();
+				pCurrentCamera->setFocalLength(static_cast<omen::floatprec>(focalLength));
+				pCurrentCamera->setPosition(position);
+				pCurrentCamera->yaw() = yaw;
+				pCurrentCamera->pitch() = pitch;
+				
+			}
+			else
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eLight)
 			{
 				const char* lightName = pNode->GetName();
@@ -1773,7 +1886,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxDouble3 lScaling = pNode->LclScaling.Get();
 				
 				glm::vec3 lColor = glm::vec3({ light->Color.Get()[0], light->Color.Get()[1], light->Color.Get()[2] });
-				float lIntensity = light->Intensity.Get();
+				FbxDouble  lIntensity = light->Intensity.Get();
 				bool lCastShadows = light->CastShadows.Get();
 				Light::LightFalloff falloff = Light::InverseSquare;
 				FbxLight::EDecayType decayType = light->DecayType.Get();
@@ -1785,8 +1898,8 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 					case FbxLight::eCubic: falloff = Light::InverseCubic; break;
 				}
 
-				float innerAngle = light->InnerAngle;
-				float outerAngle = light->OuterAngle;
+				FbxDouble  innerAngle = light->InnerAngle;
+				FbxDouble  outerAngle = light->OuterAngle;
 
 				Engine::LightPos = glm::vec3(lTranslation.mData[0] / lScaling[0], lTranslation.mData[1] / lScaling[1], -lTranslation.mData[2] / lScaling[2]);
 
@@ -1796,16 +1909,16 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				FbxLight::EType type = light->LightType.Get();
 				switch (light->LightType.Get()) {
 				case FbxLight::ePoint:
-					pLight = std::make_unique<omen::PointLight>(Engine::LightPos, lColor, lIntensity);
+					pLight = std::make_unique<omen::PointLight>(Engine::LightPos, lColor, static_cast<omen::floatprec>(lIntensity));
 					break;
 				case FbxLight::eDirectional:
-					pLight = std::make_unique<omen::DirectionalLight>(Engine::LightPos, lColor, lIntensity);
+					pLight = std::make_unique<omen::DirectionalLight>(Engine::LightPos, lColor, static_cast<omen::floatprec>(lIntensity));
 					break;
 				case FbxLight::eSpot:
-					pLight = std::make_unique<omen::SpotLight>(Engine::LightPos, lRotation, lColor, lIntensity, innerAngle, outerAngle);
+					pLight = std::make_unique<omen::SpotLight>(Engine::LightPos, lRotation, lColor, static_cast<omen::floatprec>(lIntensity), static_cast<omen::floatprec>(innerAngle), static_cast<omen::floatprec>(outerAngle));
 					break;
 				case FbxLight::eArea:
-					pLight = std::make_unique<omen::AreaLight>(Engine::LightPos, lColor, lIntensity );
+					pLight = std::make_unique<omen::AreaLight>(Engine::LightPos, lColor, static_cast<omen::floatprec>(lIntensity) );
 					break;
 				case FbxLight::eVolume:
 					//"Volumentric light not implemented!"
@@ -1813,9 +1926,12 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 					break;
 				}
 				
-				if(pLight != nullptr)
+				if (pLight != nullptr) {
+					pLight->setName(lightName);
 					Engine::instance()->scene()->lights().push_back(std::move(pLight));
+				}
 			}
+			else
 			if (pAttrib->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
 				FbxGeometry* geom = (FbxGeometry*)pAttrib;
@@ -1834,18 +1950,31 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				std::vector<glm::vec3> tangents = {};
 				std::vector<glm::vec3> bitangents = {};
 
-				FbxColor Ambient = iMesh + 1 > Ambients.size() ? FbxColor(0.5, 0.5, 0.5,1.0) : Ambients[iMesh];
-				FbxColor Diffuse = iMesh + 1 > Diffuses.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Diffuses[iMesh];
-				FbxColor Specular = iMesh + 1 > Speculars.size() ? FbxColor( 0.5,0.5,0.5,1.0) : Speculars[iMesh];
-				float Shininess = iMesh + 1 > Shininesses.size() ? 0.0f : Shininesses[iMesh];
-				FbxColor Emissive = iMesh + 1 > Emissives.size() ? FbxColor(0, 0, 0, 0) : Emissives[iMesh];
+				FbxSurfacePhong* phong = GetPhongMaterial(pNode, iMesh);
+				
+				std::string textureFileDiffuse;
+				std::string textureFileSpecularColor;
+				std::string textureFileShininessExponent;
+				std::string textureFileSpecularFactor;
+				std::string textureFileNormalMap;
 
-				std::string textureFile = iMesh+1 > textureFiles.size() ? "" : textureFiles[iMesh];
 				if(!textures.empty() && !textures["DiffuseColor"].empty())
-					textureFile = *textures["DiffuseColor"].begin();
+					textureFileDiffuse = *textures["DiffuseColor"].begin();
 
-				if (textureFile.compare("no_texture") == 0)
-					textureFile = "";
+				if (!textures.empty() && !textures["NormalMap"].empty())
+					textureFileNormalMap = *textures["NormalMap"].begin();
+
+				if (!textures.empty() && !textures["ShininessExponent"].empty())
+					textureFileShininessExponent = *textures["ShininessExponent"].begin();
+
+				if (!textures.empty() && !textures["SpecularColor"].empty())
+					textureFileSpecularColor = *textures["SpecularColor"].begin();
+
+				if (!textures.empty() && !textures["SpecularFactor"].empty())
+					textureFileSpecularFactor = *textures["SpecularFactor"].begin();
+
+				if (textureFileDiffuse.compare("no_texture") == 0)
+					textureFileDiffuse = "";
 
 				const char* name = pNode->GetName();
 
@@ -1899,8 +2028,8 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 						// Note: no normalization of tangents and bi-tangents, due to their relative effect to the
 						// size of the triangle
 						float r = 1.0f / (duv1.x * duv2.y - duv1.y * duv2.x);
-						glm::vec3 tangent = (dp1 * duv2.y - dp2*duv1.y) * r;
-						glm::vec3 bitangent = (dp2 * duv1.x - dp1*duv2.x) * r;
+						glm::vec3 tangent = glm::normalize((dp1 * duv2.y - dp2*duv1.y) * r);
+						glm::vec3 bitangent = glm::normalize((dp2 * duv1.x - dp1*duv2.x) * r);
 
 						// 3x tangent
 						tangents[ti1] = tangent; tangents[ti2] = tangent; tangents[ti3] = tangent;
@@ -1921,20 +2050,39 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 
 				// Set Texturemap
 				std::unique_ptr<Material> material = std::make_unique<Material>();
-				material->setDiffuseColor(glm::vec4(Diffuse.mRed, Diffuse.mGreen, Diffuse.mBlue, Diffuse.mAlpha));
-				material->setSpecularColor(glm::vec4(Specular.mRed, Specular.mGreen, Specular.mBlue, Specular.mAlpha));
-				material->setEmissiveColor(glm::vec4(Emissive.mRed, Emissive.mGreen, Emissive.mBlue, Emissive.mAlpha));
-				material->setSpecularCoeff(Shininess);
-				if (!textureFile.empty())
+				material->setAmbientColor(GetPhongAmbient(phong));
+				material->setDiffuseColor(GetPhongDiffuse(phong));
+				material->setSpecularColor(GetPhongSpecular(phong));
+				material->setEmissiveColor(GetPhongEmissive(phong));
+				material->setEmissiveFactor(static_cast<omen::floatprec>(GetPhongEmissiveFactor(phong)));
+				material->setDiffuseIntensity(static_cast<omen::floatprec>(GetPhongDiffuseIntensity(phong)));
+				material->setSpecularIntensity(static_cast<omen::floatprec>(GetPhongSpecularFactor(phong)));
+				material->setShininess(static_cast<omen::floatprec>(GetPhongShininess(phong)));
+
+				if (!textureFileDiffuse.empty())
 				{
-					std::cout << "Loading texture: " << textureFile << std::endl;
-					Texture* t = new Texture(textureFile);
+					std::cout << "Loading texture: " << textureFileDiffuse << std::endl;
+					Texture* t = new Texture(textureFileDiffuse);
 					std::cout << "Loading texture OK ";
 					material->setTexture(t);
-					std::string ext = textureFile.substr(textureFile.find_first_of("."));
-					std::string textureFile_normal = textureFile.substr(0, textureFile.find_first_of(".")) + "_normal" + ext;
-					Texture* t_normal = new Texture(textureFile_normal);
-					material->setTextureNormal(t_normal);
+				}
+
+				if (!textureFileNormalMap.empty())
+				{
+					std::cout << "Loading texture: " << textureFileNormalMap << std::endl;
+					Texture* t = new Texture(textureFileNormalMap);
+					std::cout << "Loading texture OK ";
+					material->setTextureNormal(t);
+				}
+
+				if (!textureFileSpecularFactor.empty())
+				{
+					std::cout << "Loading texture: " << textureFileSpecularFactor << std::endl;
+					Texture* t = new Texture(textureFileSpecularFactor);
+					std::cout << "Loading texture OK ";
+					material->setTextureSpecularFactor(t);
+					material->setTextureSpecularColor(t);
+					material->setTextureShininessExponent(t);
 				}
 
 				mesh->setMaterial(std::move(material));
@@ -1946,9 +2094,10 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				mesh->setTangents(tangents); 
 				mesh->setBiTangents(bitangents); 
 
-				mesh->calcBoundingBox();
+				//mesh->calcBoundingBox();
 				/**/
 				std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>(name);
+				obj->setLayer(0);
 
 				std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
 				mc->setMesh(std::move(mesh));
@@ -1977,8 +2126,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 				obj->setName(name);
 
 				/**/
-
-				meshes.push_back(std::move(obj));
+				gameObject->addChild(std::move(obj));
 				iMesh++;
 			}
 		}		
@@ -1987,7 +2135,7 @@ std::list< std::unique_ptr<omen::ecs::GameObject> > MeshProvider::loadObject(con
 	DestroySdkObjects(lSdkManager, lResult);
 
 	// Finally return the created mesh
-	return meshes;
+	return gameObject;
 }
 
 std::unique_ptr<Mesh> MeshProvider::createCube()
@@ -2047,13 +2195,41 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 	material->setDiffuseColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
-	std::vector<Mesh::Vertex> vertices = {};
+	std::vector<Mesh::Vertex> vertices = {// front
+		{-1.0, -1.0,  1.0},
+		{1.0, -1.0,  1.0},
+		{1.0,  1.0,  1.0},
+		{-1.0,  1.0,  1.0},
+		// back
+		{-1.0, -1.0, -1.0},
+		{1.0, -1.0, -1.0},
+		{1.0,  1.0, -1.0},
+		{-1.0,  1.0, -1.0}};
+	std::vector<int> indices = {
+		// front
+		0, 1, 2,
+		2, 3, 0,
+		// top
+		1, 5, 6,
+		6, 2, 1,
+		// back
+		7, 6, 5,
+		5, 4, 7,
+		// bottom
+		4, 0, 3,
+		3, 7, 4,
+		// left
+		4, 5, 1,
+		1, 0, 4,
+		// right
+		3, 2, 6,
+		6, 7, 3, };
 	std::vector<glm::vec3> normals = {};
 	std::vector<glm::vec3> tangents = {};
 	std::vector<glm::vec2> uv = {};
-	for (int i = 0; i < size(vertexData); ++i) {
+	/*for (int i = 0; i < size(vertexData); ++i) {
 		vertices.push_back(vertexData[i]);
-	}
+	}*/
 
 	glm::vec3 max_pos;
 	glm::vec3 min_pos;
@@ -2216,7 +2392,9 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 	mesh->setTangents(tangents);
 	mesh->setUVs(uv);
 	mesh->calcBoundingBox();
-	//mesh->setVertexIndices(indices);
+	mesh->setVertexIndices(indices);
+
+	mesh->setMaterial(std::make_unique<Material>());
 	return std::move(mesh);
 }
 

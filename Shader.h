@@ -29,6 +29,7 @@ namespace omen {
         bool readShaderFile(const char*shader_file);
 
         GLuint m_shader_program;
+		GLuint m_shaderType;
 
         void use();
 

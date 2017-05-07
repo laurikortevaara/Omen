@@ -79,7 +79,7 @@ bool OpenVRSystem::init()
 	// Get the Mouse coordinates
 	MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
 	if (mi != nullptr) {
-		mi->signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) {
+		mi->signal_cursorpos_changed.connect(this,[&](omen::floatprec x, omen::floatprec y) {
 			CameraController* ctr = Engine::instance()->findComponent<CameraController>();
 			if (!ctr->enabled())
 				return;
@@ -98,7 +98,7 @@ bool OpenVRSystem::init()
 		});
 	}
 
-	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
+	Engine::instance()->signal_engine_update.connect(this,[this](omen::floatprec time, omen::floatprec deltaTime) {
 		Engine* e = Engine::instance();
 		KeyboardInput* ki = e->findComponent<KeyboardInput>();
 

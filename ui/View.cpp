@@ -24,7 +24,7 @@ View::View(View *parentView, const std::string& name, const glm::vec2& pos, cons
 
 	setGravity(ALIGN_LEFT | ALIGN_TOP);
 
-	Engine::instance()->window()->signal_window_size_changed.connect([this](int width, int height) {this->updateLayout();});
+	Engine::instance()->window()->signal_window_size_changed.connect(this,[this](int width, int height) {this->updateLayout();});
 }
 
 

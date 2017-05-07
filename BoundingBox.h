@@ -17,6 +17,7 @@ namespace omen {
         glm::vec3 Min() const {return m_min;}
         glm::vec3 Max() const {return m_max;}
         omen::Transform& tr() {return m_transform;}
+		void setTr(omen::Transform& tr) { m_transform = tr; }
     private:
         omen::Transform m_transform;
         glm::vec3   m_max;

@@ -3,13 +3,16 @@
 #include <string>
 
 namespace omen {
-	class Object {
+
+	class Object  {
 	public:
 		Object(const std::string &name);
 
 		uint64_t id() const { return m_id; }
 		const std::string& name() const { return m_name;  }
 		void setName(const std::string& name) { m_name = name; }
+
+		virtual ~Object();
 
 	protected:
 	private:

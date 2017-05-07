@@ -15,12 +15,12 @@ void System::update(double time, double deltaTime) {
 System::System():
         m_isEnabled(false) {
     omen::Engine *e = omen::Engine::instance();
-    e->signal_engine_update.connect([this, e](double time, double deltaTime) {
+    e->signal_engine_update.connect(this,[this, e](double time, double deltaTime) {
         if(m_isEnabled)
             update(time, deltaTime);
     });
 
-	e->signal_engine_shut_down.connect([this]() {
+	e->signal_engine_shut_down.connect(this,[this]() {
 		this->shutDown();
 	});
 }
@@ -28,5 +28,11 @@ System::System():
 void System::add(Component* component)
 {
 	m_components.push_back(component); 
+	component->signal_component_destructed.connect(this,[&](Component* c) {
+		if (std::find(m_components.begin(), m_components.end(), c) != m_components.end())
+		{
+			m_components.erase(std::find(m_components.begin(), m_components.end(), c));
+		}
+	});
 }
 

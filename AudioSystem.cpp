@@ -25,11 +25,6 @@ AudioSystem::AudioSystem() :
 
 }
 
-void AudioSystem::add(Component* component) 
-{
-	m_components.push_back(component);
-}
-
 long AudioSystem::setVolume(long pVolume)
 {
 	CComQIPtr<IBasicAudio> pAudio(pGraph);

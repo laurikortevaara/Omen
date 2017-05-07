@@ -34,6 +34,23 @@ namespace omen {
 
         Joystick *m_joystick;
 
+		// Camera parameters
+		const float SENSOR_ASPECT_DSLR = 3.0f/2.0f; // 3/2 aspect
+		
+		const glm::vec2 SEONSOR_SIZE_FULL_FRAME_35MM = { 36.0, 36.0 / SENSOR_ASPECT_DSLR };
+		const glm::vec2 SEONSOR_SIZE_CANON_APS_H = { 28.7, 19.0 }; // Canon
+		const glm::vec2 SEONSOR_SIZE_CANON_APS_C = { 22.2, 14.8 }; // Canon
+		const glm::vec2 SEONSOR_SIZE_NIKON_APS_C = { 25.1, 25.1 / SENSOR_ASPECT_DSLR }; // Nikon, Sony, Pentax, Fuji, etc..
+		const glm::vec2 SEONSOR_SIZE_SIGMA_FOVEON = { 20.7, 13.8 }; // Sigma
+		const glm::vec2 SENSOR_SIZE_FOUR_THIRDS = { 17.3,13.0 }; // Olympus, Panasonic, etc.
+		
+		const glm::vec2 DEFAULT_SENSOR_SIZE = SEONSOR_SIZE_FULL_FRAME_35MM;
+
+		const float DEFAULT_FOCA_LENGTH = 50.0f; // 50mm
+
+		glm::vec2 m_sensorSize; // 
+		float	  m_focalLength;
+
 
     public:
         Camera(const std::string &name, const glm::vec3 &pos, const glm::vec3 &lookAt, float fov);
@@ -52,7 +69,13 @@ namespace omen {
         void setPosition(glm::vec3 position);
         glm::vec3 position() const {return m_pos;}
 
-		float fov() const { return glm::degrees(m_fov); }
+		float fov() const; // The horizontal field of view in degrees
+		float horizontalFieldOfView() const; // As above
+		float verticalFieldOfView() const; // The vertical field of view;
+
+		void setFov(float fov); // Set the horizontal field of view in degrees
+		void setFocalLength(float focalLength); // Set the focal length
+
 		float zNear() const { return m_near; }
 		float zFar() const { return m_far; }
         float & yaw();

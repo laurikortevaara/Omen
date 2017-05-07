@@ -14,10 +14,6 @@ long long GraphicsSystem::drawElementsCount = 0;
 long long GraphicsSystem::drawArraysCount = 0;
 long long GraphicsSystem::drawElementsInstancedCount = 0;
 
-void GraphicsSystem::add(Component* component)
-{
-	m_components.push_back(component); 
-}
 
 void GraphicsSystem::render(omen::Shader* shader, int layer) {
 	int w, h;
@@ -32,13 +28,14 @@ void GraphicsSystem::render(omen::Shader* shader, int layer) {
 
 	//glDisable(GL_BLEND);*/
 	//glDepthFunc()
-    for(auto c : m_components){
+    for(auto c : components()){
 		if (layer != -1 && layer != c->entity()->layer())
 			continue;
 
 		const char* e = c->entity()->name().c_str();
 		if (strcmp(e, "LightbulbHD") == 0 && shader != nullptr)
 			continue;
+		
         Renderer* r = dynamic_cast<Renderer*>(c);
 		MeshRenderer* mr = dynamic_cast<MeshRenderer*>(c);
 		// Don't render anything if no mesh renderer and given shader

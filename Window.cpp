@@ -14,6 +14,9 @@
 #include "system/InputSystem.h"
 #include "component/KeyboardInput.h"
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#include <GLFW/glfw3native.h>
 using namespace omen;
 
 
@@ -47,6 +50,32 @@ void Window::fileDropped(GLFWwindow *window, int count, const char** filePaths) 
 
 bool Window::shouldClose() const {
 	return glfwWindowShouldClose(m_window) == GL_TRUE;
+}
+
+// Add new popup menu
+#define ADDPOPUPMENU(hmenu, string) \
+	HMENU hSubMenu = CreatePopupMenu(); \
+	AppendMenu(hmenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, string);
+
+
+// Add a menu item
+#define ADDMENUITEM(hmenu, ID, string) \
+	AppendMenu(hSubMenu, MF_STRING, ID, string);
+
+
+enum
+{
+	ID_FILE_EXIT,
+	ID_FILE_MSG
+}; 
+
+void CreateMainMenu(HWND hWnd)
+{
+	HMENU hMenu = CreateMenu();
+	ADDPOPUPMENU(hMenu, "&File");
+	ADDMENUITEM(hMenu, ID_FILE_EXIT, "&Exit");
+	ADDMENUITEM(hMenu, ID_FILE_MSG, "&Show message");
+	SetMenu(hWnd, hMenu);
 }
 
 void Window::createWindow(int width, int height) {
@@ -86,11 +115,14 @@ void Window::createWindow(int width, int height) {
 	m_width = width;
 	m_height = height;
 
+	// Create the main menu
+	CreateMainMenu(glfwGetWin32Window(m_window));
+
 	//glfwSetCursorPos(m_window, m_width/2, m_height/2);
 	glfwMakeContextCurrent(m_window);
 	glfwShowWindow(m_window);
 	check_gl_error();
-
+	
 	glEnable(GL_SAMPLE_COVERAGE);
 	int w = width;
 	int h = height;
@@ -137,7 +169,7 @@ void Window::createWindow(int width, int height) {
 
 	Engine* e = Engine::instance();
 	KeyboardInput* ki = (KeyboardInput*)e->findComponent<KeyboardInput>();
-	/*ki->signal_key_press.connect([&](int k, int s, int a, int m) {
+	/*ki->signal_key_press.connect(this,[&](int k, int s, int a, int m) {
 		if (k == GLFW_KEY_0 || k == GLFW_KEY_F) {
 			m_swapInterval = m_swapInterval == 60 ? 0 : 60;
 			glfwSwapInterval(m_swapInterval);
@@ -158,15 +190,21 @@ void Window::start_rendering() {
 	glfwMakeContextCurrent(m_window);
 	glEnable(GL_SCISSOR_TEST);
 	// Set the clear color
+	//easeOutElastic: function (t) { return .04 * t / (--t) * Math.sin(25 * t) },
+	double t = Engine::instance()->time();
+	double w = 500+5000*(0.04*t / (--t)*sin(25 * t));
+
 	glViewport(0, 0, m_width, m_height);
-	glScissor(0, 0, m_width, m_height);
+	glScissor(0, 0, m_height, m_height);
 	glClearColor(0, 0, 0, 1);
+	
 	/*glFlush();
 	glViewport(0, 100, m_width, m_height - 100);
 	glScissor(0, 100, m_width, m_height - 100);
 	glClearColor(1, 0, 0, 1);
 	*/
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glFlush();
 
 }
 

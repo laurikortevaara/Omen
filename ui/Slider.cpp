@@ -57,7 +57,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	
 	// Create a draggable component and add it to the knot
 	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>(m_groovePos, glm::vec2(m_grooveSize.x-20,m_grooveSize.y));
-	dragKnot->signal_dragged.connect([this](float value) -> void {
+	dragKnot->signal_dragged.connect(this,[this](float value) -> void {
 		setCurrentValue(this->m_min_value + value*(this->m_max_value - this->m_min_value));
 	});
 
@@ -69,7 +69,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	
 
 	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
-	click->signal_entity_clicked.connect([this](Entity* e, glm::vec2 pos, int button) {
+	click->signal_entity_clicked.connect(this,[this](Entity* e, glm::vec2 pos, int button) {
 		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 			setCurrentValue(this->m_min_value + 0.5f*(this->m_max_value - this->m_min_value));
 		}
@@ -81,7 +81,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 
 	// Create a text view for the slider value and add it to the slider layout
 	std::unique_ptr<TextView> textView = std::make_unique<TextView>(nullptr, "SliderValue", glm::vec2(0, 0), glm::vec2(300, 20));
-	signal_slider_dragged.connect([&](Slider*, float value) {
+	signal_slider_dragged.connect(this,[&](Slider*, float value) {
 		TextView* tv = dynamic_cast<TextView*>(findChild("SliderValue"));
 		tv->setText(to_wstring_with_precision(value,4)); 
 	});

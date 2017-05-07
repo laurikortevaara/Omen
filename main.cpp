@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
 		omen::KeyboardInput *keyboardInput = dynamic_cast<omen::KeyboardInput *>(inputSystem->findComponent<omen::KeyboardInput>());
 
 
-		keyboardInput->signal_key_press.connect([&](int k, int s, int a, int m) {
+		keyboardInput->signal_key_press.connect_static([&](int k, int s, int a, int m) {
 			// TODO
 		});
 
-		keyboardInput->signal_key_release.connect([&](int k, int s, int a, int m) {
+		keyboardInput->signal_key_release.connect_static([&](int k, int s, int a, int m) {
 			// TODO
 		});
 	}

@@ -22,12 +22,15 @@ using namespace omen;
 Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 &lookAt, omen::floatprec fov) :
 	GameObject(name),
 	m_pos(pos),
-	m_near(1.0f), m_far(200.0f),
-	m_yaw(.0f), m_pitch(0.0f), m_roll(.0f),
+	m_near(1.0f), m_far(1000.0f),
+	m_yaw(.0f), m_pitch(90.0f), m_roll(.0f),
 	m_lookAt(lookAt),
 	m_fov(fov*glm::pi<float>() / 180.0f),
 	m_bIsValid(false),
-	m_joystick(nullptr) {
+	m_joystick(nullptr),
+	m_sensorSize(DEFAULT_SENSOR_SIZE),
+	m_focalLength(DEFAULT_FOCA_LENGTH)
+{
 
 	omen::Engine *e = omen::Engine::instance();
 	//omen::Window *w = e->window();
@@ -44,9 +47,9 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	
 
 	// connect to engine update signal
-	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
-		m_rotation = glm::rotate(glm::mat4(1), m_yaw*glm::pi<float>() / 180.0f, glm::vec3(0, 1, 0));
-		m_rotation = glm::rotate(m_rotation, m_pitch*glm::pi<float>() / 180.0f, glm::vec3(1, 0, 0));
+	Engine::instance()->signal_engine_update.connect(this,[this](omen::floatprec time, omen::floatprec deltaTime) {
+		m_rotation = glm::rotate(glm::mat4(1), glm::radians(m_yaw), glm::vec3(0, 1, 0));
+		m_rotation = glm::rotate(m_rotation, glm::radians(m_pitch), glm::vec3(1, 0, 0));
 		m_forward = glm::vec3(m_rotation * glm::vec4(0, 0, 1, 0));
 
 		glm::vec3 cameraRight = glm::normalize(glm::cross(m_up, m_forward));
@@ -114,10 +117,12 @@ void Camera::updateViewProjection() {
 	omen::Engine *e = omen::Engine::instance();
 	omen::Window *w = e->window();
 
-	float aspectRatio = (float)w->width() / (float)w->height();
+	glm::ivec4 viewport;
+	glGetIntegerv(GL_VIEWPORT, (int *)&viewport);
+	float aspectRatio = (float)viewport[2] / (float)viewport[3];
 	// Generates a really hard-to-read matrix, but a normal, standard 4x4 matrix nonetheless
 	m_projection = glm::perspective(
-		m_fov,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
+		glm::radians(fov()),         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
 		aspectRatio, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
 		m_near,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
 		m_far       // Far clipping plane. Keep as little as possible.
@@ -146,4 +151,34 @@ glm::vec3& Camera::acceleration() {
 
 glm::vec3& Camera::velocity() {
 	return m_velocity;
+}
+
+// The horizontal field of view in degrees
+float Camera::fov() const
+{
+	return horizontalFieldOfView();
+}
+
+// The horizontal field of view in degrees
+float Camera::horizontalFieldOfView() const
+{
+	return static_cast<float>(glm::degrees(2.0f*atan((0.5*m_sensorSize.x) / m_focalLength)));
+}
+
+// The vertical field of view;
+float Camera::verticalFieldOfView() const
+{
+	return static_cast<float>(glm::degrees(2.0f*atan((0.5*m_sensorSize.y) / m_focalLength)));
+}
+
+// Set the horizontal field of view in degrees
+void Camera::setFov(float fov)
+{
+	m_focalLength = static_cast<float>((0.5*m_sensorSize.y) / tan(glm::radians(0.5*fov)));
+}
+
+// Set the focal length
+void Camera::setFocalLength(float focalLength)
+{
+	m_focalLength = focalLength;
 }

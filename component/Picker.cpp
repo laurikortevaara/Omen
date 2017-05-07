@@ -16,6 +16,7 @@ using namespace omen;
 
 Picker::ObjectPicked_t Picker::signal_object_picked;
 glm::vec3 Picker::IntersectPos = glm::vec3(0);
+omen::ecs::Entity* Picker::CurrentlySelected = nullptr;
 
 class Segment {
 public:
@@ -96,19 +97,19 @@ public:
         }
     }
 
-    bool segmentAABBoxIntersect(BoundingBox &aabb, const Segment &s, float &intersect) {
+    bool segmentAABBoxIntersect(const std::unique_ptr<BoundingBox> &aabb, const Segment &s, float &intersect) {
         float v0 = 0.0f, v1 = 1.0f;
 
-        if (!raySlabIntersect(aabb.Min().x + aabb.tr().pos().x, aabb.Max().x + aabb.tr().pos().x, s.start.x, s.end.x,
+        if (!raySlabIntersect(aabb->Min().x + aabb->tr().pos().x, aabb->Max().x + aabb->tr().pos().x, s.start.x, s.end.x,
                               v0, v1))
             return false;
 
         // test Y slab
-        if (!raySlabIntersect(aabb.Min().y + aabb.tr().pos().y, aabb.Max().y + aabb.tr().pos().y, s.start.y, s.end.y,
+        if (!raySlabIntersect(aabb->Min().y + aabb->tr().pos().y, aabb->Max().y + aabb->tr().pos().y, s.start.y, s.end.y,
                               v0, v1))
             return false;
 
-        if (!raySlabIntersect(aabb.Min().z + aabb.tr().pos().z, aabb.Max().z + aabb.tr().pos().z, s.start.z, s.end.z,
+        if (!raySlabIntersect(aabb->Min().z + aabb->tr().pos().z, aabb->Max().z + aabb->tr().pos().z, s.start.z, s.end.z,
                               v0, v1))
             return false;
 
@@ -122,18 +123,18 @@ public:
 
 Picker::Picker() {
     Engine::instance()->findComponent<MouseInput>()->
-            signal_mousebutton_pressed.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
+            signal_mousebutton_pressed.connect(this,[&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
         if (action != GLFW_PRESS)
             return;
         pick();
     });
 
     Engine::instance()->findComponent<MouseInput>()->
-            signal_cursorpos_changed.connect([&](double x, double y) -> void {
-        //pick();
+            signal_cursorpos_changed.connect(this,[&](double x, double y) -> void {
+        pick();
     });
 
-    Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect([&](int key, int action, int mods, int t){
+    Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect(this,[&](int key, int action, int mods, int t){
 		if (key == GLFW_KEY_ESCAPE) {
 			IntersectPos = glm::vec3(0);
 			signal_object_picked.notify(nullptr, IntersectPos);
@@ -141,16 +142,18 @@ Picker::Picker() {
     });
 }
 
-void Picker::pick() {
+
+void Picker::pick(omen::ecs::Entity* parentEntity) {
     MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
     Camera *camera = Engine::instance()->camera();
 
     //unproject twice to build a ray from near to far plane"
     glm::ivec4 viewport;
     glGetIntegerv(GL_VIEWPORT, (int *) &viewport);
-    glm::vec3 v0 = glm::unProject(glm::vec3(mi->cursorPos().x, viewport[3] - mi->cursorPos().y, 0.0f), camera->view(),
+	int dy = Engine::instance()->window()->height() - viewport[3];
+    glm::vec3 v0 = glm::unProject(glm::vec3(mi->cursorPos().x, viewport[3] - mi->cursorPos().y + dy, 0.0f), camera->view(),
                                   camera->projection(), viewport);
-    glm::vec3 v1 = glm::unProject(glm::vec3(mi->cursorPos().x, viewport[3] - mi->cursorPos().y, 1.0f), camera->view(),
+    glm::vec3 v1 = glm::unProject(glm::vec3(mi->cursorPos().x, viewport[3] - mi->cursorPos().y + dy, 1.0f), camera->view(),
                                   camera->projection(), viewport);
 
     Ray ray;
@@ -161,12 +164,15 @@ void Picker::pick() {
     float min_intersect =  std::numeric_limits<float>::max();
     ecs::Entity* pSelected = nullptr;
 	IntersectPos = glm::vec3(min_intersect);
-    for (const auto& entity : scene->entities()) {
+	const std::vector<std::unique_ptr<omen::ecs::Entity>>& entities = parentEntity==nullptr?scene->entities():parentEntity->children();
+    for (const auto& entity : entities) {
 		if (entity->getComponent<ecs::MeshController>()!=nullptr) {
 			omen::ecs::MeshController* ctr = entity->getComponent<ecs::MeshController>();
 			const std::unique_ptr<Mesh>& mesh = ctr->mesh();
 			float intersect;
-			BoundingBox b = mesh->boundingBox();
+			const std::unique_ptr<BoundingBox>& b = mesh->boundingBox();
+			b->tr() = *entity->tr();
+			std::string name = entity->name();
 			if (ray.segmentAABBoxIntersect(b, { v0, (v1 - v0) * 1000.0f }, intersect)) {
 				if (intersect < min_intersect) {
 					min_intersect = intersect;
@@ -181,9 +187,11 @@ void Picker::pick() {
 			glm::vec3 size = v->size();
 			if (mi->cursorPos().x >= pos.x && mi->cursorPos().x <= (pos.x + size.x) &&
 				mi->cursorPos().y >= pos.y && mi->cursorPos().y <= (pos.y + size.y)) {
-				pSelected = entity.get();
+				//pSelected = entity.get();
 			}
 		}
+		if (!entity->children().empty())
+			pick(entity.get());
     }
 
 	/** Precise triangle intersection */
@@ -192,7 +200,7 @@ void Picker::pick() {
 		omen::Mesh* m = ctr->mesh().get();
 		if (m->vertices().size() == 0)
 			return;
-		for (int vi = 0; vi < ctr->mesh()->vertexIndices().size() - 3; ++vi) 
+		for (unsigned int vi = 0; vi < ctr->mesh()->vertexIndices().size() - 3; ++vi) 
 		{
 			
 			std::vector<omen::Mesh::Vertex>& vs = m->vertices();
@@ -209,6 +217,7 @@ void Picker::pick() {
 			}
 		}
 	}
+	CurrentlySelected = pSelected==nullptr?CurrentlySelected:pSelected;
 	if(pSelected!=nullptr && dynamic_cast<omen::ecs::GameObject*>(pSelected)!=nullptr)
 		signal_object_picked.notify(pSelected, IntersectPos);
 }

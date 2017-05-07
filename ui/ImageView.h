@@ -19,6 +19,7 @@ namespace omen {
         class ImageView : public View {
         public:
 			ImageView(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2& pos = { 0,0 }, const glm::vec2& size = { -1,-1 });
+			ImageView(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2& pos, const glm::vec2& size, bool bsprite);
 			virtual ~ImageView();
 
 			glm::vec2 pivot() const;

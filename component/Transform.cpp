@@ -42,3 +42,17 @@ glm::vec3 Transform::boundsMax() const
 	return m_bounds_max; 
 }
 
+glm::mat4 Transform::world_tr() 
+{
+	glm::mat4 parentTr;
+	if (entity()->parent() != nullptr)
+		parentTr = entity()->parent()->tr()->world_tr();
+	glm::mat4 translation = glm::translate(glm::mat4(1), m_position);
+	//glm::mat4 rotation = glm::rotate( glm::mat4(), m_rotation.x, glm::vec3(1,0,0));
+	glm::mat4 rotation = glm::rotate(glm::mat4(), m_rotation.y, glm::vec3(0, 1, 0));
+	//rotation = glm::rotate( rotation, m_rotation.y, glm::vec3(0,0,1));
+	glm::mat4 scale = glm::scale(glm::mat4(1), m_scale);
+
+	m_tr = translation * rotation * scale;
+	return parentTr*m_tr;
+}

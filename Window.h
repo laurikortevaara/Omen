@@ -20,13 +20,13 @@ namespace omen {
     public:
         Window();
 
-        typedef Signal< std::function<void (int width, int height)> > WindowSizeChanged;
+        typedef Signal<std::function<void (int width, int height)> > WindowSizeChanged;
         WindowSizeChanged signal_window_size_changed;
 
-        typedef Signal< std::function<void (Window*) > > WindowCreated;
+        typedef Signal<std::function<void (Window*) > > WindowCreated;
         static WindowCreated signal_window_created;
 
-        typedef Signal< std::function<void (const std::vector<std::string>& filePaths) > > FileDropped;
+        typedef Signal<std::function<void (const std::vector<std::string>& filePaths) > > FileDropped;
         FileDropped signal_file_dropped;
 
     private:

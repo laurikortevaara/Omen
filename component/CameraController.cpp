@@ -15,34 +15,35 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 	// Get the connected joystic
 	JoystickInput *ji = Engine::instance()->findComponent<JoystickInput>();
 	if (ji != nullptr) {
-		ji->joystick_connected.connect([&](Joystick *joystick) {
+		ji->joystick_connected.connect(this,[&](Joystick *joystick) {
 			m_joystick = joystick;
 		});
-		ji->joystick_disconnected.connect([&](Joystick *joystick) {
+		ji->joystick_disconnected.connect(this,[&](Joystick *joystick) {
 			m_joystick = nullptr;
 		});
 	}
 
 	Picker* picker = Engine::instance()->findComponent<Picker>();
-	if (picker)
-		picker->signal_object_picked.connect([&](ecs::Entity* obj, glm::vec3 intersectPos) {
+	/*if (picker)
+		picker->signal_object_picked.connect(this,[&](ecs::Entity* obj, glm::vec3 intersectPos) {
 		this->setEnabled(obj == nullptr);
-	});
+	});*/
 
 	setEnabled(false);
 
 	// Get the Mouse coordinates
 	MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
 	if (mi != nullptr) {
-		mi->signal_cursorpos_changed.connect([&](omen::floatprec x, omen::floatprec y) {
-			if (false || !enabled())
-				return;
+		mi->signal_cursorpos_changed.connect(this,[&](omen::floatprec x, omen::floatprec y) {
 			static omen::floatprec old_x = x;
 			static omen::floatprec old_y = y;
 			omen::floatprec dx = x - old_x;
 			omen::floatprec dy = y - old_y;
 			old_x = x;
 			old_y = y;
+
+			if (!enabled())
+				return;
 
 			if (m_camera >= nullptr) {
 				m_camera->yaw() += -dx*Engine::instance()->CameraSensitivity;
@@ -52,7 +53,7 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 		});
 	}
 
-	Engine::instance()->signal_engine_update.connect([this](omen::floatprec time, omen::floatprec deltaTime) {
+	Engine::instance()->signal_engine_update.connect(this,[this](omen::floatprec time, omen::floatprec deltaTime) {
 		Engine* e = Engine::instance();
 		KeyboardInput* ki = e->findComponent<KeyboardInput>();
 		if (ki->keyPressed(GLFW_KEY_P)) {

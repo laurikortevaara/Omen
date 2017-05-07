@@ -17,6 +17,7 @@
 #include "BoundingBox.h"
 #include "AnimationFrame.h"
 #include "Object.h"
+#include "typedef.h"
 
 namespace omen {
     class Mesh : public omen::Object {
@@ -24,6 +25,7 @@ namespace omen {
 		class Vertex {
 		public:
 			Vertex(const glm::vec3& pos) :pos(pos) {}
+			Vertex(omen::floatprec x, omen::floatprec y, omen::floatprec z) : pos({ x,y,z }) {}
 			operator glm::vec3() { return pos; }
 			operator glm::vec3&() { return pos; }
 			operator Mesh::Vertex&() { return *this; }
@@ -50,9 +52,9 @@ namespace omen {
 		std::vector<glm::vec3> &bitangents() { return m_bitangents; }
         std::vector<glm::vec2> &uv() { return m_uv; }
 		std::vector<GLsizei> &vertexIndices() { return m_vertex_indices; }
-		const BoundingBox& boundingBox() { return m_bb; }
+		const std::unique_ptr<BoundingBox>& boundingBox() { return m_bb; }
 		
-		const Material* material() const { return m_material.get(); }
+		const std::unique_ptr<Material>& material() const { return m_material; }
 		void setMaterial(std::unique_ptr<Material> material) { m_material = std::move(material); }
 
         Mesh& setVertices(const std::vector<glm::vec3> &vertices) {
@@ -94,10 +96,12 @@ namespace omen {
 		void calcBoundingBox();
 
 		Mesh& setBoundingBox(const BoundingBox& bb) {
-			m_bb = bb;
+			m_bb->set(bb.Min(), bb.Max());
+			return *this;
 		}
 	protected:
 	private:
+		std::unique_ptr<Material>m_material;
 		std::vector<Mesh::Vertex>	m_vertices;
 		//std::vector<glm::vec3>	m_vertices;
 		std::vector<glm::vec3>	m_normals;
@@ -105,8 +109,8 @@ namespace omen {
 		std::vector<glm::vec3>	m_bitangents;
 		std::vector<glm::vec2>	m_uv;
 		std::vector<GLsizei>	m_vertex_indices;
-		BoundingBox				m_bb;
-		std::unique_ptr<Material>m_material;
+		std::unique_ptr<BoundingBox> m_bb;
+		
     };
 } // namespace omen
 

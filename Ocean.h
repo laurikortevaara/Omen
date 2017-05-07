@@ -5,9 +5,11 @@
 #ifndef OMEN_OCEAN_H
 #define OMEN_OCEAN_H
 
-#include "Renderable.h"
+#include "component/MeshRenderer.h"
+#include "GameObject.h"
 
 namespace omen {
+
 
     class Complex {
     public:
@@ -69,53 +71,36 @@ namespace omen {
         glm::vec3 n;      // normal
     };
 
-    class Ocean : public Renderable {
+    class OceanRenderer : public ecs::MeshRenderer {
     public:
-        Ocean(int N, float A, const glm::vec2& w, const float length);
+        OceanRenderer(ecs::MeshController* mc);
+        virtual ~OceanRenderer();
 
-        virtual ~Ocean();
-        Ocean(const Ocean& o) : Renderable({0,0},0,0,0){}
-        Ocean& operator=(const Ocean& o) {return *this;}
+		virtual void render(Shader* shader = nullptr);
 
-        virtual void render();
-
-        complex_vector_normal h_D_and_n(glm::vec2 x, float t);
-
-        void evaluateWaves(float t);
-        void evaluateWavesFFT(float t);
-
-        int *m_innerTesselationLevel;
-        int *m_outerTesselationLevel;
-        std::vector<int> m_innerTessellationLevels;
-        std::vector<int> m_outerTessellationLevels;
-
-
-        float g;                                // gravity constant
-        int N, Nplus1;                          // dimension -- N should be a power of 2
-        float A;                                // phillips spectrum parameter -- affects heights of waves
-        glm::vec2 w;                              // wind parameter
-        float length;// length parameter
-        std::vector<Complex> h_tilde;                       // for fast fourier transform
-        std::vector<Complex> h_tilde_slopex;
-        std::vector<Complex> h_tilde_slopez;
-        std::vector<Complex> h_tilde_dx;
-        std::vector<Complex> h_tilde_dz;
-        FFT* fft;                              // fast fourier transform
-        std::vector<vertex_ocean> m_vertices;
-
-        float dispersion(int n_prime, int m_prime);
-
-        float phillips(int n_prime, int m_prime);
-
-        Complex hTilde_0(int n_prime, int m_prime);
-        Complex hTilde(float t, int n_prime, int m_prime);
-
-        int indices_count;
+		double phillips(glm::vec2 k, float max_l);
+		void generate_distribution(Complex *distribution, glm::vec2 size, float amplitude, float max_l);
+        
     protected:
         virtual void initializeShader();
         virtual void initializeTexture();
+		
     private:
+		GLuint m_vao, m_vbo, m_vbo_texcoord, m_ssbo, m_ssbo2, m_ssbo_index, m_ssbo_index2;
     };
+
+	class Ocean : public ecs::GameObject
+	{
+	public:
+		Ocean();
+		virtual ~Ocean();
+
+
+	protected:
+	private:
+		
+	};
+
 
 } // namespace omen
 

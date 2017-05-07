@@ -48,7 +48,7 @@ Sprite::Sprite(const std::string& sprite, const glm::vec2& pos, const glm::vec2&
 
 	glBindBuffer(GL_ARRAY_BUFFER, Renderable::vbo_texcoord());
 	std::vector<glm::vec2> texcoords = {
-			{0,1}, {1,1}, {0,0}, {1,0}
+			{0,0}, {1,0}, {0,1}, {1,1}
 	};
 	glBufferData(GL_ARRAY_BUFFER, texcoords.size() * 2 * sizeof(GLfloat), texcoords.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2/*num elems*/, GL_FLOAT/*elem type*/, GL_FALSE/*normalized*/,

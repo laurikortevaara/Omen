@@ -58,34 +58,37 @@ MeshRenderer::MeshRenderer(MeshController* meshController) :
 	m_shininess(5),
 	m_lightDir({ 0,1,0 }),
 	m_texture(nullptr),
+	m_textureNormal(nullptr),
+	m_textureSpecularColor(nullptr),
 	m_renderNormals(false),
 	m_meshController(meshController),
 	m_shaderBlur(1)
 {
 	m_shader = std::make_unique<omen::Shader>("shaders/pass_through_with_shadow.glsl");
 
-	Engine::instance()->signal_engine_update.connect([this](float t, float dt) {
+	Engine::instance()->signal_engine_update.connect(this,[this](float t, float dt) {
 		lightInvDir = glm::normalize(glm::vec3(100, -100.0, 50.0));
 		lightInvDir.x *= cos(t);
 		lightInvDir.z *= sin(t);
-		lightInvDir = -Engine::LightPos;
+		//lightInvDir = -Engine::instance()->scene()->lights()[0]->position();
 	});
 }
 
 void MeshRenderer::connectSlider(ui::Slider* slider) {
-	slider->signal_slider_dragged.connect([this](ui::Slider* slider, float value)->void {
+	slider->signal_slider_dragged.connect(this,[this](ui::Slider* slider, float value)->void {
 		std::cout << "Dragged: " << value << std::endl;
 		setShininess(value);
 	});
 }
 
 void MeshRenderer::onAttach(Entity* e) {
+	m_entity = e;
 	ui::Slider* slider = dynamic_cast<ui::Slider*>(Engine::instance()->scene()->findEntity("Slider0"));
 	if (slider != nullptr) {
 		connectSlider(slider);
 	}
 	else {
-		Engine::instance()->scene()->signal_entity_added.connect([this](Entity* e) -> void {
+		Engine::instance()->scene()->signal_entity_added.connect(this,[this](Entity* e) -> void {
 			ui::Slider* slider = dynamic_cast<ui::Slider*>(e);
 			if (slider != nullptr) {
 				std::function<void(float value)> lambda;
@@ -100,7 +103,7 @@ void MeshRenderer::onAttach(Entity* e) {
 				if (e->name() == "Slider4")
 					lambda = [this](float value) -> void {m_specularCoeff = 1024.0f*value; };
 
-				slider->signal_slider_dragged.connect([lambda](ui::Slider* slider, float value)->void {
+				slider->signal_slider_dragged.connect(this,[lambda](ui::Slider* slider, float value)->void {
 					if (lambda != nullptr)
 						lambda(value);
 				});
@@ -109,7 +112,7 @@ void MeshRenderer::onAttach(Entity* e) {
 	}
 
 	// Create Texture
-	/*Engine::instance()->window()->signal_file_dropped.connect([this](const std::vector<std::string>& files)
+	/*Engine::instance()->window()->signal_file_dropped.connect(this,[this](const std::vector<std::string>& files)
 	{
 	if( !files.empty() && files.begin()->find(".md3") == std::string::npos )
 	m_texture = new Texture(*files.begin());
@@ -165,6 +168,8 @@ void MeshRenderer::onAttach(Entity* e) {
 			check_gl_error();
 			glDisableVertexAttribArray(VERTEX_ATTRIB_TCOORD);
 			m_texture = m_meshController->mesh()->material()->texture();
+			m_textureNormal = m_meshController->mesh()->material()->textureNormal();
+			m_textureSpecularColor = m_meshController->mesh()->material()->textureSpecularColor();
 		}
 
 		// Create VBO for normals
@@ -221,10 +226,13 @@ void MeshRenderer::onAttach(Entity* e) {
 			glDisableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
 		}
 
+		const std::unique_ptr<Mesh>& mesh = m_meshController->mesh();
+		const std::unique_ptr<Material>& material = mesh->material();
+		omen::Texture* texture = material->texture();
 		m_texture = m_meshController->mesh()->material() != nullptr ? m_meshController->mesh()->material()->texture() : nullptr;
 	}
 
-	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect([this](int key, int scan, int action, int mods)
+	Engine::instance()->findComponent<KeyboardInput>()->signal_key_press.connect(this,[this](int key, int scan, int action, int mods)
 	{
 		if (action == GLFW_KEY_DOWN)
 			return;
@@ -308,8 +316,8 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 	float nearPlane = -cam->zNear();
 	float farPlane = cam->zFar();
 	float fov = glm::radians(cam->fov());
-	float width = win->width();
-	float height = win->height();
+	int width = win->width();
+	int height = win->height();
 
 	glm::vec4 frustumMin(std::numeric_limits<float>::max());
 	glm::vec4 frustumMax(std::numeric_limits<float>::lowest());
@@ -356,7 +364,7 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 
 	ui::TextView* tv = (ui::TextView*)Engine::instance()->scene()->findEntity("textview");
 	WCHAR wc[512] = { '\0' };
-	wcscpy(wc, L"Frustum:\n");
+	wcscpy_s(wc, L"Frustum:\n");
 	for (int i = 0; i < 8; ++i)
 		swprintf(wc, L"%s\n% 8.3f,  % 8.3f,  % 8.3f", wc, vertices[i].x, vertices[i].y, vertices[i].z);
 	swprintf(wc, L"%s\n\nLFRMin/Max\n% 8.3f,  % 8.3f,  % 8.3f\n% 8.3f,  % 8.3f,  % 8.3f", wc, frustumMin.x, frustumMin.y, frustumMin.z, frustumMax.x, frustumMax.y, frustumMax.z);
@@ -372,20 +380,20 @@ void MeshRenderer::render(Shader* shader)
 	// Get matrices
 	glm::mat4 viewMatrix			= Engine::instance()->camera()->view();
 	glm::mat4 inverseViewMatrix		= glm::inverse(viewMatrix);
-	glm::mat4 modelMatrix			= entity()->getComponent<Transform>()->tr();
+	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->world_tr();
 	glm::mat4 modelViewMatrix		= viewMatrix * modelMatrix;
 	glm::mat4 viewprojMatrix		= Engine::instance()->camera()->viewProjection();
-	glm::mat4 MVP					= viewprojMatrix * entity()->tr()->tr();
+	glm::mat4 MVP					= viewprojMatrix * entity()->tr()->world_tr();
 	glm::mat3 mv3x3					= glm::mat3(modelViewMatrix);
-	glm::mat4 inverseMVP			= glm::inverse(viewMatrix*entity()->tr()->tr());
+	glm::mat4 inverseMVP			= glm::inverse(viewMatrix*entity()->tr()->world_tr());
 	glm::mat4 inverseViewProjMatrix = glm::inverse(viewprojMatrix);
 	glm::mat3 normalMatrix			= glm::mat3(glm::inverseTranspose(modelViewMatrix));
 	glm::vec3 viewPos				= Engine::instance()->camera()->position();
 	glm::vec3 lightPos = lightInvDir; // Engine::LightPos;
 	float size = 10.0f;
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01f, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
 	glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
-	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
+	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->world_tr();
 	CalcProj(viewMatrix, lightInvDir, depthProjectionMatrix);
 	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 	glm::mat4 biasMatrix(
@@ -397,12 +405,14 @@ void MeshRenderer::render(Shader* shader)
 	glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
 
 	// Material properties
-	const Material* m = m_meshController->mesh()->material();
+	const std::unique_ptr<Material>& m = m_meshController->mesh()->material();
 	glm::vec4 ambientColor = m->ambientColor();
 	glm::vec4 diffuseColor = m->diffuseColor();
 	glm::vec4 emissiveColor = m->emissiveColor();
 	glm::vec4 specularColor = m->specularColor();
-	float specularCoeff = m->specularCoeff();
+	float diffuseIntensity = m->diffuseIntensity();
+	float specularIntensity = m->specularIntensity();
+	float materialShininess = m->shininess();
 
 	// Matrices to shader
 	pShader->setUniformMatrix4fv("InverseView", 1, glm::value_ptr(inverseViewMatrix), false);
@@ -416,32 +426,61 @@ void MeshRenderer::render(Shader* shader)
 	
 	// Light, camera and depth bias for shadow rendering
 	pShader->setUniform1f("DepthBias", depth_bias);
-	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(Engine::LightPos));
+	glm::vec3 lpos = 10.0f*glm::vec3(cos(Engine::instance()->time()),1,sin(Engine::instance()->time())); // Engine::instance()->scene()->lights()[0]->position();
+	pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lpos));
 	pShader->setUniform3fv("ViewPos", 1, glm::value_ptr(viewPos));
 	// Material properties to shader
 	pShader->setUniform4fv("MaterialAmbient", 1, glm::value_ptr(ambientColor));
 	pShader->setUniform4fv("MaterialDiffuse", 1, glm::value_ptr(diffuseColor));
 	pShader->setUniform4fv("MaterialEmissive", 1, glm::value_ptr(emissiveColor));
 	pShader->setUniform4fv("MaterialSpecular", 1, glm::value_ptr(specularColor));
-	pShader->setUniform1f("MaterialShininess", specularCoeff);
+	pShader->setUniform1f("DiffuseIntensity", diffuseIntensity);
+	pShader->setUniform1f("SpecularIntensity", specularIntensity);
+	pShader->setUniform1f("MaterialShininess", materialShininess);
 
-	int textureLoc = pShader->getUniformLocation("TextureMap");
+	pShader->setUniform1i("HasTexture", false);
+	int textureLoc = pShader->getUniformLocation("DiffuseColorMap");
 	if (textureLoc >= 0 && m_texture != nullptr && m_texture->id() >= 0) {
+		pShader->setUniform1i("HasDiffuseTexture", true);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBindTexture(GL_TEXTURE_2D, m_texture->id());
 		glUniform1i(textureLoc, 0);
-		glBindTexture(GL_TEXTURE_2D, m_texture->id());
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_texture->id());
 	}
+	else
+		pShader->setUniform1i("HasDiffuseTexture", false);
+
+	textureLoc = pShader->getUniformLocation("NormalMap");
+	if (textureLoc >= 0 && m_textureNormal != nullptr && m_textureNormal->id() >= 0) {
+		pShader->setUniform1i("HasNormalTexture", true);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(textureLoc, 1);
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, m_textureNormal->id());
+	}
+	else
+		pShader->setUniform1i("HasNormalTexture", false);
+
+	textureLoc = pShader->getUniformLocation("SpecularColorMap");
+	if (textureLoc >= 0 && m_textureSpecularColor != nullptr && m_textureSpecularColor->id() >= 0) {
+		pShader->setUniform1i("HasSpecularColorTexture", true);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(textureLoc, 2);
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_2D, m_textureSpecularColor->id());
+	}
+	else
+		pShader->setUniform1i("HasSpecularColorTexture", false);
 
 	int shadowLoc = pShader->getUniformLocation("shadowMap");
 	if (shadowLoc >= 0) {
 		omen::Engine* engine = omen::Engine::instance();
 		GLint depthMap = engine->findSystem<omen::ecs::GraphicsSystem>()->depthMap;
-		glUniform1i(shadowLoc, 1);
-		glActiveTexture(GL_TEXTURE1);
+		glUniform1i(shadowLoc, 3);
+		glActiveTexture(GL_TEXTURE0+3);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 	}
 
@@ -523,11 +562,11 @@ void MeshRenderer::render2(Shader* shader)
 
 		/*Setup the DepthMVP*/
 		// Compute the MVP matrix from the light's point of view
-		glm::vec3 lightPos = Engine::LightDistance*Engine::LightPos;
+		glm::vec3 lightPos = Engine::instance()->scene()->lights()[0]->position();
 		//glm::vec3 lightInvDir = normalize(-lightPos);
 		pShader->setUniform3fv("LightPos", 1, glm::value_ptr(lightPos));
 		float size = 10.0f; // Engine::ShadowFrustumSize;
-		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01f, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
 		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
 
 		glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
@@ -556,6 +595,7 @@ void MeshRenderer::render2(Shader* shader)
 	std::cout << "Ipos: " << Picker::IntersectPos.x << ", " << Picker::IntersectPos.y << ", " << Picker::IntersectPos.z << "\n";
 	pShader->setUniform3fv("IntersectPos", 1, glm::value_ptr(Picker::IntersectPos));
 
+	pShader->setUniform1i("HasTexture", false);
 	if (m_texture != nullptr && pShader == m_shader.get())
 	{
 		pShader->setUniform1i("HasTexture", true);
@@ -624,11 +664,11 @@ void MeshRenderer::renderShadows(Shader* shader)
 	// Compute the MVP matrix from the light's point of view
 	glm::vec3 lightPos = lightInvDir;
 	float size = 10.0f;
-	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
+	glm::mat4 depthProjectionMatrix = glm::ortho<float>(-size, size, -size, size, 0.01f, 20.0f);// Engine::ShadowFrustumNear, Engine::ShadowFrustumFar);
 	glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f), lightInvDir, glm::vec3(0, 1, 0));
 	glm::mat4 depthModelMatrix = entity()->getComponent<Transform>()->tr();
 	glm::mat4 viewMatrix = Engine::instance()->camera()->view();
-	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->tr();
+	glm::mat4 modelMatrix = entity()->getComponent<Transform>()->world_tr();
 	glm::mat4 modelViewMatrix = viewMatrix * modelMatrix;
 	CalcProj(viewMatrix, lightInvDir, depthProjectionMatrix);
 	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;

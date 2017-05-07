@@ -39,6 +39,8 @@ Shader::Shader(const char*shader_file) : m_shaderFile(shader_file) {
 }
 
 bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shader_source) {
+	m_shaderType = shaderType;
+
 	std::string full_source;
 	GLuint shader = 0;
 
@@ -58,17 +60,23 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 	case GL_FRAGMENT_SHADER:
 		full_source = "#version 430\n#define FRAGMENT_SHADER\n";
 		break;
+	case GL_COMPUTE_SHADER:
+		full_source = "#version 430\n#define COMPUTE_SHADER\n";
+		break;
 	default:
 		break;
 	}
 
-	full_source += "uniform float iGlobalTime;"; // Floating point global time in seconds
-	full_source += "uniform vec4 iMouse;"; // MouseCoord(x,y), MouseButtons(Left,Right);
-	full_source += "uniform vec2 iResolution;"; // WindowSize(width,height);
-	full_source += "uniform vec3 iMousePickRay;"; // WindowSize(width,height);
-	full_source += "uniform vec3 iCameraPosition;"; // WindowSize(width,height);
-	full_source += "uniform float MATH_PI;"; // WindowSize(width,height);
-	full_source += "uniform vec4 iViewPort;"; // Viewport [x,y,z,w];
+	if (shaderType != GL_COMPUTE_SHADER)
+	{
+		full_source += "uniform float iGlobalTime;"; // Floating point global time in seconds
+		full_source += "uniform vec4 iMouse;"; // MouseCoord(x,y), MouseButtons(Left,Right);
+		full_source += "uniform vec2 iResolution;"; // WindowSize(width,height);
+		full_source += "uniform vec3 iMousePickRay;"; // WindowSize(width,height);
+		full_source += "uniform vec3 iCameraPosition;"; // WindowSize(width,height);
+		full_source += "uniform float MATH_PI;"; // WindowSize(width,height);
+		full_source += "uniform vec4 iViewPort;"; // Viewport [x,y,z,w];
+	}
 	full_source += shader_source;
 	full_source += "\0";
 
@@ -186,7 +194,7 @@ bool Shader::readShaderFile(const char*shader_file) {
 
 		shader_source = include_sub_shaders(relativePath.c_str(),shader_source.c_str());
 
-		GLuint vShader, gShader, tcShader, teShader, fShader;
+		GLuint vShader, gShader, tcShader, teShader, fShader, cShader;
 		if (shader_source.find("VERTEX_SHADER") != std::string::npos) {
 			if (createShader(GL_VERTEX_SHADER, vShader, shader_source))
 				glAttachShader(m_shader_program, vShader);
@@ -207,6 +215,11 @@ bool Shader::readShaderFile(const char*shader_file) {
 			if (createShader(GL_FRAGMENT_SHADER, fShader, shader_source))
 				glAttachShader(m_shader_program, fShader);
 		}
+		if (shader_source.find("COMPUTE_SHADER") != std::string::npos) {
+			if (createShader(GL_COMPUTE_SHADER, cShader, shader_source)) {
+				glAttachShader(m_shader_program, cShader);
+			}
+		}
 
 		glLinkProgram(m_shader_program);
 
@@ -216,9 +229,13 @@ bool Shader::readShaderFile(const char*shader_file) {
 		if (strlen(info_log) != 0) {
 			boxer::show(info_log, "Error");
 		}
-	}
 
-	//listAttribs();
+		if (shader_source.find("COMPUTE_SHADER") != std::string::npos) {
+			glUniform1i(glGetUniformLocation(m_shader_program, "img_output"), 0);
+		}
+	}
+	check_gl_error();
+	listAttribs();
 	std::cout << "--- Done Loading shader from file: " << shader_file << "---" << std::endl;
 	return true;
 }
@@ -228,6 +245,8 @@ void Shader::use() {
 	if (!glIsProgram(m_shader_program))
 		abort();
 	glUseProgram(m_shader_program);
+	//if (m_shaderType == GL_COMPUTE_SHADER)
+//		return;
 	setUniform1f("iGlobalTime", Engine::instance()->time());
 	glm::vec2 mousePos = Engine::instance()->findComponent<MouseInput>()->cursorPos();
 	glm::vec2 mouseButtons = Engine::instance()->findComponent<MouseInput>()->mouseButtonStatesLR();
@@ -247,7 +266,7 @@ void Shader::use() {
 	cameraPosition.x *= -1.0f;
 	setUniform3fv("iCameraPosition", 1, glm::value_ptr(cameraPosition));
 
-	setUniform1f("MATH_PI", 3.141592653589793238462643383279502884);
+	setUniform1f("MATH_PI", 3.141592653589793238462643383279502884f);
 
 	check_gl_error();
 }

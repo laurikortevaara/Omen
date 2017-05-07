@@ -24,17 +24,29 @@ Entity::Entity(const std::string &name) :
 	tr->setBounds(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	addComponent(std::move(tr));
 
-	Picker::signal_object_picked.connect([this](omen::ecs::Entity* obj, glm::vec3 intersectPos) {
-		this->m_is_selected = obj == this;			
-	});
+	auto fn = [this](omen::ecs::Entity* obj, glm::vec3 intersectPos) {
+		//this->m_is_selected = obj == this;			
+	};
+	Picker::signal_object_picked.connect(this, fn);
+
 
 	/**
 	Make Entity hoverable by mouse
 	**/
 	Engine::instance()->findComponent<MouseInput>()->
-		signal_cursorpos_changed.connect([&](float x, float y) -> void {
+		signal_cursorpos_changed.connect(this, [this](float x, float y) -> void {
+		if (m_is_selected && this->name().compare("DIRECTION_RIGHT") == 0)
+		{
+			if (Engine::instance()->findComponent<MouseInput>()->mouseButtonStatesLR()[0])
+			{
+				float dx = x - m_cursorPos.x;
+				float dy = y - m_cursorPos.y;
+				parent()->tr()->pos().x += dx;
+				parent()->tr()->pos().z += dy;
+			}
+		}
 		m_cursorPos = glm::vec2(x, y);
-
+		
 		if (Entity::tr() != nullptr) {
 			glm::vec3 bmin, bmax;
 			Entity::tr()->getBounds(bmin, bmax);
@@ -56,20 +68,21 @@ Entity::Entity(const std::string &name) :
 		}
 	});
 
-	Engine::instance()->findComponent<MouseInput>()->signal_mousebutton_pressed.connect([&](int i1, int i2, int i3, const glm::vec2& cursorPos)
+	Engine::instance()->findComponent<MouseInput>()->signal_mousebutton_pressed.connect(this, [&](int i1, int i2, int i3, const glm::vec2& cursorPos)
 	{
 		if (this->hovered())
 			this->setPressed(true);
 	});
 
-	Engine::instance()->findComponent<MouseInput>()->signal_mousebutton_released.connect([&](int i1, int i2, int i3, const glm::vec2& cursorPos)
+	Engine::instance()->findComponent<MouseInput>()->signal_mousebutton_released.connect(this, [&](int i1, int i2, int i3, const glm::vec2& cursorPos)
 	{
 		this->setPressed(false);
 	});
 }
 
-Entity::~Entity() 
+Entity::~Entity()
 {
+	signal_entity_destructed.notify(this);
 }
 
 bool Entity::addChild(std::unique_ptr<Entity> e) {

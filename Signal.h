@@ -8,27 +8,73 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include "Object.h"
 
 namespace omen {
-
     template <typename T, typename... Args>
     class Signal {
     public:
-        void connect(T obs) {
-            m_observers.push_back(obs);
+		Signal()
+		{
+			int i = 1;
+			/*
+						if (dynamic_cast<omen::ecs::Entity*>(owner)) {
+				omen::ecs::Entity* e = dynamic_cast<omen::ecs::Entity*>(owner);
+				e->signal_entity_destructed.connect(e,[&](omen::ecs::Entity* e) {
+					auto it = std::find_if(m_observers.begin(), m_observers.end(), [e](const std::pair<omen::Object*, T>& elem) { return elem.first == e; });
+					m_observers.erase(it);
+				});
+			}
+			*/
+		}
 
+		template<typename T>
+        void connect(omen::Object* owner, T obs) 
+		{
+            m_observers.push_back(std::pair<omen::Object*,T>(owner,obs));
         }
+
+		void connect(void* owner, T obs) 
+		{
+			m_observers.push_back(std::pair<omen::Object*, T>(reinterpret_cast<omen::Object*>(owner), obs));
+		}
+
+		void connect_static(T obs) 
+		{
+			m_observers.push_back(std::pair<omen::Object*, T>(reinterpret_cast<omen::Object*>(nullptr), obs));
+		}
+
 
         template<typename... a>
         void notify(a... args) {
+			std::vector<std::pair<omen::Object*, T>> alive;
+			for (auto obs : m_observers) 
+			{
+				if (obs.first == nullptr)
+					alive.push_back(obs);
+				auto it = std::find(Signals::observers_alive.begin(), Signals::observers_alive.end(), obs.first);
+				if (it != Signals::observers_alive.end())
+					alive.push_back(obs);
+			}
+			m_observers = alive;
+			/*m_observers.clear();
+			for (auto obs : alive)
+				m_observers.push_back(obs);*/
+
             for(auto obs : m_observers)
-                obs(std::forward<a>(args)...);
+                obs.second(std::forward<a>(args)...);
         }
 
     private:
-		std::vector<void*> m_owners;
-        std::vector<T> m_observers;
+        std::vector<std::pair<omen::Object*,T>> m_observers;
     };
+
+	class Signals 
+	{
+	public:
+		static void removeObserver(omen::Object* o);
+		static std::vector<omen::Object*> observers_alive;
+	};
 }
 
 

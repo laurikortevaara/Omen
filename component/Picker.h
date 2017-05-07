@@ -31,9 +31,10 @@ namespace omen {
         glm::vec3 const &ray() const { return ray_world; }
 
 		static glm::vec3 IntersectPos;
+		static omen::ecs::Entity* CurrentlySelected;
 
     private:
-        void pick();
+        void pick(omen::ecs::Entity* parentEntity=nullptr);
 
         glm::vec3 ray_world;
     };

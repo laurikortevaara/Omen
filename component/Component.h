@@ -8,11 +8,12 @@
 #include <functional>
 #include "../Signal.h"
 #include <memory>
+#include "../Object.h"
 
 namespace omen {
     namespace ecs {
         class Entity;
-        class Component {
+        class Component : public omen::Object {
         protected:
             Entity *m_entity = nullptr;
             bool m_isEnabled = false;
@@ -23,14 +24,17 @@ namespace omen {
         public:
             typedef omen::Signal<std::function<void(Entity*, Component*)> > ComponentAttached_t;
             typedef omen::Signal<std::function<void(Entity*, Component*)> > ComponentDetached_t;
+			typedef omen::Signal<std::function<void(Component*) > > Component_Destructed_t;
 
             ComponentAttached_t signal_compnent_attached;
             ComponentDetached_t signal_component_detached;
+			Component_Destructed_t signal_component_destructed;
+
 
         public:
-            Component() : m_isEnabled(true) { };
+			Component();
 
-            virtual ~Component() { };
+            virtual ~Component();
 
             virtual void update(double time, double deltaTime) { };
 

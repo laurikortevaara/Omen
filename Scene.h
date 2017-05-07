@@ -15,7 +15,7 @@
 #include "GameObject.h"
 
 namespace omen {
-    class Scene {
+    class Scene : public omen::Object {
     public:
         Scene();
 

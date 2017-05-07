@@ -1,9 +1,10 @@
 /**
  * Uniforms
  */
-uniform sampler2D Texture;
-uniform samplerCube uTexEnv;
-uniform sampler2D TransmittanceSampler;
+uniform sampler2D DiffuseColorMap;
+//uniform sampler2D Texture;
+//uniform samplerCube uTexEnv;
+//uniform sampler2D TransmittanceSampler;
 
 uniform mat4 invPV;
 uniform mat4 inv_proj;
@@ -158,42 +159,45 @@ void main()
     float rayleigh_factor = phase(alpha, RayleighFactor)*rayleigh_brightness; // 0-400, 139
     float mie_factor      = phase(alpha, mie_distribution)*mie_brightness; // 0-400, 264
 
-    float spot = smoothstep(0.0, 15.0, phase(alpha, 0.9995))*spot_brightness;
+    float spot = smoothstep(0.0, 150.0, phase(alpha, 0.9995))*spot_brightness;
 
-    float step_count = StepCount;
-    float surface_height = SurfaceHeight; // 0-160, 50
+	vec3 n = eyedir;
+	float u = (MATH_PI+atan(n.x, n.z))/(MATH_PI*2);
+	float v = atan(n.y,1.0)/(MATH_PI/4);
 
-    vec3 eye_position = vec3(0.0, surface_height, 0.0);
-    float eye_depth = atmospheric_depth(eye_position, eyedir);
-    float step_length = eye_depth/float(step_count);
+    //vec3 eye_position = vec3(0.0, surface_height, 0.0);
+    //float eye_depth = atmospheric_depth(eye_position, eyedir);
 
-    float eye_extinction = horizon_extinction(eye_position, eyedir, surface_height-EyeExtinctionBias);
-    // Nitrogen absorbtion factor for RGB
+	//(vec4(1)-(vec4(170,98,50,255)/255)*vec4(dot(eyedir, vec3(0,1,0)))
+
+	float f = clamp(dot(eyedir, vec3(0,1,0)),0,1);
+	float f2 = clamp(1.0-dot(eyedir, vec3(0,1,0)),0,1);
+	vec4 orange = vec4(200,98,50,255)/255;
+	vec4 midblue = vec4(61,79,97,255)/255;
+	vec4 blue = vec4(0,3,12,255)/255;
+	
 
 
-    vec3 rayleigh_collected = vec3(0.0,0.0,0.0);
-    vec3 mie_collected = vec3(0.0,0.0,0.0);
+	vec4 color = vec4(1);
+	color = mix(vec4(4,20,10,255)/255, orange, smoothstep(0.0, 0.001, f));
+	color = mix(color, midblue, smoothstep(0.001, 0.1, f));
+	color = mix(color, blue, smoothstep(0.35, 1.0, f));
 
-    vec3 intensity = vec3(1); //vec3(IntensityRed, IntensityGreen, IntensityBlue);
+	/*
+	color = mix(vec4(0,0,0,1), orange, smoothstep(0.0, 0.001, f2));
+	color = mix(color, midblue, smoothstep(0.001, 0.1, f2));
+	color = mix(color, blue, smoothstep(0.35, 1.0, f2));
+	*/
 
-    //for(int i=0; i < step_count; ++i)
-    for(int i=0; i < 2; ++i)
-    {
-        float sample_distance = step_length*float(i);
-        vec3 position = eye_position + eyedir*sample_distance;
-        float extinction = horizon_extinction(position, lightdir, surface_height - HExtinctionBias);
-        float sample_depth =atmospheric_depth(position, lightdir);
-
-        vec3 influx = absorb(sample_depth, vec3(intensity), scatter_strength);
-
-        rayleigh_collected += absorb(sample_distance, Kr*influx, rayleigh_strength);
-        mie_collected      += absorb(sample_distance, influx   , mie_strength);
-    }
-
-    rayleigh_collected *= eye_extinction * pow(eye_depth, rayleigh_collection_power ) / float(step_count);
-    mie_collected      *= eye_extinction * pow(eye_depth, mie_collection_power      ) / float(step_count);
-
-    fragColor = vec4(vec3(mie_factor*mie_collected + rayleigh_factor * rayleigh_collected), 1) + vec4(vec3(spot*length(mie_collected)*vec3(246,223,143)/255.0),1);
+	fragColor = vec4(spot);
+	//fragColor = mix(fragColor,orange,smoothstep(1,0,spot));
+	fragColor += color;
+	fragColor = 2*texture(DiffuseColorMap, vec2(0,1)-vec2(u-0.0005,v))+
+				3*texture(DiffuseColorMap, vec2(0,1)-vec2(u+0.0000,v))+
+				2*texture(DiffuseColorMap, vec2(0,1)-vec2(u+0.0005,v));
+	fragColor /= 7;
+	if(v<0)
+	fragColor = vec4(0.3,0.3,0.5,1);
 }
 #endif
 // END

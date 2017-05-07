@@ -33,13 +33,17 @@ namespace omen {
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalHovered_t;
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalEntered_t;
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalExited_t;
+			typedef omen::Signal<std::function<void(Entity*) > > Entity_Destructed_t;
 
 			SignalHovered_t signal_hovered;
 			SignalEntered_t signal_entered;
 			SignalExited_t  signal_exited;
+			Entity_Destructed_t signal_entity_destructed;
 
 		public:
 			Entity(const std::string &name);
+			virtual ~Entity();
+
 			Entity* parent() const { return m_parent; }
 			void setParent(Entity* parent) { m_parent = parent; }
 
@@ -122,8 +126,6 @@ namespace omen {
 			}
 
             bool addComponent(std::unique_ptr<Component> c);
-
-			virtual ~Entity();
         };
     } // namespace ecs
 } // namespace omen

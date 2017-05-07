@@ -129,7 +129,7 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> diff = end - start;
 	double ms = diff.count() * 1000.0f;
-	std::cout << "Text render: " << ms << "ms.\n";
+	//std::cout << "Text render: " << ms << "ms.\n";
 }
 
 bool TextRenderer::initializeFreeType() {

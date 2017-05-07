@@ -18,17 +18,17 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
     // Get the connected joystic
     JoystickInput *ji = Engine::instance()->findComponent<JoystickInput>();
     if (ji != nullptr) {
-        ji->joystick_connected.connect([&](Joystick *joystick) {
+        ji->joystick_connected.connect(this,[&](Joystick *joystick) {
             m_joystick = joystick;
         });
-        ji->joystick_disconnected.connect([&](Joystick *joystick) {
+        ji->joystick_disconnected.connect(this,[&](Joystick *joystick) {
             m_joystick = nullptr;
         });
     }
 
     Picker* picker = Engine::instance()->findComponent<Picker>();
     if(picker)
-		picker->signal_object_picked.connect([&](ecs::Entity* obj, glm::vec3 intersectPos) 
+		picker->signal_object_picked.connect(this,[&](ecs::Entity* obj, glm::vec3 intersectPos) 
 		{
 			setEnabled(obj != nullptr);
 			if (obj) {
@@ -44,7 +44,7 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
     // Get the Mouse coordinates
     MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
     if (mi != nullptr) {
-        mi->signal_cursorpos_changed.connect([&](double x, double y) {
+        mi->signal_cursorpos_changed.connect(this,[&](double x, double y) {
             if(!enabled())
                 return;
             static double old_x = x;
@@ -62,7 +62,7 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
         });
     }
 
-    Engine::instance()->signal_engine_update.connect([this](double time, double deltaTime) {
+    Engine::instance()->signal_engine_update.connect(this,[this](double time, double deltaTime) {
         if(!enabled()||m_tr == nullptr)
             return;
 
@@ -97,10 +97,10 @@ Transformer::Transformer() : m_tr(nullptr), m_joystick(nullptr) {
             }
 
             if (ki->keyPressed(GLFW_KEY_E)) {
-                m_obj->tr()->pos().y += static_cast<omen::floatprec>(deltaTime);
+				m_obj->tr()->translate(glm::vec3(0, deltaTime, 0));
             }
             if (ki->keyPressed(GLFW_KEY_C)) {
-                m_obj->tr()->pos().y -= static_cast<omen::floatprec>(deltaTime);
+				m_obj->tr()->translate(glm::vec3(0, -deltaTime, 0));
             }
 
             if (m_joystick != nullptr) {

@@ -21,17 +21,16 @@
 #include "system/System.h"
 #include "ui/Button.h"
 #include "Property.h"
+#include "typedef.h"
 
 
 namespace omen {
-
-	typedef float floatprec;
 
 	namespace ecs {
 		class TextRenderer;
 	}
 		
-    class Engine {
+    class Engine : public Object {
 #define post_function Engine::instance()->post(std::make_unique<std::function<void()>>(std::function<void()>([&](void)
         /** Singleton interface **/
         static Engine* m_instance;
@@ -71,10 +70,10 @@ namespace omen {
 		bool meshRendererEnabled() const { return m_bMeshRendererEnabled; }
 
     public:
-        typedef Signal< std::function<void (omen::floatprec time, omen::floatprec delta_time)> > Update;
+        typedef Signal<std::function<void (omen::floatprec time, omen::floatprec delta_time)> > Update;
         Update signal_engine_update;
 
-		typedef Signal< std::function<void()> > ShutDown;
+		typedef Signal<std::function<void()> > ShutDown;
 		ShutDown signal_engine_shut_down;
 
         /** Public class interface **/

@@ -16,7 +16,7 @@ Clickable::Clickable() :
 	m_is_pressed(false)
 {
     Engine::instance()->findComponent<MouseInput>()->
-            signal_mousebutton_pressed.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
+            signal_mousebutton_pressed.connect(this,[&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
         if (action != GLFW_PRESS || entity() == nullptr)
             return;
 
@@ -38,12 +38,12 @@ Clickable::Clickable() :
     });
 
 	Engine::instance()->findComponent<MouseInput>()->
-		signal_mousebutton_released.connect([&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
+		signal_mousebutton_released.connect(this,[&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
 		m_is_pressed = false;
 	});
 
 	Engine::instance()->findComponent<MouseInput>()->
-		signal_cursorpos_changed.connect([&](float x, float y) -> void {
+		signal_cursorpos_changed.connect(this,[&](float x, float y) -> void {
 		m_cursorPos = glm::vec2(x, y); });
 }
 

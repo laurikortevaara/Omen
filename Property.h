@@ -12,7 +12,7 @@ namespace omen
 
 		Property() : m_name("") {}
 
-		typedef Signal< std::function<void(std::any*)> > Change;
+		typedef Signal<std::function<void(std::any*)> > Change;
 		Change signal_property_changed;
 
 		Property& operator=(const std::any&& other) {
