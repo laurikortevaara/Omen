@@ -103,7 +103,7 @@ namespace omen {
         virtual void initializeTexture();
 		
     private:
-		GLuint m_vao, m_vbo, m_vbo_texcoord, m_ssbo, m_ssbo2, m_ssbo_index, m_ssbo_index2;
+		GLuint m_vao, m_vbo, m_vbo_texcoord, m_ssbo, m_ssbo2, m_ssbo_index, m_ssbo_index2, m_vbo_indices;
     };
 
 	class Ocean : public ecs::GameObject

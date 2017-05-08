@@ -31,15 +31,18 @@ using namespace omen;
 
 const unsigned int N = 128;
 const unsigned int Nplus1 = N + 1;
-const float ocean_length = N;
+float ocean_length = 0.0000001;
 const unsigned int Nx = N;
 const unsigned int Nz = N;
-const float A = 0.0005; // Could be also 0.0005 Wave height adjustmet factor
-const float g = 9.80665; // Gravity 9.81 m/s^2
+float A = 0.0005; // Could be also 0.0005 Wave height adjustmet factor
+float g = 9.80665; // Gravity 9.81 m/s^2
+float damping = 0.001;
+float wind_dir = 0.0f;
+float wind_power = 32.0f;
 
 cFFT* fft = new cFFT(N);
 
-const glm::vec2 w(-32.0f, -32.0f);
+glm::vec2 wind(sin(wind_dir)*wind_power, cos(wind_dir)*wind_power);
 
 struct OceanVertex
 {
@@ -57,16 +60,23 @@ struct ComplexVectorNormal {	// structure used with discrete fourier transform
 };
 
 OceanVertex vertices[Nplus1*Nplus1];
+
 Complex h_tilde[Nplus1*Nplus1];
 Complex h_tilde_slopex[Nplus1*Nplus1];
 Complex h_tilde_slopez[Nplus1*Nplus1];
 Complex h_tilde_dx[Nplus1*Nplus1];
 Complex h_tilde_dz[Nplus1*Nplus1];
 
-glm::vec4 shader_buffer[Nplus1*Nplus1];
+struct Data{
+	glm::vec4 pos;
+	glm::vec4 normal;
+};
+
+Data shader_buffer[Nplus1*Nplus1];
 
 
 GLuint tex_output;
+GLuint tex_output2;
 Shader* compute_shader;
 Texture* tex;
 
@@ -87,7 +97,7 @@ float uniformRandomVariable()
 
 float phillips(int n_prime, int m_prime) 
 {
-	glm::vec2 k(M_PI * (2 * n_prime - N) / ocean_length, M_PI * (2 * m_prime - N) / ocean_length);
+	glm::vec2 k(M_PI * (2 * n_prime - N) / N, M_PI * (2 * m_prime - N) / N);
 	float k_length = glm::length(k);
 	//std::cout << "k_length: " << k_length << ", k:" << k.x << ", " << k.y << std::endl;
 	if (k_length < 0.000001) return 0.0;
@@ -97,15 +107,14 @@ float phillips(int n_prime, int m_prime)
 
 	//std::cout << "k:" << k.x << ", " << k.y << std::endl;
 	//std::cout << "w:" << w.x << ", " << w.y << std::endl;
-	float k_dot_w = glm::dot(glm::normalize(k), glm::normalize(w));
+	float k_dot_w = glm::dot(glm::normalize(k), glm::normalize(wind));
 	//std::cout << "k_dot_w:" << k_dot_w << std::endl;
 	float k_dot_w2 = k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w;
 
-	float w_length = glm::length(w);
+	float w_length = glm::length(wind);
 	float L = w_length * w_length / g;
 	float L2 = L * L;
 
-	float damping = 0.001;
 	float l2 = L2 * damping * damping;
 
 	float ret =  A * exp(-1.0f / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
@@ -172,14 +181,14 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 	glm::vec2 k;
 	float kx, kz, k_length, k_dot_x;
 
-	for (int m_prime = 0; m_prime < N; m_prime++) {
+	for (int m_prime = 0; m_prime < N; m_prime++) 
+	{
 		kz = 2.0f * M_PI * (m_prime - N / 2.0f) / ocean_length;
-		for (int n_prime = 0; n_prime < N; n_prime++) {
+		for (int n_prime = 0; n_prime < N; n_prime++) 
+		{
 			kx = 2.0f * M_PI * (n_prime - N / 2.0f) / ocean_length;
 			k = glm::vec2(kx, kz);
-
-			//std::cout << "Kx,Kz: " << kx << ", " << kz << std::endl;
-
+					
 			k_length = glm::length(k);
 			k_dot_x = glm::dot(k,x);
 
@@ -187,9 +196,6 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 			htilde_c = hTilde(t, n_prime, m_prime) * c;
 			
 			h = h + htilde_c;
-
-			//std::cout << "HTilde: " << htilde_c.a << ", " << htilde_c.b << ", H: " << h.a << ", " << h.b << std::endl;
-
 			n = n + glm::vec3(-kx * htilde_c.b, 0.0f, -kz * htilde_c.b);
 
 			if (k_length < 0.000001) continue;
@@ -209,6 +215,8 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 void evaluateWavesFFT(float t) {
 	float kx, kz, len, lambda = -1.0f;
 	int index, index1;
+
+	ocean_length = std::any_cast<float>(Engine::instance()->properties()["OceanLen"]);
 
 	for (int m_prime = 0; m_prime < N; m_prime++) {
 		kz = M_PI * (2.0f * m_prime - N) / ocean_length;
@@ -366,46 +374,75 @@ void evaluate_waves(float t)
 	}
 }
 
-Ocean::Ocean() :
-	GameObject("Ocean")
+void initialize_Htilde0()
 {
-
-
 	int index;
 
 	Complex htilde0, htilde0mk_conj;
-	for (int m_prime = 0; m_prime < Nplus1; m_prime++) {
-		for (int n_prime = 0; n_prime <  Nplus1; n_prime++) {
+	for (int m_prime = 0; m_prime < Nplus1; m_prime++) 
+	{
+		for (int n_prime = 0; n_prime < Nplus1; n_prime++) 
+		{
+			
 			index = m_prime * Nplus1 + n_prime;
-			htilde0 = hTilde_0(n_prime, m_prime);
-			//std::cout << "HTilde0[" << index << "]: " << htilde0.a << ", " << htilde0.b << std::endl;
+			
+			htilde0		   = hTilde_0( n_prime,  m_prime);
 			htilde0mk_conj = hTilde_0(-n_prime, -m_prime).conjugate();
 
-			vertices[index].htilde0 = htilde0;
+			vertices[index].htilde0		 = htilde0;
 			vertices[index].htilde0_conj = htilde0mk_conj;
 
-			vertices[index].opos = vertices[index].pos = glm::vec3((n_prime - N / 2.0f) * ocean_length / N, 0.0f, (m_prime - N / 2.0f) * ocean_length / N);
+			float x = (n_prime - N / 2.0f) * ocean_length / N;
+			float y = 0.0;
+			float z = (m_prime - N / 2.0f) * ocean_length / N;
+
+			vertices[index].opos = vertices[index].pos = glm::vec3(x, y, z);
 			vertices[index].normal = glm::vec3(0, 1, 0);
 		}
 	}
+}
 
-	//evaluate_waves(0);
+Ocean::Ocean() :
+	GameObject("Ocean")
+{
+	initialize_Htilde0();
 
-	for (int x = 0; x < Nx; ++x)
-	for (int z = 0; z < Nz; ++z)
-	{
-		shader_buffer[z*Nx + x] = glm::vec4(vertices[z*Nx + x].pos.x, vertices[z*Nx + x].pos.y, vertices[z*Nx + x].pos.z, 1);
-	}
+	Property::signal_static_property_changed.connect(this, [this](omen::Property* p) {
+		if (p->name().compare("Damping") == 0)
+		{
+			damping = p->floatValue();
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("Gravity") == 0)
+		{
+			g = p->floatValue();
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("WindDir") == 0)
+		{
+			wind_dir = p->floatValue();
+			wind = wind_power * glm::vec2(sin(wind_dir), cos(wind_dir));
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("WindPower") == 0)
+		{
+			wind_power = p->floatValue();
+			wind = wind_power * glm::vec2(sin(wind_dir), cos(wind_dir));
+			initialize_Htilde0();
+		}
+	});
+
 
 	std::unique_ptr<ecs::MeshController> mc = std::make_unique<ecs::MeshController>();
 	std::unique_ptr<OceanRenderer> mr = std::make_unique<OceanRenderer>(mc.get());
 
 	std::unique_ptr<Mesh> mesh = MeshProvider::createPlane(1000, 1);
-
 	mc->setMesh(std::move(mesh));
 	addComponent(std::move(mr));
 	addComponent(std::move(mc));
-
 }
 
 
@@ -463,17 +500,18 @@ OceanRenderer::OceanRenderer(ecs::MeshController* mc) :
 	glGenVertexArrays(1, &m_vao);
 	glGenBuffers(1, &m_vbo);
 	glGenBuffers(1, &m_vbo_texcoord);
-	
+
 	glBindVertexArray(m_vao);
-	
-	glm::vec3 v[4] = { { -1.0,0,1.0 },{ -1.0,0,-1.0 },{ 1.0, 0,1.0 },{ 1.0,0,-1.0 } };
+
+	glm::vec3 v[4] = { { -1.0,0,-1.0 },{ 1.0,0,-1.0 },{ -1.0, 0,1.0 },{ 1.0,0,1.0 } };
 	glm::vec2 t[4] = { { 0,1 },{ 0,0 },{ 1, 1 },{ 1,0 } };
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glEnableVertexAttribArray(0);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 	
-	//tex = new Texture("textures/custom_uv_diag.png");
+	
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
 	glEnableVertexAttribArray(1);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(t), t, GL_STATIC_DRAW);
@@ -504,6 +542,18 @@ OceanRenderer::OceanRenderer(ecs::MeshController* mc) :
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, tex_w, tex_h, 0, GL_RGBA, GL_FLOAT, NULL);
 	
 	glBindImageTexture(0, tex_output, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	glGenTextures(1, &tex_output2);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, tex_output2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, tex_w, tex_h, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, tex_w, tex_h, 0, GL_RGBA, GL_FLOAT, NULL);
+
+	glBindImageTexture(1, tex_output2, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 	
 	int work_grp_cnt[3];
 
@@ -537,13 +587,14 @@ OceanRenderer::~OceanRenderer()
 void OceanRenderer::render(Shader* sh) {
 
 	//evaluate_waves(Engine::instance()->time());
-	evaluateWavesFFT(Engine::instance()->time());
+	evaluateWavesFFT(Engine::instance()->time()*std::any_cast<float>(Engine::instance()->properties()["Time"]));
 
-	for (int x = 0; x < Nx; ++x)
-	for (int z = 0; z < Nz; ++z)
+	for(int index=0; index < Nplus1*Nplus1; ++index)
 	{
-		shader_buffer[z*Nx + x] = glm::vec4(vertices[z*Nx + x].pos.x, vertices[z*Nx + x].pos.y, vertices[z*Nx + x].pos.z, 1);
+		shader_buffer[index].pos	= glm::vec4(vertices[index].pos.x, vertices[index].pos.y, vertices[index].pos.z, 1);
+		shader_buffer[index].normal = glm::vec4(vertices[index].normal.x, vertices[index].normal.y, vertices[index].normal.z, 1);
 	}
+
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(shader_buffer), &shader_buffer, GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -556,10 +607,14 @@ void OceanRenderer::render(Shader* sh) {
 	glShaderStorageBlockBinding(compute_shader->m_shader_program, block_index, ssbo_binding_point_index);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_ssbo);
 
-	//glEnable(GL_TEXTURE_2D);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, tex_output);
-	//compute_shader->setUniform1i("img_output", tex_output);
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex_output);
+	compute_shader->setUniform1i("img_output", tex_output);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, tex_output2);
+	compute_shader->setUniform1i("img_output2", tex_output2);
 	glDispatchCompute((GLuint)Nx, (GLuint)Nz, 1);
 	
 	// make sure writing to image has finished before read
@@ -597,15 +652,18 @@ void OceanRenderer::render(Shader* sh) {
 	glBindVertexArray(m_vao);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	//glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	//drawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	
 	{ // normal drawing pass
 	
 		glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, tex->id()); // tex_output);
 		glBindTexture(GL_TEXTURE_2D, tex_output);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex_output2);
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, N*N);
 	}
+	glBindVertexArray(0);
 }
 
 void OceanRenderer::initializeShader() {

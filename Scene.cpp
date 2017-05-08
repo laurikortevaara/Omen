@@ -316,6 +316,57 @@ void omen::Scene::initialize()
 	addEntity(std::move(std::make_unique<Sky>()));
 	addEntity(std::move(std::make_unique<Ocean>()));
 		
+	std::unique_ptr<ui::LinearLayout> sliderLayout = std::make_unique<ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), ui::LinearLayout::VERTICAL);
+
+	std::unique_ptr<ui::Slider> slider_spot_brightness = std::make_unique<ui::Slider>(nullptr, "Time", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
+	Engine::instance()->properties()["Time"] = 1.0f;
+	slider_spot_brightness->setCurrentValue(1.0f);
+	slider_spot_brightness->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["Time"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_spot_brightness));
+
+	std::unique_ptr<ui::Slider> slider_A = std::make_unique<ui::Slider>(nullptr, "OceanLen", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00000001f, 1000.0f));
+	Engine::instance()->properties()["OceanLen"] = 0.00000001f;
+	slider_A->setCurrentValue(0.00000001f);
+	slider_A->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["OceanLen"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_A));
+
+	std::unique_ptr<ui::Slider> slider_D = std::make_unique<ui::Slider>(nullptr, "Damping", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.0000000001, 0.0001f));
+	Engine::instance()->properties()["Damping"] = 0.000001f;
+	slider_D->setCurrentValue(0.000001f);
+	slider_D->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["Damping"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_D));
+
+	std::unique_ptr<ui::Slider> slider_G = std::make_unique<ui::Slider>(nullptr, "Gravity", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.0000000001, 100));
+	Engine::instance()->properties()["Gravity"] = 1.f;
+	slider_G->setCurrentValue(1);
+	slider_G->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["Gravity"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_G));
+
+	std::unique_ptr<ui::Slider> slider_WD = std::make_unique<ui::Slider>(nullptr, "WindDir", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-M_PI, M_PI));
+	Engine::instance()->properties()["WindDir"] = 0.0f;
+	slider_WD->setCurrentValue(0);
+	slider_WD->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["WindDir"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_WD));
+
+	std::unique_ptr<ui::Slider> slider_WP = std::make_unique<ui::Slider>(nullptr, "WindPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.0f, 1e3));
+	Engine::instance()->properties()["WindPower"] = 32.0f;
+	slider_WP->setCurrentValue(32.0f);
+	slider_WP->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["WindPower"] = value;
+	});
+	sliderLayout->addChild(std::move(slider_WP));
+
+	addEntity(std::move(sliderLayout));
 	//
 	/*std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("Cube");
 	obj->setLayer(0);
@@ -336,154 +387,154 @@ void omen::Scene::initialize()
 	/*std::unique_ptr<ui::LinearLayout> sliderLayout = std::make_unique<ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), ui::LinearLayout::VERTICAL);
 
 	std::unique_ptr<ui::Slider> slider_spot_brightness = std::make_unique<ui::Slider>(nullptr, "Spot Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0,1000));
-	Engine::instance()->properties["SpotBrightness"] = 480.9f;
+	Engine::instance()->properties()["SpotBrightness"] = 480.9f;
 	slider_spot_brightness->setCurrentValue(480.9f);
 	slider_spot_brightness->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["SpotBrightness"] = value;
+		Engine::instance()->properties()["SpotBrightness"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_spot_brightness));
 	
 	std::unique_ptr<ui::Slider> slider_rayleigh_brightness = std::make_unique<ui::Slider>(nullptr, "Rayleigh Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
-	Engine::instance()->properties["RayleighBrightness"] = 5.42f;
+	Engine::instance()->properties()["RayleighBrightness"] = 5.42f;
 	slider_rayleigh_brightness->setCurrentValue(5.42f);
 	slider_rayleigh_brightness->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["RayleighBrightness"] = value;
+		Engine::instance()->properties()["RayleighBrightness"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_rayleigh_brightness));
 
 	std::unique_ptr<ui::Slider> slider_mie_brightness = std::make_unique<ui::Slider>(nullptr, "Mie Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
-	Engine::instance()->properties["MieBrightness"] = 4.454f;
+	Engine::instance()->properties()["MieBrightness"] = 4.454f;
 	slider_mie_brightness->setCurrentValue(5.454f);
 	slider_mie_brightness->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["MieBrightness"] = value;
+		Engine::instance()->properties()["MieBrightness"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_mie_brightness));
 	/*
 	std::unique_ptr<ui::Slider> slider_mie_distribution = std::make_unique<ui::Slider>(nullptr, "Mie Distribution", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 0.18));
-	Engine::instance()->properties["MieDistribution"] = 0.02534f;
+	Engine::instance()->properties()["MieDistribution"] = 0.02534f;
 	slider_mie_distribution->setCurrentValue(0.02534f);
 	slider_mie_distribution->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["MieDistribution"] = value;
+		Engine::instance()->properties()["MieDistribution"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_mie_distribution));
 
 	std::unique_ptr<ui::Slider> slider_step_count = std::make_unique<ui::Slider>(nullptr, "StepCount", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 500));
-	Engine::instance()->properties["StepCount"] = 10;
+	Engine::instance()->properties()["StepCount"] = 10;
 	slider_step_count->setCurrentValue(10);
 	slider_step_count->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["StepCount"] = static_cast<int>(value);
+		Engine::instance()->properties()["StepCount"] = static_cast<int>(value);
 	});
 	sliderLayout->addChild(std::move(slider_step_count));
 
 	std::unique_ptr<ui::Slider> slider_surface_height = std::make_unique<ui::Slider>(nullptr, "SurfaceHeight", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
-	Engine::instance()->properties["SurfaceHeight"] = 0.03817f;
+	Engine::instance()->properties()["SurfaceHeight"] = 0.03817f;
 	slider_surface_height->setCurrentValue(0.03817f);
 	slider_surface_height->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["SurfaceHeight"] = 0.9f+0.1f*value;
+		Engine::instance()->properties()["SurfaceHeight"] = 0.9f+0.1f*value;
 	});
 	sliderLayout->addChild(std::move(slider_surface_height));
 
 	std::unique_ptr<ui::Slider> slider_rayleigh_strenght = std::make_unique<ui::Slider>(nullptr, "RayleighStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["RayleighStrength"] = 0.207f;
+	Engine::instance()->properties()["RayleighStrength"] = 0.207f;
 	slider_rayleigh_strenght->setCurrentValue(0.207f);
 	slider_rayleigh_strenght->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["RayleighStrength"] = value;
+		Engine::instance()->properties()["RayleighStrength"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_rayleigh_strenght));
 
 	std::unique_ptr<ui::Slider> slider_rayleighfactor = std::make_unique<ui::Slider>(nullptr, "RayleighFactor", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-1.0, 1.0f));
-	Engine::instance()->properties["RayleighFactor"] = -0.2529f;
+	Engine::instance()->properties()["RayleighFactor"] = -0.2529f;
 	slider_rayleighfactor->setCurrentValue(-0.2529f);
 	slider_rayleighfactor->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["RayleighFactor"] = value;
+		Engine::instance()->properties()["RayleighFactor"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_rayleighfactor));
 
 	std::unique_ptr<ui::Slider> slider_mie_strength = std::make_unique<ui::Slider>(nullptr, "MieStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["MieStrength"] = 0.1085f;
+	Engine::instance()->properties()["MieStrength"] = 0.1085f;
 	slider_mie_strength->setCurrentValue(0.1085f);
 	slider_mie_strength->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["MieStrength"] = value;
+		Engine::instance()->properties()["MieStrength"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_mie_strength));
 
 	std::unique_ptr<ui::Slider> slider_scatter_strength = std::make_unique<ui::Slider>(nullptr, "ScatterStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["ScatterStrength"] = 0.3987f;
+	Engine::instance()->properties()["ScatterStrength"] = 0.3987f;
 	slider_scatter_strength->setCurrentValue(0.3987f);
 	slider_scatter_strength->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["ScatterStrength"] = value;
+		Engine::instance()->properties()["ScatterStrength"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_scatter_strength));
 
 	std::unique_ptr<ui::Slider> slider_rayleigh_collection_power = std::make_unique<ui::Slider>(nullptr, "RayleighColPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["RayleighCollectionPower"] = 0.8642f;
+	Engine::instance()->properties()["RayleighCollectionPower"] = 0.8642f;
 	slider_rayleigh_collection_power->setCurrentValue(0.8642f);
 	slider_rayleigh_collection_power->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["RayleighCollectionPower"] = value;
+		Engine::instance()->properties()["RayleighCollectionPower"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_rayleigh_collection_power));
 
 	std::unique_ptr<ui::Slider> slider_mie_collection_power = std::make_unique<ui::Slider>(nullptr, "MieColPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["MieCollectionPower"] = 1.673f;
+	Engine::instance()->properties()["MieCollectionPower"] = 1.673f;
 	slider_mie_collection_power->setCurrentValue(1.673f);
 	slider_mie_collection_power->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["MieCollectionPower"] = value;
+		Engine::instance()->properties()["MieCollectionPower"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_mie_collection_power));
 
 	std::unique_ptr<ui::Slider> slider_intensity_red = std::make_unique<ui::Slider>(nullptr, "Intens Red", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["IntensityRed"] = 0.681f;
+	Engine::instance()->properties()["IntensityRed"] = 0.681f;
 	slider_intensity_red->setCurrentValue(0.681f);
 	slider_intensity_red->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["IntensityRed"] = value;
+		Engine::instance()->properties()["IntensityRed"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_intensity_red));
 
 	std::unique_ptr<ui::Slider> slider_intensity_green = std::make_unique<ui::Slider>(nullptr, "Intens Green", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["IntensityGreen"] = 1.0f;
+	Engine::instance()->properties()["IntensityGreen"] = 1.0f;
 	slider_intensity_green->setCurrentValue(1.0f);
 	slider_intensity_green->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["IntensityGreen"] = value;
+		Engine::instance()->properties()["IntensityGreen"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_intensity_green));
 
 	std::unique_ptr<ui::Slider> slider_intensity_blue = std::make_unique<ui::Slider>(nullptr, "Intens Blue", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties["IntensityBlue"] = 0.7573f;
+	Engine::instance()->properties()["IntensityBlue"] = 0.7573f;
 	slider_intensity_blue->setCurrentValue(0.7573f);
 	slider_intensity_blue->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["IntensityBlue"] = value;
+		Engine::instance()->properties()["IntensityBlue"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_intensity_blue));
 
 	std::unique_ptr<ui::Slider> slider_sun_azimuth = std::make_unique<ui::Slider>(nullptr, "Sun Azimuth", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-180, 180));
-	Engine::instance()->properties["Azimuth"] = 1.0f;
+	Engine::instance()->properties()["Azimuth"] = 1.0f;
 	slider_sun_azimuth->setCurrentValue(1.0f);
 	slider_sun_azimuth->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["Azimuth"] = value;
+		Engine::instance()->properties()["Azimuth"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_sun_azimuth));
 
 	std::unique_ptr<ui::Slider> slider_sun_zenith = std::make_unique<ui::Slider>(nullptr, "Sun Zenith", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 180));
-	Engine::instance()->properties["Zenith"] = 1.0f;
+	Engine::instance()->properties()["Zenith"] = 1.0f;
 	slider_sun_zenith->setCurrentValue(1.0f);
 	slider_sun_zenith->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["Zenith"] = value;
+		Engine::instance()->properties()["Zenith"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_sun_zenith));
 
 	std::unique_ptr<ui::Slider> slider_hbias = std::make_unique<ui::Slider>(nullptr, "HExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1.0f));
-	Engine::instance()->properties["HExtinctionBias"] = 0.35f;
+	Engine::instance()->properties()["HExtinctionBias"] = 0.35f;
 	slider_hbias->setCurrentValue(0.35f);
 	slider_hbias->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["HExtinctionBias"] = value;
+		Engine::instance()->properties()["HExtinctionBias"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_hbias));
 
 	std::unique_ptr<ui::Slider> slider_ebias = std::make_unique<ui::Slider>(nullptr, "EyeExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1.0f));
-	Engine::instance()->properties["EyeExtinctionBias"] = 0.00015f;
+	Engine::instance()->properties()["EyeExtinctionBias"] = 0.00015f;
 	slider_ebias->setCurrentValue(0.0015f);
 	slider_ebias->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
-		Engine::instance()->properties["EyeExtinctionBias"] = value;
+		Engine::instance()->properties()["EyeExtinctionBias"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_ebias));
 	*/

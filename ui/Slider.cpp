@@ -19,12 +19,37 @@ using namespace ui;
 
 Slider::~Slider() = default;
 
-Slider::Slider(View* parentView, const std::string &name, const std::string &spriteName, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& minMax) :
+
+glm::vec2 curve[]{ {0,0}, {1,0}, {1,0}, {1,1} };
+glm::vec2 linear[]{ { 0,0 },{ 0,0 },{ 1,1 },{ 1,1 } };
+
+/*
+R0=P0
+R1=P0+kp*(P1-P0)
+R2=Q3+kq*(Q2-Q3)
+R3=Q3
+*/
+glm::vec2 getBezierPoint(glm::vec2* points, int numPoints, float t) {
+	glm::vec2* tmp = new glm::vec2[numPoints];
+	memcpy(tmp, points, numPoints * sizeof(glm::vec2));
+	int i = numPoints - 1;
+	while (i > 0) {
+		for (int k = 0; k < i; k++)
+			tmp[k] = tmp[k] + t * (tmp[k + 1] - tmp[k]);
+		i--;
+	}
+	glm::vec2 answer = tmp[0];
+	delete[] tmp;
+	return answer;
+}
+
+Slider::Slider(View* parentView, const std::string &name, const std::string &spriteName, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& minMax, EasingType easingType ) :
 	View(parentView, name, pos, size),
 	m_min_value(minMax.x),
 	m_max_value(minMax.y),
 	m_current_value(0.0f),
-	m_pKnot(nullptr)
+	m_pKnot(nullptr),
+	m_easingType(eEasingDefault)
 {
 	// Create main slider layout
 	std::unique_ptr<LinearLayout> layout = std::make_unique<LinearLayout>(this, "LayoutSlider", glm::vec2(0, 0), size, LinearLayout::LayoutDirection::HORIZONTAL);
@@ -58,7 +83,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	// Create a draggable component and add it to the knot
 	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>(m_groovePos, glm::vec2(m_grooveSize.x-20,m_grooveSize.y));
 	dragKnot->signal_dragged.connect(this,[this](float value) -> void {
-		setCurrentValue(this->m_min_value + value*(this->m_max_value - this->m_min_value));
+		setCurrentValue(this->m_min_value + getBezierPoint(curve, 4, value).y*(this->m_max_value - this->m_min_value));
 	});
 
 	knot->addComponent(std::move(dragKnot));

@@ -114,7 +114,7 @@ void BorderSprite::render() {
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> diff = end - start;
 	double ms = diff.count() * 1000.0f;
-	std::cout << "BorderSprite render: " << ms << "ms.\n";
+	//std::cout << "BorderSprite render: " << ms << "ms.\n";
 }
 
 void BorderSprite::initializeTexture() {

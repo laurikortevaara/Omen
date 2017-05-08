@@ -22,13 +22,49 @@ namespace omen {
 
         class Slider : public View {
         public:
+			enum EasingType
+			{
+				eLinear,
+				eInSine,
+				eOutSine,
+				eInOutSine,
+				eInQuad,
+				eOutQuad,
+				eInOutQuad,
+				eInCubic,
+				eOutCubic,
+				eInOutCubic,
+				eInQuart,
+				eOutQuart,
+				eInOutQuart,
+				eInQuint,
+				eOutQuint,
+				eInOutQuint,
+				eInExpo,
+				eOutExpo,
+				eInOutExpo,
+				eInCirc,
+				eOutCirc,
+				eInOutCirc,
+				eInBack,
+				eOutBack,
+				eInOutBack,
+				eInElastic,
+				eOutElastic,
+				eInOutElastic,
+				eInBounce,
+				eOutBounce,
+				eInOutBounce,
+				eEasingDefault = eLinear
+			};
+
             typedef omen::Signal<std::function<void(Slider *, glm::vec2)> > SliderClicked_t;
 			SliderClicked_t signal_slider_clicked;
 
 			typedef omen::Signal<std::function<void(Slider *, float)> > SliderDragged_t;
 			SliderDragged_t signal_slider_dragged;
         public:
-			Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, const glm::vec2& size, const glm::vec2& minMax = { 0.0f,1.0f });
+			Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, const glm::vec2& size, const glm::vec2& minMax = { 0.0f,1.0f }, EasingType easingType = eLinear);
 			virtual ~Slider();
 
 			void setValue(float value);
@@ -49,6 +85,9 @@ namespace omen {
 
 			const std::wstring& label();
 			void setLabel(const std::wstring& label);
+
+			void setEasing(EasingType easing) { m_easingType = easing; }
+			EasingType easingType() const { return m_easingType; }
         protected:
             virtual void updateLayout();
             virtual void onMeasure(float maxwidth, float maxheight);
@@ -59,6 +98,7 @@ namespace omen {
 			glm::vec2 m_groovePos;
 			glm::vec2 m_grooveSize;
 			ImageView* m_pKnot;
+			EasingType m_easingType;
         };
     } // namespace ui
 } // namespace omen

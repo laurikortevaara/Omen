@@ -29,15 +29,30 @@ namespace omen {
 	namespace ecs {
 		class TextRenderer;
 	}
+
+	class Properties {
+	private:
+		std::map<std::string, Property> properties;
+	public:
+		Property& operator[](const char* ch) {
+			return operator[](std::string(ch));
+		}
+		Property& operator[](std::string& name) {
+			if (properties.find(name) == properties.end())
+				properties[name] = Property(name.c_str());
+			return properties[name];
+		}
+	};
 		
-    class Engine : public Object {
+	class Engine : public Object {
 #define post_function Engine::instance()->post(std::make_unique<std::function<void()>>(std::function<void()>([&](void)
-        /** Singleton interface **/
-        static Engine* m_instance;
-        Engine();
+		/** Singleton interface **/
+		static Engine* m_instance;
+		Engine();
 		~Engine();
 
-    public:
+		Properties m_properties;
+	public:
 
 
 		static GLuint ShadowBlur;
@@ -48,7 +63,7 @@ namespace omen {
 		static glm::vec3 LightPos;
 		static float CameraSensitivity;
 
-		std::map<std::string, Property> properties;
+		Properties& properties() { return m_properties; }
 
 		static float     AmbientFactor;
 		static float     MaterialShininess;

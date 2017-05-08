@@ -15,10 +15,16 @@ namespace omen
 		typedef Signal<std::function<void(std::any*)> > Change;
 		Change signal_property_changed;
 
+		typedef Signal<std::function<void(omen::Property*)> > PropertyChanged;
+		static PropertyChanged signal_static_property_changed;
+
+		float floatValue() const;
+
 		Property& operator=(const std::any&& other) {
 			std::any::operator=(other);
 			std::any& s = *this;
 			signal_property_changed.notify(this);
+			signal_static_property_changed.notify(this);
 			return *this;
 		}
 	};
