@@ -22,6 +22,10 @@ namespace omen {
 			Renderer& setTexture(std::unique_ptr<Texture> texture) { m_texture = std::move(texture); return *this; }
 			Texture* texture() const { return m_texture.get(); }
 		public:
+			void storePolygonMode();
+			void polygonModeFill();
+			void polygonModeWireframe();
+			void restorePolygonMode();
 		protected:
 			Renderer();
 		protected:

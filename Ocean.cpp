@@ -10,39 +10,22 @@
 #include "MeshProvider.h"
 #include "component/MeshController.h"
 
-/* Constants rounded for 21 decimals. */
-#define M_E 2.71828182845904523536 // The base of natural logarithms
-#define M_LOG2E 1.44269504088896340736  // The logarithm to base 2 of M_E
-#define M_LOG10E 0.434294481903251827651 // The logarithm to base 10 of M_E.
-#define M_LN2 0.693147180559945309417 // The natural logarithm of 2
-#define M_LN10 2.30258509299404568402 // The natural logarithm of 10
-#define M_PI 3.14159265358979323846 // Pi, the ratio of a circle's circumference to its diameter
-#define M_PI_2 1.57079632679489661923 // Pi divided by two
-#define M_PI_4 0.785398163397448309616 // Pi divided by four
-#define M_1_PI 0.318309886183790671538 // The reciprocal of pi (1/pi) 
-#define M_2_PI 0.636619772367581343076 // Two times the reciprocal of pi 2*(1/pi)
-#define M_1_SQRTPI 0.564189583547756286948 // The reciprocal of the square root of pi (1/sqrt(pi))
-#define M_2_SQRTPI 1.12837916709551257390 // Two times the reciprocal of the square root of pi (2*(1/sqrt(pi)))
-#define M_SQRT2 1.41421356237309504880 // The square root of two (sqrt(2))
-#define M_SQRT_2 0.707106781186547524401 // The reciprocal of the square root of two (also the square root of 1/2) ( sqrt(2)/2 or sqrt(1/2) )
-#define M_SQRT_2PI 2.506628274631000502415 // (sqrt(2*pi))
-
 using namespace omen;
 
-const unsigned int N = 128;
-const unsigned int Nplus1 = N + 1;
-float ocean_length = 0.0000001;
-const unsigned int Nx = N;
-const unsigned int Nz = N;
+const int N = 128;
+const int Nplus1 = N + 1;
+float ocean_length = N;
+const int Nx = N;
+const int Nz = N;
 float A = 0.0005; // Could be also 0.0005 Wave height adjustmet factor
 float g = 9.80665; // Gravity 9.81 m/s^2
 float damping = 0.001;
 float wind_dir = 0.0f;
 float wind_power = 32.0f;
 
-cFFT* fft = new cFFT(N);
+FFT* fft = new FFT(N);
 
-glm::vec2 wind(sin(wind_dir)*wind_power, cos(wind_dir)*wind_power);
+glm::vec2 wind(32,32);
 
 struct OceanVertex
 {
@@ -199,7 +182,7 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 			n = n + glm::vec3(-kx * htilde_c.b, 0.0f, -kz * htilde_c.b);
 
 			if (k_length < 0.000001) continue;
-			D = D + glm::vec2(kx / k_length * htilde_c.b, kz / k_length * htilde_c.b);
+			D = D + glm::vec2(kx / k_length * htilde_c.a, kz / k_length * htilde_c.b);
 		}
 	}
 
@@ -215,9 +198,7 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 void evaluateWavesFFT(float t) {
 	float kx, kz, len, lambda = -1.0f;
 	int index, index1;
-
-	ocean_length = std::any_cast<float>(Engine::instance()->properties()["OceanLen"]);
-
+	
 	for (int m_prime = 0; m_prime < N; m_prime++) {
 		kz = M_PI * (2.0f * m_prime - N) / ocean_length;
 		for (int n_prime = 0; n_prime < N; n_prime++) {
@@ -406,36 +387,7 @@ Ocean::Ocean() :
 	GameObject("Ocean")
 {
 	initialize_Htilde0();
-
-	Property::signal_static_property_changed.connect(this, [this](omen::Property* p) {
-		if (p->name().compare("Damping") == 0)
-		{
-			damping = p->floatValue();
-			initialize_Htilde0();
-		}
-
-		if (p->name().compare("Gravity") == 0)
-		{
-			g = p->floatValue();
-			initialize_Htilde0();
-		}
-
-		if (p->name().compare("WindDir") == 0)
-		{
-			wind_dir = p->floatValue();
-			wind = wind_power * glm::vec2(sin(wind_dir), cos(wind_dir));
-			initialize_Htilde0();
-		}
-
-		if (p->name().compare("WindPower") == 0)
-		{
-			wind_power = p->floatValue();
-			wind = wind_power * glm::vec2(sin(wind_dir), cos(wind_dir));
-			initialize_Htilde0();
-		}
-	});
-
-
+	
 	std::unique_ptr<ecs::MeshController> mc = std::make_unique<ecs::MeshController>();
 	std::unique_ptr<OceanRenderer> mr = std::make_unique<OceanRenderer>(mc.get());
 
@@ -480,9 +432,9 @@ double normal_dist(double x)
 void OceanRenderer::generate_distribution(Complex *distribution, glm::vec2 size, float amplitude, float max_l)
 {
 	glm::vec2 mod = glm::vec2(2.0f * M_PI) / size;
-	for (unsigned z = 0; z < Nz; z++)
+	for (int z = 0; z < Nz; z++)
 	{
-		for (unsigned x = 0; x < Nx; x++)
+		for (int x = 0; x < Nx; x++)
 		{
 			auto &v = distribution[z * Nx + x];
 			glm::vec2 k = mod * glm::vec2(alias(x, Nx), alias(z, Nz));
@@ -493,30 +445,89 @@ void OceanRenderer::generate_distribution(Complex *distribution, glm::vec2 size,
 }
 
 OceanRenderer::OceanRenderer(ecs::MeshController* mc) :
-	MeshRenderer(mc)
+	MeshRenderer(mc),
+	m_innerTessellationLevels{1.0,1.0},
+	m_outerTessellationLevels{ 1.0,1.0,1.0,1.0 }
 {
+	Property::signal_static_property_changed.connect(this, [this](omen::Property* p) {
+		
+		if (p->name().compare("OceanLen") == 0)
+		{
+			ocean_length = p->floatValue();
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("Damping") == 0)
+		{
+			damping = p->floatValue();
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("Gravity") == 0)
+		{
+			g = p->floatValue();
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("WindDir") == 0)
+		{
+			wind_dir = p->floatValue();
+			wind = wind_power * glm::vec2(cos(wind_dir), cos(wind_dir));
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("WindPower") == 0)
+		{
+			wind_power = p->floatValue();
+			wind = wind_power * glm::vec2(cos(wind_dir), cos(wind_dir));
+			initialize_Htilde0();
+		}
+
+		if (p->name().compare("TessellationLevelInner1") == 0)
+			m_innerTessellationLevels[0] = p->floatValue();
+		if (p->name().compare("TessellationLevelInner2") == 0)
+			m_innerTessellationLevels[1] = p->floatValue();
+		if (p->name().compare("TessellationLevelOuter1") == 0)
+			m_outerTessellationLevels[0] = p->floatValue();
+		if (p->name().compare("TessellationLevelOuter2") == 0)
+			m_outerTessellationLevels[1] = p->floatValue();
+		if (p->name().compare("TessellationLevelOuter3") == 0)
+			m_outerTessellationLevels[2] = p->floatValue();
+		if (p->name().compare("TessellationLevelOuter4") == 0)
+			m_outerTessellationLevels[3] = p->floatValue();
+	});
+
 	initializeShader();
 	
 	glGenVertexArrays(1, &m_vao);
 	glGenBuffers(1, &m_vbo);
+	glGenBuffers(1, &m_indexBuffer);
 	glGenBuffers(1, &m_vbo_texcoord);
 
 	glBindVertexArray(m_vao);
 
-	glm::vec3 v[4] = { { -1.0,0,-1.0 },{ 1.0,0,-1.0 },{ -1.0, 0,1.0 },{ 1.0,0,1.0 } };
-	glm::vec2 t[4] = { { 0,1 },{ 0,0 },{ 1, 1 },{ 1,0 } };
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	// Vertices
+	float s = 100;
+	glm::vec3 v[4] = { { -s,0,-s },{ s,0,-s },{ -s, 0,s },{ s,0,s } };
 	glEnableVertexAttribArray(0);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	
-	
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+	// Texture coordinates
+	glm::vec2 t[4] = { { 0,1 },{ 0,0 },{ 1, 1 },{ 1,0 } };
 	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(t), t, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	// Indices
+	unsigned int indices[] = { 0,1,2,1,3,2 };
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+	m_indexBufferSize = 6;
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferSize * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 	
+	// Shader
 	compute_shader = new Shader("shaders/compute_test.glsl");
 	compute_shader->use();
 	compute_shader->setUniform1i("img_output", 0);
@@ -589,11 +600,16 @@ void OceanRenderer::render(Shader* sh) {
 	//evaluate_waves(Engine::instance()->time());
 	evaluateWavesFFT(Engine::instance()->time()*std::any_cast<float>(Engine::instance()->properties()["Time"]));
 
+	float minx=0.0, maxx = 0.0, minz = 0.0, maxz = 0.0, miny = 0.0, maxy = 0.0;
+
 	for(int index=0; index < Nplus1*Nplus1; ++index)
 	{
 		shader_buffer[index].pos	= glm::vec4(vertices[index].pos.x, vertices[index].pos.y, vertices[index].pos.z, 1);
+		//shader_buffer[index].pos = glm::vec4(vertices[index].opos.x, vertices[index].opos.y, vertices[index].opos.z, 1);
 		shader_buffer[index].normal = glm::vec4(vertices[index].normal.x, vertices[index].normal.y, vertices[index].normal.z, 1);
 	}
+
+	std::cout << "minx: " << minx << ", maxx: " << maxx << std::endl;
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(shader_buffer), &shader_buffer, GL_DYNAMIC_COPY);
@@ -601,6 +617,7 @@ void OceanRenderer::render(Shader* sh) {
 
 	compute_shader->use();
 	compute_shader->setUniform1i("N", N);
+	compute_shader->setUniform1i("len", 1.0f);
 	GLuint block_index = 0;
 	block_index = glGetProgramResourceIndex(compute_shader->m_shader_program, GL_SHADER_STORAGE_BLOCK, "shader_data");
 	GLuint ssbo_binding_point_index = 2;
@@ -629,39 +646,47 @@ void OceanRenderer::render(Shader* sh) {
     glDisable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, Engine::instance()->getPolygonMode());
     shader()->use();
-	glEnable(GL_TEXTURE_2D);
+
     //shader()->setUniform4fv("Color", 1, &glm::vec4(0,0,0,1)[0] );
     shader()->setUniform1f("Time", (float) Engine::instance()->time());
     shader()->setUniform4fv("Color", 1, &glm::vec4(1)[0]);
     shader()->setUniformMatrix4fv("ViewMatrix", 1, &Engine::instance()->camera()->view()[0][0], false);
     shader()->setUniformMatrix3fv("NormalMatrix", 1, &glm::mat3(Engine::instance()->camera()->view())[0][0], false);
     shader()->setUniformMatrix4fv("Model", 1, &glm::mat4(1)[0][0], false);
+	shader()->setUniformMatrix4fv("ModelView", 1, &glm::mat4(1)[0][0], false);
     shader()->setUniformMatrix4fv("ModelViewProjection", 1,
                                   &(Engine::instance()->camera()->viewProjection())[0][0], false);
 	shader()->setUniform1i("size", N);
-    /*shader()->setUniform1i("InnerTessellationLevel1", m_innerTessellationLevels[0]);
-    shader()->setUniform1i("InnerTessellationLevel2", m_innerTessellationLevels[1]);
+    shader()->setUniform1f("InnerTessellationLevel1", m_innerTessellationLevels[0]);
+    shader()->setUniform1f("InnerTessellationLevel2", m_innerTessellationLevels[1]);
 
-    shader()->setUniform1i("OuterTessellationLevel1", m_outerTessellationLevels[0]);
-    shader()->setUniform1i("OuterTessellationLevel2", m_outerTessellationLevels[1]);
-    shader()->setUniform1i("OuterTessellationLevel3", m_outerTessellationLevels[2]);
-    shader()->setUniform1i("OuterTessellationLevel4", m_outerTessellationLevels[3]);
-	*/
+    shader()->setUniform1f("OuterTessellationLevel1", m_outerTessellationLevels[0]);
+    shader()->setUniform1f("OuterTessellationLevel2", m_outerTessellationLevels[1]);
+    shader()->setUniform1f("OuterTessellationLevel3", m_outerTessellationLevels[2]);
+    shader()->setUniform1f("OuterTessellationLevel4", m_outerTessellationLevels[3]);
+	
 	glDisable(GL_CULL_FACE);
 	
 	glBindVertexArray(m_vao);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texcoord);
+	
 	
 	{ // normal drawing pass
-	
+		glEnable(GL_TEXTURE_2D);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex_output);
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, tex_output2);
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, N*N);
+		//glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, N*N);
+		glPatchParameteri(GL_PATCH_VERTICES, 3);
+		glDrawElementsInstanced(GL_PATCHES, m_indexBufferSize, GL_UNSIGNED_INT, 0, 1);
+		//glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, 0, 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 	glBindVertexArray(0);
 }
@@ -672,77 +697,4 @@ void OceanRenderer::initializeShader() {
 
 void OceanRenderer::initializeTexture() {
     setTexture(nullptr);
-}
-
-cFFT::cFFT(unsigned int N) : N(N), reversed(0), T(0), pi2(2 * M_PI) {
-	c[0] = c[1] = 0;
-
-	log_2_N = log(N) / log(2);
-
-	reversed = new unsigned int[N];		// prep bit reversals
-	for (int i = 0; i < N; i++) reversed[i] = reverse(i);
-
-	int pow2 = 1;
-	T = new Complex*[log_2_N];		// prep T
-	for (int i = 0; i < log_2_N; i++) {
-		T[i] = new Complex[pow2];
-		for (int j = 0; j < pow2; j++) T[i][j] = t(j, pow2 * 2);
-		pow2 *= 2;
-	}
-
-	c[0] = new Complex[N];
-	c[1] = new Complex[N];
-	which = 0;
-}
-
-cFFT::~cFFT() {
-	if (c[0]) delete[] c[0];
-	if (c[1]) delete[] c[1];
-	if (T) {
-		for (int i = 0; i < log_2_N; i++) if (T[i]) delete[] T[i];
-		delete[] T;
-	}
-	if (reversed) delete[] reversed;
-}
-
-unsigned int cFFT::reverse(unsigned int i) {
-	unsigned int res = 0;
-	for (int j = 0; j < log_2_N; j++) {
-		res = (res << 1) + (i & 1);
-		i >>= 1;
-	}
-	return res;
-}
-
-Complex cFFT::t(unsigned int x, unsigned int N) {
-	return Complex(cos(pi2 * x / N), sin(pi2 * x / N));
-}
-
-void cFFT::fft(Complex* input, Complex* output, int stride, int offset) {
-	for (int i = 0; i < N; i++) c[which][i] = input[reversed[i] * stride + offset];
-
-	int loops = N >> 1;
-	int size = 1 << 1;
-	int size_over_2 = 1;
-	int w_ = 0;
-	for (int i = 1; i <= log_2_N; i++) {
-		which ^= 1;
-		for (int j = 0; j < loops; j++) {
-			for (int k = 0; k < size_over_2; k++) {
-				c[which][size * j + k] = c[which ^ 1][size * j + k] +
-					c[which ^ 1][size * j + size_over_2 + k] * T[w_][k];
-			}
-
-			for (int k = size_over_2; k < size; k++) {
-				c[which][size * j + k] = c[which ^ 1][size * j - size_over_2 + k] -
-					c[which ^ 1][size * j + k] * T[w_][k - size_over_2];
-			}
-		}
-		loops >>= 1;
-		size <<= 1;
-		size_over_2 <<= 1;
-		w_++;
-	}
-
-	for (int i = 0; i < N; i++) output[i * stride + offset] = c[which][i];
 }

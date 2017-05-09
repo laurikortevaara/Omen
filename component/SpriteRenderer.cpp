@@ -31,6 +31,8 @@ void omen::ecs::SpriteRenderer::onDetach(Entity* e)
 
 void omen::ecs::SpriteRenderer::render(Shader* shader)
 {
+	storePolygonMode();
+	polygonModeFill();
 	int w, h;
 	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
 	Engine::instance()->setViewport(0, 0, w, h);
@@ -38,7 +40,7 @@ void omen::ecs::SpriteRenderer::render(Shader* shader)
 	glGetIntegerv(GL_VIEWPORT, viewport );
 	m_sprite->render();
 	Engine::instance()->setViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-
+	restorePolygonMode();
 }
 
 

@@ -36,6 +36,8 @@ TextRenderer::TextRenderer() :
 }
 
 void TextRenderer::render(Shader* shader) {
+	storePolygonMode();
+	polygonModeFill();
 	omen::ui::View* e = dynamic_cast<omen::ui::View*>(entity());
 
 	float x = e->pos2D().x;
@@ -43,6 +45,7 @@ void TextRenderer::render(Shader* shader) {
 	if (e->gravity() == omen::ui::View::VERTICAL_CENTER)
 		y = -(e->pos2D().y+(e->size2D().y-Characters['X'].Size.y)*0.5f);
 	renderText(m_text, x, y, 1.0, glm::vec4(1));
+	restorePolygonMode();
 }
 
 void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)

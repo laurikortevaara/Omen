@@ -30,6 +30,7 @@
 #include "utils.h"
 #include "Engine.h"
 #include "component/MouseInput.h"
+#include "StringTools.h"
 
 using namespace omen;
 
@@ -76,6 +77,21 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 		full_source += "uniform vec3 iCameraPosition;"; // WindowSize(width,height);
 		full_source += "uniform float MATH_PI;"; // WindowSize(width,height);
 		full_source += "uniform vec4 iViewPort;"; // Viewport [x,y,z,w];
+	}
+	if (shaderType == GL_TESS_CONTROL_SHADER)
+	{
+		//if (shader_source.find("InnerTessellationLevel1") == std::string::npos)
+		full_source += "uniform float InnerTessellationLevel1;";
+		//if (shader_source.find("InnerTessellationLevel2") == std::string::npos)
+		full_source += "uniform float InnerTessellationLevel2;";
+		//if (shader_source.find("OuterTessellationLevel1") == std::string::npos)
+		full_source += "uniform float OuterTessellationLevel1;";
+		//if (shader_source.find("OuterTessellationLevel2") == std::string::npos)
+		full_source += "uniform float OuterTessellationLevel2;";
+		//if (shader_source.find("OuterTessellationLevel3") == std::string::npos)
+		full_source += "uniform float OuterTessellationLevel3;";
+		//if (shader_source.find("OuterTessellationLevel4") == std::string::npos)
+		full_source += "uniform float OuterTessellationLevel4;";
 	}
 	full_source += shader_source;
 	full_source += "\0";
@@ -155,8 +171,12 @@ std::string Shader::include_sub_shaders(const char* relativePath, const char* sh
 {
 	std::vector<std::string> lines = omen::split_string(shader_source, "\n");
 	std::string full_shader;
+	bool comment_section = false;
 	for (auto& line : lines)
 	{
+		while (line.find('\r') != std::string::npos)
+			line = line.erase(line.find('\r'));
+		line = StripComments(line);
 		if (line.find("#include") == std::string::npos) {
 			full_shader += line +"\n";
 			continue;
@@ -204,8 +224,15 @@ bool Shader::readShaderFile(const char*shader_file) {
 				glAttachShader(m_shader_program, gShader);
 		}
 		if (shader_source.find("TESS_CONTROL_SHADER") != std::string::npos) {
-			if (createShader(GL_TESS_CONTROL_SHADER, tcShader, shader_source))
+			if (createShader(GL_TESS_CONTROL_SHADER, tcShader, shader_source)) {
 				glAttachShader(m_shader_program, tcShader);
+				setUniform1f("InnerTessellationLevel1", 1.0f);
+				setUniform1f("InnerTessellationLevel2", 1.0f);
+				setUniform1f("OuterTessellationLevel1", 1.0f);
+				setUniform1f("OuterTessellationLevel2", 1.0f);
+				setUniform1f("OuterTessellationLevel3", 1.0f);
+				setUniform1f("OuterTessellationLevel4", 1.0f);
+			}
 		}
 		if (shader_source.find("TESS_EVALUATION_SHADER") != std::string::npos) {
 			if (createShader(GL_TESS_EVALUATION_SHADER, teShader, shader_source))

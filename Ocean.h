@@ -7,73 +7,11 @@
 
 #include "component/MeshRenderer.h"
 #include "GameObject.h"
+#include "Complex.h"
+#include "FFT.h"
 
 namespace omen {
-
-
-    class Complex {
-    public:
-        float a;
-        float b;
-
-        Complex() : a(0), b(0) {};
-        Complex(float _a, float _b) : a(_a), b(_b) {};
-
-        Complex operator*(float c) {
-            return Complex(a*c,b*c);
-        }
-
-        Complex operator*(const Complex &r) {
-            return  Complex(a*r.a-b*r.b, a*r.b+b*r.a);
-        }
-
-        Complex operator+(const Complex &r) {
-            return Complex(a+r.a, b+r.b);
-        }
-
-        Complex operator-(const Complex &r) {
-            return Complex(a-r.a, b-r.b);
-        }
-
-        Complex conjugate() {
-            return Complex(a,-b);
-        }
-    };
-
-	class cFFT {
-	private:
-		unsigned int N, which;
-		unsigned int log_2_N;
-		float pi2;
-		unsigned int *reversed;
-		Complex **T;
-		Complex *c[2];
-	protected:
-	public:
-		cFFT(unsigned int N);
-		~cFFT();
-		unsigned int reverse(unsigned int i);
-		Complex t(unsigned int x, unsigned int N);
-		void fft(Complex* input, Complex* output, int stride, int offset);
-	};
-
-    class FFT {
-    private:
-        unsigned int N, which;
-        unsigned int log_2_N;
-        float pi2;
-        unsigned int *reversed;
-        Complex **T;
-        Complex *c[2];
-    protected:
-    public:
-        FFT(unsigned int N);
-        ~FFT();
-        unsigned int reverse(unsigned int i);
-        Complex t(unsigned int x, unsigned int N);
-        void fft(Complex* input, Complex* output, int stride, int offset);
-    };
-
+		
     struct vertex_ocean {
         GLfloat x, y, z; // vertex
         GLfloat nx, ny, nz; // normal
@@ -104,6 +42,8 @@ namespace omen {
 		
     private:
 		GLuint m_vao, m_vbo, m_vbo_texcoord, m_ssbo, m_ssbo2, m_ssbo_index, m_ssbo_index2, m_vbo_indices;
+		GLfloat m_innerTessellationLevels[2];
+		GLfloat m_outerTessellationLevels[4];
     };
 
 	class Ocean : public ecs::GameObject

@@ -326,15 +326,15 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_spot_brightness));
 
-	std::unique_ptr<ui::Slider> slider_A = std::make_unique<ui::Slider>(nullptr, "OceanLen", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00000001f, 1000.0f));
-	Engine::instance()->properties()["OceanLen"] = 0.00000001f;
-	slider_A->setCurrentValue(0.00000001f);
+	std::unique_ptr<ui::Slider> slider_A = std::make_unique<ui::Slider>(nullptr, "OceanLen", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00000001f, 10000.0f), ui::Slider::eInCubic);
+	Engine::instance()->properties()["OceanLen"] = 128.0f;
+	slider_A->setCurrentValue(128.0f);
 	slider_A->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["OceanLen"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_A));
 
-	std::unique_ptr<ui::Slider> slider_D = std::make_unique<ui::Slider>(nullptr, "Damping", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.0000000001, 0.0001f));
+	std::unique_ptr<ui::Slider> slider_D = std::make_unique<ui::Slider>(nullptr, "Damping", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00001, 1.0f));
 	Engine::instance()->properties()["Damping"] = 0.000001f;
 	slider_D->setCurrentValue(0.000001f);
 	slider_D->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
@@ -365,6 +365,55 @@ void omen::Scene::initialize()
 		Engine::instance()->properties()["WindPower"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_WP));
+
+	std::unique_ptr<ui::Slider> TessellationLevelInner1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e2));
+	Engine::instance()->properties()["TessellationLevelOuter1"] = 1.0f;
+	TessellationLevelInner1->setCurrentValue(1.0f);
+	TessellationLevelInner1->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["TessellationLevelInner1"] = value;
+	});
+	sliderLayout->addChild(std::move(TessellationLevelInner1));
+
+	std::unique_ptr<ui::Slider> TessellationLevelInner2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e2));
+	Engine::instance()->properties()["TessellationLevelOuter4"] = 1.0f;
+	TessellationLevelInner2->setCurrentValue(1.0f);
+	TessellationLevelInner2->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["TessellationLevelInner2"] = value;
+	});
+	sliderLayout->addChild(std::move(TessellationLevelInner2));
+
+	std::unique_ptr<ui::Slider> TessellationLevelOuter1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e2));
+	Engine::instance()->properties()["TessellationLevelOuter1"] = 1.0f;
+	TessellationLevelOuter1->setCurrentValue(1.0f);
+	TessellationLevelOuter1->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["TessellationLevelOuter1"] = value;
+	});
+	sliderLayout->addChild(std::move(TessellationLevelOuter1));
+
+	std::unique_ptr<ui::Slider> TessellationLevelOuter2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e2));
+	Engine::instance()->properties()["TessellationLevelOuter2"] = 1.0f;
+	TessellationLevelOuter2->setCurrentValue(1.0f);
+	TessellationLevelOuter2->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["TessellationLevelOuter2"] = value;
+	});
+	sliderLayout->addChild(std::move(TessellationLevelOuter2));
+
+	std::unique_ptr<ui::Slider> TessellationLevelOuter3 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter3", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e2));
+	Engine::instance()->properties()["TessellationLevelOuter3"] = 1.0f;
+	TessellationLevelOuter3->setCurrentValue(1.0f);
+	TessellationLevelOuter3->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["TessellationLevelOuter3"] = value;
+	});
+	sliderLayout->addChild(std::move(TessellationLevelOuter3));
+
+	std::unique_ptr<ui::Slider> TessellationLevelOuter4 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter4", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e2));
+	Engine::instance()->properties()["TessellationLevelOuter4"] = 1.0f;
+	TessellationLevelOuter4->setCurrentValue(1.0f);
+	TessellationLevelOuter4->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["TessellationLevelOuter4"] = value;
+	});
+	sliderLayout->addChild(std::move(TessellationLevelOuter4));
+	
 
 	addEntity(std::move(sliderLayout));
 	//
