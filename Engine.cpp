@@ -730,14 +730,16 @@ void Engine::keyHit(int key, int scanCode, int action, int mods) {
 			
 
 		if (key == GLFW_KEY_TAB) {
-
+			Picker* p = findComponent<Picker>();
 			CameraController *cc = findComponent<CameraController>();
 			if (cc->enabled()) {
 				cc->setEnabled(false);
+				p->setEnabled(true);
 				m_current_window->showMouseCursor();
 			}
 			else {
 				cc->setEnabled(true);
+				p->setEnabled(false);
 				m_current_window->hideMouseCursor();
 			}
 

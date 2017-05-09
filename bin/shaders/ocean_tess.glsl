@@ -84,6 +84,7 @@ in vec2 teTCoord[3];
 in vec3 teNormal[3];
 
 smooth out vec3 FacetNormal;
+out vec3 Position;
 out vec3 PatchDistance;
 out vec3 TriDistance;
 out vec3 Normal;
@@ -100,18 +101,21 @@ void main()
 	TCoord = teTCoord[0];
     TriDistance = vec3(1, 0, 0);
 	Normal = teNormal[0];
+	Position = tePosition[0];
     gl_Position = ModelViewProjection*gl_in[0].gl_Position; EmitVertex();
 
     PatchDistance = tePatchDistance[1];
 	TCoord = teTCoord[1];
     TriDistance = vec3(0, 1, 0);
 	Normal = teNormal[1];
+	Position = tePosition[1];
     gl_Position = ModelViewProjection*gl_in[1].gl_Position; EmitVertex();
 
     PatchDistance = tePatchDistance[2];
     TCoord = teTCoord[2];
 	TriDistance = vec3(0, 0, 1);
 	Normal = teNormal[2];
+	Position = tePosition[2];
     gl_Position = ModelViewProjection*gl_in[2].gl_Position; EmitVertex();
 
     EndPrimitive();

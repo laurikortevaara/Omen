@@ -12,7 +12,7 @@
 
 using namespace omen;
 
-const int N = 128;
+const int N = 64;
 const int Nplus1 = N + 1;
 float ocean_length = N;
 const int Nx = N;
@@ -22,6 +22,7 @@ float g = 9.80665; // Gravity 9.81 m/s^2
 float damping = 0.001;
 float wind_dir = 0.0f;
 float wind_power = 32.0f;
+float heightFactor = 1.0f;
 
 FFT* fft = new FFT(N);
 
@@ -493,8 +494,10 @@ OceanRenderer::OceanRenderer(ecs::MeshController* mc) :
 			m_outerTessellationLevels[1] = p->floatValue();
 		if (p->name().compare("TessellationLevelOuter3") == 0)
 			m_outerTessellationLevels[2] = p->floatValue();
-		if (p->name().compare("TessellationLevelOuter4") == 0)
+		if (p->name().compare("TessellationLevelOuter4") == 0) {
+			heightFactor = p->floatValue();
 			m_outerTessellationLevels[3] = p->floatValue();
+		}
 	});
 
 	initializeShader();
@@ -595,21 +598,15 @@ OceanRenderer::~OceanRenderer()
 {
 }
 
-void OceanRenderer::render(Shader* sh) {
-
-	//evaluate_waves(Engine::instance()->time());
+void OceanRenderer::render(Shader* sh) 
+{
 	evaluateWavesFFT(Engine::instance()->time()*std::any_cast<float>(Engine::instance()->properties()["Time"]));
-
-	float minx=0.0, maxx = 0.0, minz = 0.0, maxz = 0.0, miny = 0.0, maxy = 0.0;
 
 	for(int index=0; index < Nplus1*Nplus1; ++index)
 	{
-		shader_buffer[index].pos	= glm::vec4(vertices[index].pos.x, vertices[index].pos.y, vertices[index].pos.z, 1);
-		//shader_buffer[index].pos = glm::vec4(vertices[index].opos.x, vertices[index].opos.y, vertices[index].opos.z, 1);
+		shader_buffer[index].pos	= glm::vec4(vertices[index].pos.x, vertices[index].pos.y*heightFactor, vertices[index].pos.z, 1);
 		shader_buffer[index].normal = glm::vec4(vertices[index].normal.x, vertices[index].normal.y, vertices[index].normal.z, 1);
 	}
-
-	std::cout << "minx: " << minx << ", maxx: " << maxx << std::endl;
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(shader_buffer), &shader_buffer, GL_DYNAMIC_COPY);
@@ -653,10 +650,13 @@ void OceanRenderer::render(Shader* sh) {
     shader()->setUniformMatrix4fv("ViewMatrix", 1, &Engine::instance()->camera()->view()[0][0], false);
     shader()->setUniformMatrix3fv("NormalMatrix", 1, &glm::mat3(Engine::instance()->camera()->view())[0][0], false);
     shader()->setUniformMatrix4fv("Model", 1, &glm::mat4(1)[0][0], false);
+	glm::vec3 viewpos = Engine::instance()->camera()->pos();
+	shader()->setUniform3fv("ViewPos", 1, glm::value_ptr(viewpos));
 	shader()->setUniformMatrix4fv("ModelView", 1, &glm::mat4(1)[0][0], false);
     shader()->setUniformMatrix4fv("ModelViewProjection", 1,
                                   &(Engine::instance()->camera()->viewProjection())[0][0], false);
 	shader()->setUniform1i("size", N);
+	shader()->setUniform1f("ocean_length", ocean_length);
     shader()->setUniform1f("InnerTessellationLevel1", m_innerTessellationLevels[0]);
     shader()->setUniform1f("InnerTessellationLevel2", m_innerTessellationLevels[1]);
 
@@ -684,7 +684,7 @@ void OceanRenderer::render(Shader* sh) {
 		glBindTexture(GL_TEXTURE_2D, tex_output2);
 		//glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, N*N);
 		glPatchParameteri(GL_PATCH_VERTICES, 3);
-		glDrawElementsInstanced(GL_PATCHES, m_indexBufferSize, GL_UNSIGNED_INT, 0, 1);
+		glDrawElementsInstanced(GL_PATCHES, m_indexBufferSize, GL_UNSIGNED_INT, 0, 9);
 		//glDrawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, 0, 1);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 	}

@@ -131,7 +131,7 @@ Picker::Picker() {
 
     Engine::instance()->findComponent<MouseInput>()->
             signal_cursorpos_changed.connect(this,[&](double x, double y) -> void {
-        pick();
+        //pick();
     });
 
     Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect(this,[&](int key, int action, int mods, int t){
