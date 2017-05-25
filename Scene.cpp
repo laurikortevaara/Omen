@@ -34,7 +34,7 @@
 #include "MathUtils.h"
 #include "component/KeyboardInput.h"
 #include "Terrain.h"
-#include "Sky.h"
+#include "SkyBox.h"
 #include "GroundGrid.h"
 #include "ShadowMap.h"
 #include "Octree.h"
@@ -52,7 +52,7 @@ Texture* bgTexture = nullptr;
 RenderBuffer* renderBuffer = nullptr;
 RenderBuffer* renderBuffer2 = nullptr;
 MultipassShader* ms = nullptr;
-float blur = 0.0f;
+float blur = 0;
 ShadowMap* shadowMap = nullptr;
 ecs::GameObject* lightobj = nullptr;
 
@@ -163,11 +163,11 @@ Scene::Scene() : omen::Object("Scene") {
 					});*/
 					addEntity(std::move(obj));
 				}
-			}
+			}/*
 			else if (file.find(".JPG") != std::string::npos
 				|| file.find(".jpg") != std::string::npos) {
 				Texture* t = new Texture(file);
-			}
+			}*/
 	});
 
 	JoystickInput* ji = (JoystickInput*)e->findComponent<JoystickInput>();
@@ -236,7 +236,7 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 
 	if (lights().empty())
 	{
-		std::unique_ptr<Light> light = std::make_unique<DirectionalLight>(glm::vec3(0, -1, 0), glm::vec3(1), 1.0f);
+		std::unique_ptr<Light> light = std::make_unique<DirectionalLight>(glm::vec3(0, -1, 0), glm::vec3(1), 1);
 		Light* l = light.get();
 		std::unique_ptr<omen::ecs::GameObject> lightBulb = provider->loadObject("models/light_bulb.fbx");
 		lightBulb->tr()->setPos(light->tr().pos());
@@ -302,39 +302,39 @@ void omen::Scene::initialize()
 		glGetIntegerv(GL_VIEWPORT, (int *)&viewport);
 
 		MouseInput *mi = Engine::instance()->findComponent<MouseInput>();
-		float mouseX = mi->cursorPos().x / (Engine::instance()->window()->width()  * 0.5f) - 1.0f;
-		float mouseY = mi->cursorPos().x / (Engine::instance()->window()->width() * 0.5f) - 1.0f;
+		float mouseX = mi->cursorPos().x / (Engine::instance()->window()->width()  * 0.5f) - 1;
+		float mouseY = mi->cursorPos().x / (Engine::instance()->window()->width() * 0.5f) - 1;
 
-		float mouseX2 = mi->cursorPos().x / (viewport[2]  * 0.5f) - 1.0f;
-		float mouseY2 = mi->cursorPos().x / (viewport[3] * 0.5f) - 1.0f;
+		float mouseX2 = mi->cursorPos().x / (viewport[2]  * 0.5f) - 1;
+		float mouseY2 = mi->cursorPos().x / (viewport[3] * 0.5f) - 1;
 		omen::ecs::Entity* e1 = Picker::CurrentlySelected;
 		is << L"Mouse Pos: " << L"Selected object: " << (e1 != nullptr ? converter.from_bytes(e1->name()) : L"Nothing") << mi->cursorPos().x << ", " << mi->cursorPos().y << "(" << mouseX << ", " << mouseY << ")" << ", " << "(" << mouseX2 << ", " << mouseY2 << ")";
 		t->setText(is.str());
 	});
 
 
-	addEntity(std::move(std::make_unique<Sky>()));
+	addEntity(std::move(std::make_unique<SkyBox>()));
 	addEntity(std::move(std::make_unique<Ocean>()));
 		
 	std::unique_ptr<ui::LinearLayout> sliderLayout = std::make_unique<ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), ui::LinearLayout::VERTICAL);
 
 	std::unique_ptr<ui::Slider> slider_spot_brightness = std::make_unique<ui::Slider>(nullptr, "Time", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
 	Engine::instance()->properties()["Time"] = 1.0f;
-	slider_spot_brightness->setCurrentValue(1.0f);
+	slider_spot_brightness->setCurrentValue(1);
 	slider_spot_brightness->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Time"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_spot_brightness));
 
-	std::unique_ptr<ui::Slider> slider_A = std::make_unique<ui::Slider>(nullptr, "OceanLen", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00000001f, 10000.0f), ui::Slider::eInCubic);
+	std::unique_ptr<ui::Slider> slider_A = std::make_unique<ui::Slider>(nullptr, "OceanLen", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00000001f, 10000), ui::Slider::eInCubic);
 	Engine::instance()->properties()["OceanLen"] = 128.0f;
-	slider_A->setCurrentValue(128.0f);
+	slider_A->setCurrentValue(128);
 	slider_A->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["OceanLen"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_A));
 
-	std::unique_ptr<ui::Slider> slider_D = std::make_unique<ui::Slider>(nullptr, "Damping", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00001, 1.0f));
+	std::unique_ptr<ui::Slider> slider_D = std::make_unique<ui::Slider>(nullptr, "Damping", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00001, 1));
 	Engine::instance()->properties()["Damping"] = 0.000001f;
 	slider_D->setCurrentValue(0.000001f);
 	slider_D->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
@@ -358,61 +358,108 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_WD));
 
-	std::unique_ptr<ui::Slider> slider_WP = std::make_unique<ui::Slider>(nullptr, "WindPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.0f, 1e3));
+	std::unique_ptr<ui::Slider> slider_WP = std::make_unique<ui::Slider>(nullptr, "WindPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1e3));
 	Engine::instance()->properties()["WindPower"] = 32.0f;
-	slider_WP->setCurrentValue(32.0f);
+	slider_WP->setCurrentValue(32);
 	slider_WP->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["WindPower"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_WP));
 
-	std::unique_ptr<ui::Slider> TessellationLevelInner1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e3));
-	Engine::instance()->properties()["TessellationLevelOuter1"] = 1.0f;
-	TessellationLevelInner1->setCurrentValue(1.0f);
+	int imaxTessLevel;
+	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &imaxTessLevel);
+	int maxTessLevel = imaxTessLevel;
+
+	std::unique_ptr<ui::Slider> TessellationLevelInner1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
+	Engine::instance()->properties()["TessellationLevelOuter1"] = maxTessLevel / 2.0f;
+	TessellationLevelInner1->setCurrentValue(maxTessLevel / 2.0f);
 	TessellationLevelInner1->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelInner1"] = value;
 	});
 	sliderLayout->addChild(std::move(TessellationLevelInner1));
 
-	std::unique_ptr<ui::Slider> TessellationLevelInner2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e3));
-	Engine::instance()->properties()["TessellationLevelOuter4"] = 1.0f;
-	TessellationLevelInner2->setCurrentValue(1.0f);
+	std::unique_ptr<ui::Slider> TessellationLevelInner2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
+	Engine::instance()->properties()["TessellationLevelOuter4"] = maxTessLevel / 2.0f;
+	TessellationLevelInner2->setCurrentValue(maxTessLevel / 2.0f);
 	TessellationLevelInner2->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelInner2"] = value;
 	});
 	sliderLayout->addChild(std::move(TessellationLevelInner2));
 
-	std::unique_ptr<ui::Slider> TessellationLevelOuter1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e3));
-	Engine::instance()->properties()["TessellationLevelOuter1"] = 1.0f;
-	TessellationLevelOuter1->setCurrentValue(1.0f);
+	std::unique_ptr<ui::Slider> TessellationLevelOuter1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
+	Engine::instance()->properties()["TessellationLevelOuter1"] = maxTessLevel / 2.0f;
+	TessellationLevelOuter1->setCurrentValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter1->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter1"] = value;
 	});
 	sliderLayout->addChild(std::move(TessellationLevelOuter1));
 
-	std::unique_ptr<ui::Slider> TessellationLevelOuter2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e3));
-	Engine::instance()->properties()["TessellationLevelOuter2"] = 1.0f;
-	TessellationLevelOuter2->setCurrentValue(1.0f);
+	std::unique_ptr<ui::Slider> TessellationLevelOuter2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
+	Engine::instance()->properties()["TessellationLevelOuter2"] = maxTessLevel / 2.0f;
+	TessellationLevelOuter2->setCurrentValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter2->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter2"] = value;
 	});
 	sliderLayout->addChild(std::move(TessellationLevelOuter2));
 
-	std::unique_ptr<ui::Slider> TessellationLevelOuter3 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter3", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e3));
-	Engine::instance()->properties()["TessellationLevelOuter3"] = 1.0f;
-	TessellationLevelOuter3->setCurrentValue(1.0f);
+	std::unique_ptr<ui::Slider> TessellationLevelOuter3 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter3", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
+	Engine::instance()->properties()["TessellationLevelOuter3"] = maxTessLevel / 2.0f;
+	TessellationLevelOuter3->setCurrentValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter3->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter3"] = value;
 	});
 	sliderLayout->addChild(std::move(TessellationLevelOuter3));
 
-	std::unique_ptr<ui::Slider> TessellationLevelOuter4 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter4", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0f, 1e3));
-	Engine::instance()->properties()["TessellationLevelOuter4"] = 1.0f;
-	TessellationLevelOuter4->setCurrentValue(1.0f);
+	std::unique_ptr<ui::Slider> TessellationLevelOuter4 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter4", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
+	Engine::instance()->properties()["TessellationLevelOuter4"] = maxTessLevel / 2.0f;
+	TessellationLevelOuter4->setCurrentValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter4->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter4"] = value;
 	});
 	sliderLayout->addChild(std::move(TessellationLevelOuter4));
+
+	std::unique_ptr<ui::Slider> fov = std::make_unique<ui::Slider>(nullptr, "fov", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0, 179));
+	Engine::instance()->properties()["FOV"] = 90.0f;
+	fov->setCurrentValue(90);
+	fov->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["FOV"] = value;
+		std::wostringstream wis;
+		wis << L"FOV:" << std::setprecision(3) << value << L", L:" << Engine::instance()->camera()->focalLength() << L"mm.";
+		slider->setLabel(wis.str());
+	});
+	sliderLayout->addChild(std::move(fov));
+
+	std::unique_ptr<ui::Slider> zNear = std::make_unique<ui::Slider>(nullptr, "near", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10000));
+	Engine::instance()->properties()["zNear"] = 1.0f;
+	zNear->setCurrentValue(1);
+	zNear->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["zNear"] = value;
+	});
+	sliderLayout->addChild(std::move(zNear));
+
+	std::unique_ptr<ui::Slider> zFar = std::make_unique<ui::Slider>(nullptr, "far", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, 10000));
+	Engine::instance()->properties()["zFar"] = 100.0f;
+	zFar->setCurrentValue(100.0f);
+	zFar->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["zFar"] = value;
+	});
+	sliderLayout->addChild(std::move(zFar));
+
+	std::unique_ptr<ui::Slider> perlinSize = std::make_unique<ui::Slider>(nullptr, "PerlinSize", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.000000001, 1000));
+	Engine::instance()->properties()["PerlinSize"] = 1.0f;
+	perlinSize->setCurrentValue(1.0f);
+	perlinSize->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["PerlinSize"] = value;
+	});
+	sliderLayout->addChild(std::move(perlinSize));
+
+	std::unique_ptr<ui::Slider> PerlinScale = std::make_unique<ui::Slider>(nullptr, "PerlinScale", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.000000001, 1000));
+	Engine::instance()->properties()["PerlinScale"] = 1.0f;
+	PerlinScale->setCurrentValue(1.0f);
+	PerlinScale->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
+		Engine::instance()->properties()["PerlinScale"] = value;
+	});
+	sliderLayout->addChild(std::move(PerlinScale));
 	
 
 	addEntity(std::move(sliderLayout));
@@ -491,7 +538,7 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_rayleigh_strenght));
 
-	std::unique_ptr<ui::Slider> slider_rayleighfactor = std::make_unique<ui::Slider>(nullptr, "RayleighFactor", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-1.0, 1.0f));
+	std::unique_ptr<ui::Slider> slider_rayleighfactor = std::make_unique<ui::Slider>(nullptr, "RayleighFactor", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-1.0, 1));
 	Engine::instance()->properties()["RayleighFactor"] = -0.2529f;
 	slider_rayleighfactor->setCurrentValue(-0.2529f);
 	slider_rayleighfactor->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
@@ -540,8 +587,8 @@ void omen::Scene::initialize()
 	sliderLayout->addChild(std::move(slider_intensity_red));
 
 	std::unique_ptr<ui::Slider> slider_intensity_green = std::make_unique<ui::Slider>(nullptr, "Intens Green", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
-	Engine::instance()->properties()["IntensityGreen"] = 1.0f;
-	slider_intensity_green->setCurrentValue(1.0f);
+	Engine::instance()->properties()["IntensityGreen"] = 1;
+	slider_intensity_green->setCurrentValue(1);
 	slider_intensity_green->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["IntensityGreen"] = value;
 	});
@@ -556,22 +603,22 @@ void omen::Scene::initialize()
 	sliderLayout->addChild(std::move(slider_intensity_blue));
 
 	std::unique_ptr<ui::Slider> slider_sun_azimuth = std::make_unique<ui::Slider>(nullptr, "Sun Azimuth", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-180, 180));
-	Engine::instance()->properties()["Azimuth"] = 1.0f;
-	slider_sun_azimuth->setCurrentValue(1.0f);
+	Engine::instance()->properties()["Azimuth"] = 1;
+	slider_sun_azimuth->setCurrentValue(1);
 	slider_sun_azimuth->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Azimuth"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_sun_azimuth));
 
 	std::unique_ptr<ui::Slider> slider_sun_zenith = std::make_unique<ui::Slider>(nullptr, "Sun Zenith", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 180));
-	Engine::instance()->properties()["Zenith"] = 1.0f;
-	slider_sun_zenith->setCurrentValue(1.0f);
+	Engine::instance()->properties()["Zenith"] = 1;
+	slider_sun_zenith->setCurrentValue(1);
 	slider_sun_zenith->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Zenith"] = value;
 	});
 	sliderLayout->addChild(std::move(slider_sun_zenith));
 
-	std::unique_ptr<ui::Slider> slider_hbias = std::make_unique<ui::Slider>(nullptr, "HExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1.0f));
+	std::unique_ptr<ui::Slider> slider_hbias = std::make_unique<ui::Slider>(nullptr, "HExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
 	Engine::instance()->properties()["HExtinctionBias"] = 0.35f;
 	slider_hbias->setCurrentValue(0.35f);
 	slider_hbias->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
@@ -579,7 +626,7 @@ void omen::Scene::initialize()
 	});
 	sliderLayout->addChild(std::move(slider_hbias));
 
-	std::unique_ptr<ui::Slider> slider_ebias = std::make_unique<ui::Slider>(nullptr, "EyeExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1.0f));
+	std::unique_ptr<ui::Slider> slider_ebias = std::make_unique<ui::Slider>(nullptr, "EyeExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
 	Engine::instance()->properties()["EyeExtinctionBias"] = 0.00015f;
 	slider_ebias->setCurrentValue(0.0015f);
 	slider_ebias->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
@@ -723,8 +770,8 @@ void Scene::renderArrow()
 
 	lineShader->use();
 
-	glm::vec3 p1 = { 0.0f, 0.0f, 0.0f };
-	glm::vec3 p2 = { 1.0f, 0.2f, 0.0f };
+	glm::vec3 p1 = { 0, 0, 0 };
+	glm::vec3 p2 = { 1, 0.2f, 0 };
 
 	glm::vec3 v = p2 - p1;
 	float tx = v.x;
@@ -734,10 +781,10 @@ void Scene::renderArrow()
 	omen::floatprec thickness = 0.01f;
 	
 	glm::vec3 v2[4] = {
-	{p1.x + v.x * thickness / 2,p1.y + v.y * thickness / 2,0},
-	{p1.x - v.x * thickness / 2,p1.y - v.y * thickness / 2,0},
-	{p2.x + v.x * thickness / 2,p2.y + v.y * thickness / 2,0},
-	{p2.x - v.x * thickness / 2,p2.y - v.y * thickness / 2,0},
+	{p1.x + v.x * thickness / 2.0f,p1.y + v.y * thickness / 2.0f,0},
+	{p1.x - v.x * thickness / 2.0f,p1.y - v.y * thickness / 2.0f,0},
+	{p2.x + v.x * thickness / 2.0f,p2.y + v.y * thickness / 2.0f,0},
+	{p2.x - v.x * thickness / 2.0f,p2.y - v.y * thickness / 2.0f,0},
 	};
 	GLuint vbo2 = 0, vao2 = 0;
 

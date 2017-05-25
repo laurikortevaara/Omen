@@ -23,6 +23,7 @@ namespace omen {
         Shader(const char*shader_file);
 
         void use() const;
+		void unuse() const { glUseProgram(0); };
 
 		void listAttribs();
 

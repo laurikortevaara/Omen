@@ -14,6 +14,7 @@
 #include "KeyboardInput.h"
 #include "Picker.h"
 #include "../ui/TextView.h"
+#include "../SkyBoxRenderer.h"
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -419,6 +420,7 @@ void MeshRenderer::render(Shader* shader)
 	pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
 	pShader->setUniformMatrix3fv("ModelView3x3", 1, glm::value_ptr(mv3x3), false);
 	pShader->setUniformMatrix4fv("ModelView", 1, glm::value_ptr(modelViewMatrix), false);
+	pShader->setUniformMatrix4fv("ViewMatrix", 1, glm::value_ptr(viewMatrix), false);
 	pShader->setUniformMatrix4fv("ModelMatrix", 1, glm::value_ptr(modelMatrix), false);
 	pShader->setUniformMatrix4fv("InverseViewProjection", 1, glm::value_ptr(inverseViewProjMatrix), false);
 	pShader->setUniformMatrix4fv("DepthBiasMVP", 1, glm::value_ptr(depthBiasMVP), false);
@@ -483,6 +485,16 @@ void MeshRenderer::render(Shader* shader)
 		glActiveTexture(GL_TEXTURE0+3);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 	}
+
+
+	int envmapLoc = pShader->getUniformLocation("envMap");
+	if (envmapLoc >= 0) {
+		glUniform1i(envmapLoc, 4);
+		glActiveTexture(GL_TEXTURE0 + 4);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, SkyBoxRenderer::uvTexMap->id());
+	}
+	
+
 
 	// Setup buffers for rendering
 	glBindVertexArray(m_vao);
@@ -620,6 +632,8 @@ void MeshRenderer::render2(Shader* shader)
 		}
 	}
 
+	// Env map
+	
 	// Setup buffers for rendering
 	glBindVertexArray(m_vao);
 

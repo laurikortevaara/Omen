@@ -19,7 +19,8 @@ namespace omen {
         omen::Transform& tr() {return m_transform;}
 		void setTr(omen::Transform& tr) { m_transform = tr; }
     private:
-        omen::Transform m_transform;
+		// TODO: Lauri check This!!
+        omen::Transform m_transform; // This does not work as it gets killed in GameObject::updateBounds
         glm::vec3   m_max;
         glm::vec3   m_min;
     };

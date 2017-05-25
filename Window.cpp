@@ -37,6 +37,9 @@ void Window::windowSizeChanged(GLFWwindow *window, int width, int height) {
 	// notify about window size changed event
 	m_width = width;
 	m_height = height;
+	glViewport(0, 0, m_width, m_height);
+	glScissor(0, 0, m_width, m_height);
+	glClearColor(0, 0, 0, 1);
 	signal_window_size_changed.notify(width, height);
 }
 
@@ -111,6 +114,16 @@ void Window::createWindow(int width, int height) {
 		throw std::runtime_error(std::string(__FUNCTION__) + std::string(": Unable to create window"));
 #endif
 	}
+
+	Texture* ico_1 = new Texture("textures/Google-Drive-icon.png");
+	auto load_icon = [&ico_1](){
+	return (*new GLFWimage{ 48,48,(unsigned char*)ico_1->raw_data() });
+	};
+	GLFWimage images[2];
+	images[0] = load_icon();
+	images[1] = load_icon();
+	glfwSetWindowIcon(m_window, 1, images);
+
 	glfwGetWindowSize(m_window, &width, &height);
 	m_width = width;
 	m_height = height;
@@ -195,7 +208,7 @@ void Window::start_rendering() {
 	double w = 500+5000*(0.04*t / (--t)*sin(25 * t));
 
 	glViewport(0, 0, m_width, m_height);
-	glScissor(0, 0, m_height, m_height);
+	glScissor(0, 0, m_width, m_height);
 	glClearColor(0, 0, 0, 1);
 	
 	/*glFlush();

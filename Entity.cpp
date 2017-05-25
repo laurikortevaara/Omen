@@ -35,6 +35,9 @@ Entity::Entity(const std::string &name) :
 	**/
 	Engine::instance()->findComponent<MouseInput>()->
 		signal_cursorpos_changed.connect(this, [this](float x, float y) -> void {
+		// Very slow function, just return!!!
+		// TODO: Lauri fix this
+		return;
 		if (m_is_selected && this->name().compare("DIRECTION_RIGHT") == 0)
 		{
 			if (Engine::instance()->findComponent<MouseInput>()->mouseButtonStatesLR()[0])

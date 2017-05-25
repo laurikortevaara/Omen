@@ -69,26 +69,26 @@ omen::CameraController::CameraController() : m_camera(nullptr), m_joystick(nullp
 		if (m_camera != nullptr && !ki->keyModifierPressed(GLFW_MOD_SHIFT)) {
 			m_camera->acceleration() = glm::vec3(10.35f);
 
-			
+			float coeff = 0.1;
 			if (ki->keyPressed(GLFW_KEY_W)) {
-				m_camera->velocity().z += m_camera->acceleration().z * deltaTime;
+				m_camera->velocity().z += m_camera->acceleration().z * deltaTime*coeff;
 			}
 			if (ki->keyPressed(GLFW_KEY_S)) {
-				m_camera->velocity().z -= m_camera->acceleration().z * deltaTime;
+				m_camera->velocity().z -= m_camera->acceleration().z * deltaTime*coeff;
 			}
 
 			if (ki->keyPressed(GLFW_KEY_A)) {
-				m_camera->velocity().x -= m_camera->acceleration().x * deltaTime;
+				m_camera->velocity().x -= m_camera->acceleration().x * deltaTime*coeff;
 			}
 			if (ki->keyPressed(GLFW_KEY_D)) {
-				m_camera->velocity().x += m_camera->acceleration().x * deltaTime;
+				m_camera->velocity().x += m_camera->acceleration().x * deltaTime*coeff;
 			}
 
 			if (ki->keyPressed(GLFW_KEY_E)) {
-				m_camera->velocity().y += m_camera->acceleration().y * deltaTime;
+				m_camera->velocity().y += m_camera->acceleration().y * deltaTime*coeff;
 			}
 			if (ki->keyPressed(GLFW_KEY_C)) {
-				m_camera->velocity().y -= m_camera->acceleration().y * deltaTime;
+				m_camera->velocity().y -= m_camera->acceleration().y * deltaTime*coeff;
 			}
 
 			if (m_joystick != nullptr) {

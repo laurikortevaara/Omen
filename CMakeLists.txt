@@ -365,6 +365,13 @@ VertexBufferObject.h
 WavefrontLoader.h
 Window.h
 SysInfo.h
+Property.cpp
+Signal.cpp
+Ocean.cpp
+FFT.cpp
+Skybox.cpp
+SkyboxRenderer.cpp
+StringTools.cpp
 
 #/component/
 component/BorderSprite.cpp
@@ -447,6 +454,8 @@ add_executable(Omen ${SOURCE_FILES})
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)
 
 set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++latest")
+
 ######################################################################
 # Set the target link libraries
 ######################################################################

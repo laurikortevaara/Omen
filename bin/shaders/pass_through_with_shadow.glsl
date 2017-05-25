@@ -3,11 +3,13 @@
 */
 
 
+#include "utils.glsl"
 
 layout(location = 0) uniform sampler2D DiffuseColorMap;
 layout(location = 1) uniform sampler2D NormalMap;
 layout(location = 2) uniform sampler2D SpecularColorMap;
 layout(location = 3) uniform sampler2D shadowMap;
+layout(location = 4) uniform samplerCube envMap;
 
 uniform bool      HasDiffuseTexture;
 uniform bool	  HasNormalTexture;
@@ -40,7 +42,6 @@ uniform float     AmbientFactor;
 
 uniform float     LightIntensity;
 
-#include "utils.glsl"
 
 /**
 * Vertex Shader
@@ -55,10 +56,12 @@ layout(location=4) in vec3 bitangent;
 
 out Data
 {
-	vec4 pos;
+	vec4 pos;			// Position in world space
+	vec4 pos_eye;		// Position in eye/view space
     vec4 ShadowCoord;
     vec2 uv;
-	vec3 normal;
+	vec3 normal;		// Normal in world space
+	vec3 normal_eye;	// Normal in eye/view space
 	mat3 TBN;
 } dataOut;
 
@@ -68,10 +71,12 @@ void main()
     dataOut.ShadowCoord = DepthBiasMVP * vec4(position,1);
     dataOut.uv = uv;
 	dataOut.normal = mat3(ModelMatrix)*normal; //mat3(transpose(inverse(ModelMatrix)))*normal;
+	dataOut.normal_eye = vec3(ViewMatrix*ModelMatrix*vec4(normal,0));
 	dataOut.pos = ModelMatrix*vec4(position,1);
+	dataOut.pos_eye = ViewMatrix*ModelMatrix*vec4(position,1);
 
 	vec3 T = normalize(vec3(ModelMatrix * vec4(tangent,   0.0)));
-	vec3 N = normalize(vec3(ModelMatrix * vec4(normal,    0.0)));
+	vec3 N = normal; //normalize(vec3(ModelMatrix * vec4(normal,    0.0)));
 	vec3 B = normalize(cross(T,N));
 
 	mat3 TBN = transpose(mat3(T, B, N));
@@ -140,18 +145,31 @@ vec3 viewDirection(vec3 fragmentPos)
 
 in Data {
 	vec4 pos;
+	vec4 pos_eye;
 	vec4 ShadowCoord;
 	vec2 uv;
 	vec3 normal;
+	vec3 normal_eye;
 	mat3 TBN;
 } dataIn;
 
 out vec4 out_color;
 
+
+
 void main() {
 	vec2 uv = dataIn.uv;
 	vec3 N = dataIn.normal; 
+	vec3 normal = normalize(dataIn.normal_eye);
 	
+	vec3 vpos = ViewPos;
+	vpos.x *= -1;
+	vpos.z *= -1;
+
+	vec3 I = normalize(dataIn.pos_eye.xyz);
+    vec3 R = reflect(I, normal);
+	R  = vec3(inverse(ViewMatrix) * vec4(R, 0.0));
+
 	if(HasNormalTexture)
 	{
 		N = texture(NormalMap, uv).rgb;
@@ -166,6 +184,12 @@ void main() {
 	vec4 c = HasDiffuseTexture?texture(DiffuseColorMap,uv):MaterialDiffuse;
 	out_color = d*c + vec4(specularReflection(V,N,L, dataIn.uv),1);
 	out_color = c;
+		
+	out_color = 7*texture(DiffuseColorMap,uv) + 3*texture(envMap, R);
+	out_color /= 10;
+
+	//out_color = texture(envMap, R);
+	//out_color = texture(DiffuseColorMap,uv);
 }
 
 #endif

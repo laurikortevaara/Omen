@@ -60,3 +60,8 @@ BoundingBox GameObject::getBounds()
 {
 	return m_bounding_box;
 }
+
+GameObject::~GameObject()
+{
+	std::cout << "Killing Gameobject";
+}

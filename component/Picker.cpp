@@ -129,10 +129,12 @@ Picker::Picker() {
         pick();
     });
 
-    Engine::instance()->findComponent<MouseInput>()->
+    /*
+	Engine::instance()->findComponent<MouseInput>()->
             signal_cursorpos_changed.connect(this,[&](double x, double y) -> void {
-        //pick();
+        pick();
     });
+	*/
 
     Engine::instance()->findComponent<omen::KeyboardInput>()->signal_key_release.connect(this,[&](int key, int action, int mods, int t){
 		if (key == GLFW_KEY_ESCAPE) {

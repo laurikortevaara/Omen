@@ -25,6 +25,6 @@ Entity *Component::entity() const {
 
 Component::~Component() 
 {
-	signal_component_destructed.notify(this);
+ 	signal_component_destructed.notify(this);
 	int a = 1;
 };

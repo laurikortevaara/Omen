@@ -6,8 +6,8 @@
 using namespace omen;
 using namespace ecs;
 
-Texture * uvEnvMap = nullptr;
-Texture * uvTexMap = nullptr;
+static Texture * uvEnvMap = nullptr;
+static Texture * uvTexMap = nullptr;
 
 SkyRenderer::SkyRenderer(MeshController* mc) :
 	MeshRenderer(mc) {
@@ -23,7 +23,7 @@ SkyRenderer::SkyRenderer(MeshController* mc) :
 	//m_shader = new Shader("shaders/sky.glsl");
 	m_shader = new Shader("shaders/spherical_sky.glsl");
 	uvTexMap = new Texture("textures/sky_daytime_blue.jpg");
-	uvEnvMap = new Texture("textures/hemispherical_006.jpg");
+	uvEnvMap = new Texture("textures/skyboxsun25degtest.png");
 
 	Engine::instance()->properties()["SpotBrightness"].signal_property_changed.connect(this,[&](std::any* prop) {this->m_spotBrightness = std::any_cast<float>(*prop); });
 	Engine::instance()->properties()["RayleighBrightness"].signal_property_changed.connect(this,[this](std::any* prop) { this->m_rayleighBrightness = std::any_cast<float>(*prop); });

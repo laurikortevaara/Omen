@@ -29,6 +29,9 @@ void GraphicsSystem::render(omen::Shader* shader, int layer) {
 	//glDisable(GL_BLEND);*/
 	//glDepthFunc()
     for(auto c : components()){
+		Renderer* r = dynamic_cast<Renderer*>(c);
+		MeshRenderer* mr = dynamic_cast<MeshRenderer*>(c);
+
 		if (layer != -1 && layer != c->entity()->layer())
 			continue;
 
@@ -36,17 +39,16 @@ void GraphicsSystem::render(omen::Shader* shader, int layer) {
 		if (strcmp(e, "LightbulbHD") == 0 && shader != nullptr)
 			continue;
 		
-        Renderer* r = dynamic_cast<Renderer*>(c);
-		MeshRenderer* mr = dynamic_cast<MeshRenderer*>(c);
+       
 		// Don't render anything if no mesh renderer and given shader
 		if (mr == nullptr && shader != nullptr)
 			continue;
+		if (mr != nullptr && shader != nullptr)
+			mr->renderShadows(shader);
+		else
 		if (r != nullptr && shader == nullptr)
 			//renderers.push_back(r);
 			r->render(shader);
-		else
-			if (mr != nullptr && shader != nullptr)
-				mr->renderShadows(shader);
     }
 	/*std::sort(renderers.begin(), renderers.end(), [](Renderer* r1, Renderer* r2)-> bool {
 		float z1 = r1->entity() != nullptr && r1->entity()->getComponent<Transform>() != nullptr ? r1->entity()->getComponent<Transform>()->pos().z : 0.0f;

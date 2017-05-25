@@ -1804,11 +1804,11 @@ std::unique_ptr<omen::ecs::GameObject> MeshProvider::loadObject(const std::strin
 	objectName = objectName.substr(0, objectName.find_first_of('.'));
 
 	std::unique_ptr<omen::ecs::GameObject> gameObject = std::make_unique<omen::ecs::GameObject>(objectName);
-	if (filename.compare("models/base_arrows.fbx") != 0)
+	/*if (filename.compare("models/base_arrows.fbx") != 0)
 	{
 		std::unique_ptr<omen::ecs::GameObject> baseArrows = loadObject("models/base_arrows.fbx");
-		//gameObject->addChild(std::move(baseArrows));
-	}
+		gameObject->addChild(std::move(baseArrows));
+	}*/
 	// Prepare the FBX SDK.
 	InitializeSdkObjects(lSdkManager, lScene);
 
@@ -2008,10 +2008,17 @@ std::unique_ptr<omen::ecs::GameObject> MeshProvider::loadObject(const std::strin
 					Mesh::Vertex& v2 = vertices[ti3];
 
 					// Compute Normals
-					glm::vec3 dp1 = v1.pos - v0.pos;
-					glm::vec3 dp2 = v2.pos - v0.pos;
+					glm::vec3 dp1 = v2.pos - v0.pos;
+					glm::vec3 dp2 = v1.pos - v0.pos;
 
-					glm::vec3 normal = glm::normalize(glm::cross(dp2, dp1));
+					glm::vec3 normal = glm::normalize(glm::cross(dp1, dp2));
+
+					if (fabs(normal.x) < 0.000001)
+						normal.x = 0;
+					if (fabs(normal.y) < 0.000001)
+						normal.y = 0;
+					if (fabs(normal.z) < 0.000001)
+						normal.z = 0;
 					// 3x normal
 					normals[ti1] = normal; normals[ti2] = normal; normals[ti3] = normal;
 
@@ -2050,14 +2057,17 @@ std::unique_ptr<omen::ecs::GameObject> MeshProvider::loadObject(const std::strin
 
 				// Set Texturemap
 				std::unique_ptr<Material> material = std::make_unique<Material>();
-				material->setAmbientColor(GetPhongAmbient(phong));
-				material->setDiffuseColor(GetPhongDiffuse(phong));
-				material->setSpecularColor(GetPhongSpecular(phong));
-				material->setEmissiveColor(GetPhongEmissive(phong));
-				material->setEmissiveFactor(static_cast<omen::floatprec>(GetPhongEmissiveFactor(phong)));
-				material->setDiffuseIntensity(static_cast<omen::floatprec>(GetPhongDiffuseIntensity(phong)));
-				material->setSpecularIntensity(static_cast<omen::floatprec>(GetPhongSpecularFactor(phong)));
-				material->setShininess(static_cast<omen::floatprec>(GetPhongShininess(phong)));
+				if (phong != nullptr)
+				{
+					material->setAmbientColor(GetPhongAmbient(phong));
+					material->setDiffuseColor(GetPhongDiffuse(phong));
+					material->setSpecularColor(GetPhongSpecular(phong));
+					material->setEmissiveColor(GetPhongEmissive(phong));
+					material->setEmissiveFactor(static_cast<omen::floatprec>(GetPhongEmissiveFactor(phong)));
+					material->setDiffuseIntensity(static_cast<omen::floatprec>(GetPhongDiffuseIntensity(phong)));
+					material->setSpecularIntensity(static_cast<omen::floatprec>(GetPhongSpecularFactor(phong)));
+					material->setShininess(static_cast<omen::floatprec>(GetPhongShininess(phong)));
+				}
 
 				if (!textureFileDiffuse.empty())
 				{

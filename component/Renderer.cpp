@@ -21,9 +21,9 @@ Renderer::Renderer() :
 	assert(gs != nullptr);
 	gs->addComponent(this);
 
-	OpenVRSystem *vs = omen::Engine::instance()->findSystem<OpenVRSystem>();
+	/*OpenVRSystem *vs = omen::Engine::instance()->findSystem<OpenVRSystem>();
 	assert(vs != nullptr);
-	vs->addComponent(this);
+	vs->addComponent(this);*/
 	int a = 1;
 };
 

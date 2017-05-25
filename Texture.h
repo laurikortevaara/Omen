@@ -35,17 +35,27 @@ namespace omen {
         };
         void loadTexture(const std::string &bitmap_path);
 
+		GLuint createTexture(); // Returns the created opengl texture ID
+
+		GLuint read_jpg_file(const char* filename);
+		GLuint read_png_file(const char* filename);
+
         static std::map<std::string, _texture_cache_item> texture_cache;
+		GLuint m_bitmapType;
         GLuint m_textureID;
         GLenum m_textureTarget;
         GLuint m_width;
         GLuint m_height;
+
+		BYTE* outData[6];
     private:
         Texture() { };
 
     public:
         Texture(const std::string &bitmap_path, GLenum textureTarget = GL_TEXTURE_2D );
 
+		BYTE* raw_data(int pixmap = 0) const { return outData[pixmap]; }
+	
         void bind();
 
         GLuint width() { return m_width; }

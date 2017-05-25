@@ -10,18 +10,16 @@
 #include "GL_error.h"
 #include <time.h>
 #include <mmsystem.h>
+#include <Windows.h>
+#include <GLFW\glfw3.h>
 
 using namespace omen;
-
-std::unique_ptr<omen::Scene> gScene = nullptr;
 
 /**
 * the main
 **/
-int main(int argc, char *argv[]) {
-	
-	int* i = new int[5];
-	delete[] i;
+int main(int argc, char *argv[]) 
+{
 	/* initialize random seed: */
 	srand(unsigned int(time(nullptr)));
 	omen::Engine *engine = omen::Engine::instance();
@@ -42,10 +40,7 @@ int main(int argc, char *argv[]) {
 			// TODO
 		});
 	}
-
-
-	//gScene = std::make_unique<Scene>(Scene());
-
+		
 	/* Loop until the user closes the window */
 	while (!window->shouldClose()) {
 		check_gl_error();

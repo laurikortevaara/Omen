@@ -68,33 +68,38 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 		break;
 	}
 
-	if (shaderType != GL_COMPUTE_SHADER)
+	//if (shaderType != GL_COMPUTE_SHADER)
 	{
-		full_source += "uniform float iGlobalTime;"; // Floating point global time in seconds
-		full_source += "uniform vec4 iMouse;"; // MouseCoord(x,y), MouseButtons(Left,Right);
-		full_source += "uniform vec2 iResolution;"; // WindowSize(width,height);
-		full_source += "uniform vec3 iMousePickRay;"; // WindowSize(width,height);
-		full_source += "uniform vec3 iCameraPosition;"; // WindowSize(width,height);
-		full_source += "uniform float MATH_PI;"; // WindowSize(width,height);
-		full_source += "uniform vec4 iViewPort;"; // Viewport [x,y,z,w];
+		full_source += "uniform float iGlobalTime;\n"; // Floating point global time in seconds
+		full_source += "uniform vec4 iMouse;\n"; // MouseCoord(x,y), MouseButtons(Left,Right);
+		full_source += "uniform vec2 iResolution;\n"; // WindowSize(width,height);
+		full_source += "uniform vec3 iMousePickRay;\n"; // WindowSize(width,height);
+		full_source += "uniform vec3 iCameraPosition;\n"; // WindowSize(width,height);
+		full_source += "uniform float MATH_PI;\n"; // WindowSize(width,height);
+		full_source += "uniform vec4 iViewPort;\n"; // Viewport [x,y,z,w];
 	}
 	if (shaderType == GL_TESS_CONTROL_SHADER)
 	{
 		//if (shader_source.find("InnerTessellationLevel1") == std::string::npos)
-		full_source += "uniform float InnerTessellationLevel1;";
+		full_source += "uniform float InnerTessellationLevel1;\n";
 		//if (shader_source.find("InnerTessellationLevel2") == std::string::npos)
-		full_source += "uniform float InnerTessellationLevel2;";
+		full_source += "uniform float InnerTessellationLevel2;\n";
 		//if (shader_source.find("OuterTessellationLevel1") == std::string::npos)
-		full_source += "uniform float OuterTessellationLevel1;";
+		full_source += "uniform float OuterTessellationLevel1;\n";
 		//if (shader_source.find("OuterTessellationLevel2") == std::string::npos)
-		full_source += "uniform float OuterTessellationLevel2;";
+		full_source += "uniform float OuterTessellationLevel2;\n";
 		//if (shader_source.find("OuterTessellationLevel3") == std::string::npos)
-		full_source += "uniform float OuterTessellationLevel3;";
+		full_source += "uniform float OuterTessellationLevel3;\n";
 		//if (shader_source.find("OuterTessellationLevel4") == std::string::npos)
-		full_source += "uniform float OuterTessellationLevel4;";
+		full_source += "uniform float OuterTessellationLevel4;\n";
 	}
 	full_source += shader_source;
 	full_source += "\0";
+
+#ifdef SHOW_SHADER_SOURCE
+	std::cout << "Shader:\n====================================================================\n" << full_source << std::endl;
+	std::cout << "=====================================================================" << std::endl;
+#endif
 
 	shader = glCreateShader(shaderType);
 	check_gl_error();
@@ -132,7 +137,7 @@ bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shad
 		int line = 1;
 		for (auto l : lines) {
 			if(line> (line_number - 10) && line <= (line_number + 10))
-				source += std::to_string(line) + ": " + l;
+				source += std::to_string(line) + ": " + l + "\n";
 			line++;
 		}
 		boxer::show(source.c_str(), m_shaderFile.c_str());
@@ -189,7 +194,7 @@ std::string Shader::include_sub_shaders(const char* relativePath, const char* sh
 		int i1 = line.find_first_of("\"", i0);
 		std::string filename = line.substr(i0, i1-i0);
 		
-		full_shader += readSubShader(relativePath, filename.c_str()) + "\n";
+		full_shader += include_sub_shaders(relativePath, readSubShader(relativePath, filename.c_str()).c_str())+"\n";
 	}
 	return full_shader;
 }

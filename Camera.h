@@ -69,6 +69,7 @@ namespace omen {
         void setPosition(glm::vec3 position);
         glm::vec3 position() const {return m_pos;}
 
+		float focalLength() const { return m_focalLength; }
 		float fov() const; // The horizontal field of view in degrees
 		float horizontalFieldOfView() const; // As above
 		float verticalFieldOfView() const; // The vertical field of view;
@@ -79,6 +80,9 @@ namespace omen {
 		float zNear() const { return m_near; }
 		float zFar() const { return m_far; }
         float & yaw();
+
+		void setNear(float znear) { m_near = znear; }
+		void setFar(float zfar) { m_far = zfar; }
 
         float & pitch();
 

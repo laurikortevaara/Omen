@@ -175,13 +175,15 @@ Engine::Engine() :
 
 	SysInfo info;
 
+	properties()["DrawNormals"] = 1;
+
 	Window::signal_window_created.connect(this,[this](Window* window) {
 		if (window != m_window.get())
 			return;
 		initializeSystems();
 		check_gl_error();
 
-		m_camera = new Camera("Camera1", { 0, 100.0, 0.0 }, { 0, 0, 0 }, 45.0f);
+		m_camera = new Camera("Camera1", { 0, 100.0, 0.0 }, { 0, 0, 0 }, 90.0f);
 		check_gl_error();
 		findComponent<CameraController>()->setCamera(m_camera);
 		check_gl_error();
@@ -382,8 +384,8 @@ void Engine::initializeSystems() {
 
 	scriptSystem->addComponent(new ecs::Script("scripts/main.cs"));
 
-	ecs::OpenVRSystem* openVRSystem = new ecs::OpenVRSystem();
-	m_systems.push_back(openVRSystem);
+	//ecs::OpenVRSystem* openVRSystem = new ecs::OpenVRSystem();
+	//m_systems.push_back(openVRSystem);
 
 }
 

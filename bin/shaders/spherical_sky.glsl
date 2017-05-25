@@ -132,6 +132,13 @@ float opticalDepth(float H, float r, float mu)
     }
     return mu < -sqrt(1.0 - (Rg / r) * (Rg / r)) ? 1e9 : result;
 }
+#include "utils.glsl"
+
+float atan2(in float y, in float x)
+{
+    bool s = (abs(x) > abs(y));
+    return mix(M_PI/2.0 - atan(x,y), atan(y,x), s);
+}
 
 in vec3 dir;
 out vec4 fragColor;
@@ -162,8 +169,8 @@ void main()
     float spot = smoothstep(0.0, 150.0, phase(alpha, 0.9995))*spot_brightness;
 
 	vec3 n = eyedir;
-	float u = (MATH_PI+atan(n.x, n.z))/(MATH_PI*2);
-	float v = atan(n.y,1.0)/(MATH_PI/4);
+	float u = (M_PI_2+atan2(n.z,n.x))/(2*M_PI);
+	float v = 1.0-n.y;
 
     //vec3 eye_position = vec3(0.0, surface_height, 0.0);
     //float eye_depth = atmospheric_depth(eye_position, eyedir);
@@ -191,13 +198,14 @@ void main()
 
 	fragColor = vec4(spot);
 	//fragColor = mix(fragColor,orange,smoothstep(1,0,spot));
-	fragColor += color;
+	/*fragColor += color;
 	fragColor = 2*texture(DiffuseColorMap, vec2(0,1)-vec2(u-0.0005,v))+
 				3*texture(DiffuseColorMap, vec2(0,1)-vec2(u+0.0000,v))+
 				2*texture(DiffuseColorMap, vec2(0,1)-vec2(u+0.0005,v));
-	fragColor /= 7;
-	if(v<0)
-	fragColor = vec4(0.3,0.3,0.5,1);
+	fragColor /= 7;*/
+	fragColor=texture(DiffuseColorMap,vec2(u,v));
+	/*if(v<0)
+	fragColor = vec4(0.3,0.3,0.5,1);*/
 }
 #endif
 // END

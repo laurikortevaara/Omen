@@ -20,6 +20,8 @@ namespace omen {
 		public:
 			GameObject(const std::string &name);
 
+			virtual ~GameObject();
+
 			void addCompnent(std::unique_ptr<ecs::Component> component);
 			void removeComponent(ecs::Component *component);
 

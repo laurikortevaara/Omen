@@ -23,7 +23,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 	GameObject(name),
 	m_pos(pos),
 	m_near(1.0f), m_far(1000.0f),
-	m_yaw(.0f), m_pitch(90.0f), m_roll(.0f),
+	m_yaw(.0f), m_pitch(0.0f), m_roll(.0f),
 	m_lookAt(lookAt),
 	m_fov(fov*glm::pi<float>() / 180.0f),
 	m_bIsValid(false),
@@ -64,6 +64,16 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 
 		m_view = glm::scale(glm::lookAt(m_pos, m_pos + m_forward, m_up), { -1,1,1 });
 		m_velocity *= 0.90;
+			
+
+		float fov = std::any_cast<float>(Engine::instance()->properties()["FOV"]);
+		setFov(fov);
+
+		float znear = std::any_cast<float>(Engine::instance()->properties()["zNear"]);
+		setNear(znear);
+
+		float zfar = std::any_cast<float>(Engine::instance()->properties()["zFar"]);
+		setFar(zfar);
 
 		updateViewProjection();
 	});

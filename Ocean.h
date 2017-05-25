@@ -34,16 +34,26 @@ namespace omen {
 		virtual void render(Shader* shader = nullptr);
 
 		double phillips(glm::vec2 k, float max_l);
-		void generate_distribution(Complex *distribution, glm::vec2 size, float amplitude, float max_l);
         
     protected:
         virtual void initializeShader();
         virtual void initializeTexture();
 		
+		void compute_ocean_mapping();
+		void compute_htilde0();
+		void compute_fft(float t);
+		void createNoiseTextures();
+
     private:
-		GLuint m_vao, m_vbo, m_vbo_texcoord, m_ssbo, m_ssbo2, m_ssbo_index, m_ssbo_index2, m_vbo_indices;
+		GLuint m_vao, m_vbo, m_vbo_texcoord, m_ssbo, m_ssbo_index, m_ssbo_index2, m_vbo_indices;
+		GLuint m_ssbo_htilde0, m_ssbo_htildes;
 		GLfloat m_innerTessellationLevels[2];
 		GLfloat m_outerTessellationLevels[4];
+		Texture* m_foam_texture;
+		GLfloat m_perlinSize;
+		GLfloat m_perlinScale;
+
+		GLuint m_noiseTexture[4];
     };
 
 	class Ocean : public ecs::GameObject
