@@ -93,6 +93,8 @@ void View::updateLayout()
 //
 void View::onSizeChanged(glm::vec3 size, glm::vec3 oldSize)
 {
+	Entity::onSizeChanged(size, oldSize);
+
 	if(parentView()!=nullptr)
 		parentView()->updateLayout();
 }

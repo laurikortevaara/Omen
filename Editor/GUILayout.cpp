@@ -30,6 +30,6 @@ void GUILayout::onMeasure(float maxwidth, float maxheight)
 
 bool GUILayout::addChild(std::unique_ptr<View> e) {
 	if(!children().front()->children().empty())
-		children().front()->addChild(std::move(std::make_unique<WindowDivider>(this)));
+		children().front()->addChild(std::move(std::make_unique<WindowDivider>(this, children().front()->children().front().get(), e.get())));
 	return children().front()->addChild(std::move(e));
 }

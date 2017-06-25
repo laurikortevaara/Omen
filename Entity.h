@@ -34,11 +34,13 @@ namespace omen {
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalEntered_t;
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalExited_t;
 			typedef omen::Signal<std::function<void(Entity*) > > Entity_Destructed_t;
+			typedef omen::Signal<std::function<void(Entity*, glm::vec3, glm::vec3) > > SignalSizeChanged_t;
 
 			SignalHovered_t signal_hovered;
 			SignalEntered_t signal_entered;
 			SignalExited_t  signal_exited;
 			Entity_Destructed_t signal_entity_destructed;
+			SignalSizeChanged_t signal_size_changed;
 
 		public:
 			Entity(const std::string &name);
@@ -88,9 +90,9 @@ namespace omen {
 			virtual void setLocalPos2D(const glm::vec2& pos) { Entity::tr()->setPos(glm::vec3(pos,Entity::tr()->pos().z)); }
 
 			// setWidth/Height/Depth will affect the bounds max
-			virtual void setWidth(float width) { glm::vec3 oldSize = size(); glm::vec3 bmax = tr()->boundsMin(); bmax.x += width; bmax.y += oldSize.y; bmax.z += oldSize.z; tr()->setBounds(tr()->boundsMin(), bmax); onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); }
-			virtual void setHeight(float height) { glm::vec3 oldSize = size(); glm::vec3 bmax = tr()->boundsMin(); bmax.x += oldSize.x; bmax.y += height; bmax.z += oldSize.z; tr()->setBounds(tr()->boundsMin(), bmax); onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize);}
-			virtual void setDepth(float depth) { glm::vec3 oldSize = size(); glm::vec3 bmax = tr()->boundsMin(); bmax.x += oldSize.x; bmax.y += oldSize.y; bmax.z += depth; tr()->setBounds(tr()->boundsMin(), bmax); onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); }
+			virtual void setWidth(float width);
+			virtual void setHeight(float height);
+			virtual void setDepth(float depth);
 			virtual void onSizeChanged(glm::vec3 size, glm::vec3 oldSize); // Called when the size of this entity has changed. 
 
 			virtual float width() const { return tr_const()->boundsMax().x - tr_const()->boundsMin().x; }

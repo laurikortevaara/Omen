@@ -54,7 +54,7 @@ Entity::Entity(const std::string &name) :
 			glm::vec3 bmin, bmax;
 			Entity::tr()->getBounds(bmin, bmax);
 			const glm::vec3 p = this->pos();
-			std::cout << "Testing (" << m_cursorPos.x << ", " << m_cursorPos.y << "): " << this->name() << ", pos_x: " << p.x << ", " << p.y << ", bmax: " << bmax.x << ", bmay: " << bmax.y << "\n";
+			//std::cout << "Testing (" << m_cursorPos.x << ", " << m_cursorPos.y << "): " << this->name() << ", pos_x: " << p.x << ", " << p.y << ", bmax: " << bmax.x << ", bmay: " << bmax.y << "\n";
 			if (m_cursorPos.x >= (p.x + bmin.x) &&
 				m_cursorPos.x <= (p.x + bmax.x) &&
 				m_cursorPos.y >= (p.y + bmin.y) &&
@@ -63,7 +63,7 @@ Entity::Entity(const std::string &name) :
 				signal_hovered.notify(this, m_cursorPos);
 				if (!m_is_hovered)
 					signal_entered.notify(this, m_cursorPos);
-				std::cout << "Found: " << this->name() << ", pos: " << p.x << ", " << p.y << ", bmax: " << bmax.x << "\n";
+				//std::cout << "Found: " << this->name() << ", pos: " << p.x << ", " << p.y << ", bmax: " << bmax.x << "\n";
 				m_is_hovered = true;
 			}
 			else {
@@ -105,7 +105,8 @@ bool Entity::addChild(std::unique_ptr<Entity> e) {
 
 void Entity::onSizeChanged(glm::vec3 size, glm::vec3 oldSize)
 {
-
+	std::cout << "OnSizeChanged: " << name() << ", size: " << size.x << ", " << size.y << "\n";
+	signal_size_changed.notify(this, size, oldSize);
 }
 
 bool Entity::removeChild(std::unique_ptr<Entity> e) { 
@@ -206,4 +207,37 @@ glm::vec2 Entity::pos2D() const
 			gPos += p->pos2D();
 	}
 	return gPos;
+}
+
+void Entity::setWidth(float width) 
+{ 
+	glm::vec3 oldSize = size(); 
+	glm::vec3 bmax = tr()->boundsMin(); 
+	bmax.x += width; 
+	bmax.y += oldSize.y; 
+	bmax.z += oldSize.z; 
+	tr()->setBounds(tr()->boundsMin(), bmax); 
+	onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); 
+}
+
+void Entity::setHeight(float height) 
+{ 
+	glm::vec3 oldSize = size(); 
+	glm::vec3 bmax = tr()->boundsMin(); 
+	bmax.x += oldSize.x;
+	bmax.y += height; 
+	bmax.z += oldSize.z; 
+	tr()->setBounds(tr()->boundsMin(), bmax); 
+	onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); 
+}
+
+void Entity::setDepth(float depth) 
+{ 
+	glm::vec3 oldSize = size(); 
+	glm::vec3 bmax = tr()->boundsMin(); 
+	bmax.x += oldSize.x; 
+	bmax.y += oldSize.y; 
+	bmax.z += depth; 
+	tr()->setBounds(tr()->boundsMin(), bmax); 
+	onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); 
 }

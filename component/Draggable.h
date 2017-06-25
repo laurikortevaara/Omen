@@ -27,6 +27,11 @@ namespace omen {
 
 			void setPos(float pos);
 			float pos() const;
+
+			void setGroovePos(glm::vec3 pos) { m_groovePos = pos; }
+			void setGrooveSize(glm::vec3 size) { m_grooveSize = size; }
+			glm::vec3 groovePos() const { return m_groovePos; }
+			glm::vec3 grooveSize() const { return m_grooveSize; }
         private:
 			glm::vec3 m_groovePos;
 			glm::vec3 m_grooveSize;
