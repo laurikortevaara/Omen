@@ -63,17 +63,17 @@ Scene::Scene() : omen::Object("Scene") {
 	Engine* e = Engine::instance();
 
 	// Two pass gauss blur for the background
-	quadShader = new Shader("shaders/quad.glsl");
-	lineShader = new Shader("shaders/line_shader.glsl");
+	//quadShader = new Shader("shaders/quad.glsl");
+	//lineShader = new Shader("shaders/line_shader.glsl");
 	bgShaderPass1 = new Shader("shaders/texture_quad.glsl");
-	bgShaderPass2 = new Shader("shaders/ring_twisterdistance_field_text.glsl");
+	//bgShaderPass2 = new Shader("shaders/ring_twisterdistance_field_text.glsl");
 
 	//bgShaderPass3 = new Shader("shaders/physical_chromatic_aberration.glsl");
 	renderBuffer = new RenderBuffer();
 	renderBuffer2 = new RenderBuffer();
 
 	ms = new MultipassShader();
-	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
+	/*ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		renderBuffer->use();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -103,6 +103,7 @@ Scene::Scene() : omen::Object("Scene") {
 		drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		renderBuffer->unuse();
 	}));
+	*/
 	ms->addPass(MultipassShader::RenderPass(bgShaderPass1, [&](MultipassShader* multipass, Shader* shader, unsigned int pass) {
 		ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -236,7 +237,7 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 
 	if (lights().empty())
 	{
-		std::unique_ptr<Light> light = std::make_unique<DirectionalLight>(glm::vec3(0, -1, 0), glm::vec3(1), 1);
+		std::unique_ptr<Light> light = std::make_unique<DirectionalLight>(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f);
 		Light* l = light.get();
 		std::unique_ptr<omen::ecs::GameObject> lightBulb = provider->loadObject("models/light_bulb.fbx");
 		lightBulb->tr()->setPos(light->tr().pos());
@@ -272,6 +273,7 @@ std::unique_ptr<ecs::GameObject> Scene::createObject(const std::string& filename
 }
 void omen::Scene::initialize()
 {
+	return;
 	shadowMap = new ShadowMap();
 	shadowMap->init();
 
@@ -293,6 +295,7 @@ void omen::Scene::initialize()
 	});
 
 	Engine::instance()->signal_engine_update.connect(this,[&](float time, float delta_time) {
+		return;
 		ui::TextView* t = dynamic_cast<ui::TextView*>(findEntity("textview_selected"));
 		std::string selected;
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -313,14 +316,13 @@ void omen::Scene::initialize()
 	});
 
 
-	addEntity(std::move(std::make_unique<SkyBox>()));
-	addEntity(std::move(std::make_unique<Ocean>()));
-		
+	//addEntity(std::move(std::make_unique<SkyBox>()));
+	//addEntity(std::move(std::make_unique<Ocean>()));
 	std::unique_ptr<ui::LinearLayout> sliderLayout = std::make_unique<ui::LinearLayout>(nullptr, "SliderLayout", glm::vec2(0), glm::vec2(500, 500), ui::LinearLayout::VERTICAL);
 
 	std::unique_ptr<ui::Slider> slider_spot_brightness = std::make_unique<ui::Slider>(nullptr, "Time", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
 	Engine::instance()->properties()["Time"] = 1.0f;
-	slider_spot_brightness->setCurrentValue(1);
+	slider_spot_brightness->setValue(1);
 	slider_spot_brightness->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Time"] = value;
 	});
@@ -328,7 +330,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_A = std::make_unique<ui::Slider>(nullptr, "OceanLen", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00000001f, 10000), ui::Slider::eInCubic);
 	Engine::instance()->properties()["OceanLen"] = 128.0f;
-	slider_A->setCurrentValue(128);
+	slider_A->setValue(128);
 	slider_A->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["OceanLen"] = value;
 	});
@@ -336,7 +338,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_D = std::make_unique<ui::Slider>(nullptr, "Damping", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.00001, 1));
 	Engine::instance()->properties()["Damping"] = 0.000001f;
-	slider_D->setCurrentValue(0.000001f);
+	slider_D->setValue(0.000001f);
 	slider_D->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Damping"] = value;
 	});
@@ -344,7 +346,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_G = std::make_unique<ui::Slider>(nullptr, "Gravity", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.0000000001, 100));
 	Engine::instance()->properties()["Gravity"] = 1.f;
-	slider_G->setCurrentValue(1);
+	slider_G->setValue(1);
 	slider_G->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Gravity"] = value;
 	});
@@ -352,7 +354,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_WD = std::make_unique<ui::Slider>(nullptr, "WindDir", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-M_PI, M_PI));
 	Engine::instance()->properties()["WindDir"] = 0.0f;
-	slider_WD->setCurrentValue(0);
+	slider_WD->setValue(0);
 	slider_WD->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["WindDir"] = value;
 	});
@@ -360,7 +362,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_WP = std::make_unique<ui::Slider>(nullptr, "WindPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1e3));
 	Engine::instance()->properties()["WindPower"] = 32.0f;
-	slider_WP->setCurrentValue(32);
+	slider_WP->setValue(32);
 	slider_WP->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["WindPower"] = value;
 	});
@@ -372,7 +374,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> TessellationLevelInner1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
 	Engine::instance()->properties()["TessellationLevelOuter1"] = maxTessLevel / 2.0f;
-	TessellationLevelInner1->setCurrentValue(maxTessLevel / 2.0f);
+	TessellationLevelInner1->setValue(maxTessLevel / 2.0f);
 	TessellationLevelInner1->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelInner1"] = value;
 	});
@@ -380,7 +382,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> TessellationLevelInner2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelInner2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
 	Engine::instance()->properties()["TessellationLevelOuter4"] = maxTessLevel / 2.0f;
-	TessellationLevelInner2->setCurrentValue(maxTessLevel / 2.0f);
+	TessellationLevelInner2->setValue(maxTessLevel / 2.0f);
 	TessellationLevelInner2->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelInner2"] = value;
 	});
@@ -388,7 +390,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> TessellationLevelOuter1 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter1", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
 	Engine::instance()->properties()["TessellationLevelOuter1"] = maxTessLevel / 2.0f;
-	TessellationLevelOuter1->setCurrentValue(maxTessLevel / 2.0f);
+	TessellationLevelOuter1->setValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter1->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter1"] = value;
 	});
@@ -396,7 +398,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> TessellationLevelOuter2 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter2", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
 	Engine::instance()->properties()["TessellationLevelOuter2"] = maxTessLevel / 2.0f;
-	TessellationLevelOuter2->setCurrentValue(maxTessLevel / 2.0f);
+	TessellationLevelOuter2->setValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter2->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter2"] = value;
 	});
@@ -404,7 +406,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> TessellationLevelOuter3 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter3", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
 	Engine::instance()->properties()["TessellationLevelOuter3"] = maxTessLevel / 2.0f;
-	TessellationLevelOuter3->setCurrentValue(maxTessLevel / 2.0f);
+	TessellationLevelOuter3->setValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter3->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter3"] = value;
 	});
@@ -412,7 +414,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> TessellationLevelOuter4 = std::make_unique<ui::Slider>(nullptr, "TessellationLevelOuter4", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, maxTessLevel));
 	Engine::instance()->properties()["TessellationLevelOuter4"] = maxTessLevel / 2.0f;
-	TessellationLevelOuter4->setCurrentValue(maxTessLevel / 2.0f);
+	TessellationLevelOuter4->setValue(maxTessLevel / 2.0f);
 	TessellationLevelOuter4->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["TessellationLevelOuter4"] = value;
 	});
@@ -420,7 +422,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> fov = std::make_unique<ui::Slider>(nullptr, "fov", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1.0, 179));
 	Engine::instance()->properties()["FOV"] = 90.0f;
-	fov->setCurrentValue(90);
+	fov->setValue(90);
 	fov->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["FOV"] = value;
 		std::wostringstream wis;
@@ -431,7 +433,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> zNear = std::make_unique<ui::Slider>(nullptr, "near", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10000));
 	Engine::instance()->properties()["zNear"] = 1.0f;
-	zNear->setCurrentValue(1);
+	zNear->setValue(1);
 	zNear->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["zNear"] = value;
 	});
@@ -439,7 +441,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> zFar = std::make_unique<ui::Slider>(nullptr, "far", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(1, 10000));
 	Engine::instance()->properties()["zFar"] = 100.0f;
-	zFar->setCurrentValue(100.0f);
+	zFar->setValue(100.0f);
 	zFar->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["zFar"] = value;
 	});
@@ -447,7 +449,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> perlinSize = std::make_unique<ui::Slider>(nullptr, "PerlinSize", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.000000001, 1000));
 	Engine::instance()->properties()["PerlinSize"] = 1.0f;
-	perlinSize->setCurrentValue(1.0f);
+	perlinSize->setValue(1.0f);
 	perlinSize->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["PerlinSize"] = value;
 	});
@@ -455,14 +457,14 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> PerlinScale = std::make_unique<ui::Slider>(nullptr, "PerlinScale", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.000000001, 1000));
 	Engine::instance()->properties()["PerlinScale"] = 1.0f;
-	PerlinScale->setCurrentValue(1.0f);
+	PerlinScale->setValue(1.0f);
 	PerlinScale->signal_slider_dragged.connect(this, [](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["PerlinScale"] = value;
 	});
 	sliderLayout->addChild(std::move(PerlinScale));
 	
 
-	addEntity(std::move(sliderLayout));
+	//addEntity(std::move(sliderLayout));
 	//
 	/*std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("Cube");
 	obj->setLayer(0);
@@ -484,7 +486,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_spot_brightness = std::make_unique<ui::Slider>(nullptr, "Spot Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0,1000));
 	Engine::instance()->properties()["SpotBrightness"] = 480.9f;
-	slider_spot_brightness->setCurrentValue(480.9f);
+	slider_spot_brightness->setValue(480.9f);
 	slider_spot_brightness->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["SpotBrightness"] = value;
 	});
@@ -492,7 +494,7 @@ void omen::Scene::initialize()
 	
 	std::unique_ptr<ui::Slider> slider_rayleigh_brightness = std::make_unique<ui::Slider>(nullptr, "Rayleigh Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
 	Engine::instance()->properties()["RayleighBrightness"] = 5.42f;
-	slider_rayleigh_brightness->setCurrentValue(5.42f);
+	slider_rayleigh_brightness->setValue(5.42f);
 	slider_rayleigh_brightness->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["RayleighBrightness"] = value;
 	});
@@ -500,7 +502,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_mie_brightness = std::make_unique<ui::Slider>(nullptr, "Mie Brightness", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 10));
 	Engine::instance()->properties()["MieBrightness"] = 4.454f;
-	slider_mie_brightness->setCurrentValue(5.454f);
+	slider_mie_brightness->setValue(5.454f);
 	slider_mie_brightness->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["MieBrightness"] = value;
 	});
@@ -508,7 +510,7 @@ void omen::Scene::initialize()
 	/*
 	std::unique_ptr<ui::Slider> slider_mie_distribution = std::make_unique<ui::Slider>(nullptr, "Mie Distribution", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 0.18));
 	Engine::instance()->properties()["MieDistribution"] = 0.02534f;
-	slider_mie_distribution->setCurrentValue(0.02534f);
+	slider_mie_distribution->setValue(0.02534f);
 	slider_mie_distribution->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["MieDistribution"] = value;
 	});
@@ -516,7 +518,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_step_count = std::make_unique<ui::Slider>(nullptr, "StepCount", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 500));
 	Engine::instance()->properties()["StepCount"] = 10;
-	slider_step_count->setCurrentValue(10);
+	slider_step_count->setValue(10);
 	slider_step_count->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["StepCount"] = static_cast<int>(value);
 	});
@@ -524,7 +526,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_surface_height = std::make_unique<ui::Slider>(nullptr, "SurfaceHeight", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
 	Engine::instance()->properties()["SurfaceHeight"] = 0.03817f;
-	slider_surface_height->setCurrentValue(0.03817f);
+	slider_surface_height->setValue(0.03817f);
 	slider_surface_height->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["SurfaceHeight"] = 0.9f+0.1f*value;
 	});
@@ -532,7 +534,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_rayleigh_strenght = std::make_unique<ui::Slider>(nullptr, "RayleighStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["RayleighStrength"] = 0.207f;
-	slider_rayleigh_strenght->setCurrentValue(0.207f);
+	slider_rayleigh_strenght->setValue(0.207f);
 	slider_rayleigh_strenght->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["RayleighStrength"] = value;
 	});
@@ -540,7 +542,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_rayleighfactor = std::make_unique<ui::Slider>(nullptr, "RayleighFactor", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-1.0, 1));
 	Engine::instance()->properties()["RayleighFactor"] = -0.2529f;
-	slider_rayleighfactor->setCurrentValue(-0.2529f);
+	slider_rayleighfactor->setValue(-0.2529f);
 	slider_rayleighfactor->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["RayleighFactor"] = value;
 	});
@@ -548,7 +550,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_mie_strength = std::make_unique<ui::Slider>(nullptr, "MieStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["MieStrength"] = 0.1085f;
-	slider_mie_strength->setCurrentValue(0.1085f);
+	slider_mie_strength->setValue(0.1085f);
 	slider_mie_strength->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["MieStrength"] = value;
 	});
@@ -556,7 +558,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_scatter_strength = std::make_unique<ui::Slider>(nullptr, "ScatterStrength", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["ScatterStrength"] = 0.3987f;
-	slider_scatter_strength->setCurrentValue(0.3987f);
+	slider_scatter_strength->setValue(0.3987f);
 	slider_scatter_strength->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["ScatterStrength"] = value;
 	});
@@ -564,7 +566,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_rayleigh_collection_power = std::make_unique<ui::Slider>(nullptr, "RayleighColPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["RayleighCollectionPower"] = 0.8642f;
-	slider_rayleigh_collection_power->setCurrentValue(0.8642f);
+	slider_rayleigh_collection_power->setValue(0.8642f);
 	slider_rayleigh_collection_power->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["RayleighCollectionPower"] = value;
 	});
@@ -572,7 +574,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_mie_collection_power = std::make_unique<ui::Slider>(nullptr, "MieColPower", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["MieCollectionPower"] = 1.673f;
-	slider_mie_collection_power->setCurrentValue(1.673f);
+	slider_mie_collection_power->setValue(1.673f);
 	slider_mie_collection_power->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["MieCollectionPower"] = value;
 	});
@@ -580,7 +582,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_intensity_red = std::make_unique<ui::Slider>(nullptr, "Intens Red", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["IntensityRed"] = 0.681f;
-	slider_intensity_red->setCurrentValue(0.681f);
+	slider_intensity_red->setValue(0.681f);
 	slider_intensity_red->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["IntensityRed"] = value;
 	});
@@ -588,7 +590,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_intensity_green = std::make_unique<ui::Slider>(nullptr, "Intens Green", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["IntensityGreen"] = 1;
-	slider_intensity_green->setCurrentValue(1);
+	slider_intensity_green->setValue(1);
 	slider_intensity_green->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["IntensityGreen"] = value;
 	});
@@ -596,7 +598,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_intensity_blue = std::make_unique<ui::Slider>(nullptr, "Intens Blue", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0.001, 2));
 	Engine::instance()->properties()["IntensityBlue"] = 0.7573f;
-	slider_intensity_blue->setCurrentValue(0.7573f);
+	slider_intensity_blue->setValue(0.7573f);
 	slider_intensity_blue->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["IntensityBlue"] = value;
 	});
@@ -604,7 +606,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_sun_azimuth = std::make_unique<ui::Slider>(nullptr, "Sun Azimuth", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(-180, 180));
 	Engine::instance()->properties()["Azimuth"] = 1;
-	slider_sun_azimuth->setCurrentValue(1);
+	slider_sun_azimuth->setValue(1);
 	slider_sun_azimuth->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Azimuth"] = value;
 	});
@@ -612,7 +614,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_sun_zenith = std::make_unique<ui::Slider>(nullptr, "Sun Zenith", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 180));
 	Engine::instance()->properties()["Zenith"] = 1;
-	slider_sun_zenith->setCurrentValue(1);
+	slider_sun_zenith->setValue(1);
 	slider_sun_zenith->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["Zenith"] = value;
 	});
@@ -620,7 +622,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_hbias = std::make_unique<ui::Slider>(nullptr, "HExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
 	Engine::instance()->properties()["HExtinctionBias"] = 0.35f;
-	slider_hbias->setCurrentValue(0.35f);
+	slider_hbias->setValue(0.35f);
 	slider_hbias->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["HExtinctionBias"] = value;
 	});
@@ -628,7 +630,7 @@ void omen::Scene::initialize()
 
 	std::unique_ptr<ui::Slider> slider_ebias = std::make_unique<ui::Slider>(nullptr, "EyeExt Bias", "textures/slider_groove.png", glm::vec2(0, 0), glm::vec2(500, 25), glm::vec2(0, 1));
 	Engine::instance()->properties()["EyeExtinctionBias"] = 0.00015f;
-	slider_ebias->setCurrentValue(0.0015f);
+	slider_ebias->setValue(0.0015f);
 	slider_ebias->signal_slider_dragged.connect(this,[](ui::Slider* slider, float value) {
 		Engine::instance()->properties()["EyeExtinctionBias"] = value;
 	});

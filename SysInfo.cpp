@@ -304,4 +304,6 @@ int SysInfo::getValues()
 	pLoc->Release();
 	pEnumerator->Release();
 	CoUninitialize();
+
+	return 0;
 }

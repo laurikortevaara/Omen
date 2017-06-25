@@ -3,11 +3,12 @@
 //
 
 #include "Component.h"
+#include "../system/System.h"
 
 using namespace omen::ecs;
 
 Component::Component() : 
-	omen::Object(typeid(this).name()), m_isEnabled(true) 
+	omen::Object(typeid(this).name()), m_isEnabled(true), m_system(nullptr)
 { 
 };
 
@@ -26,5 +27,20 @@ Entity *Component::entity() const {
 Component::~Component() 
 {
  	signal_component_destructed.notify(this);
+	if(m_system != nullptr)
+		m_system->detachFromSystem(this);
 	int a = 1;
 };
+
+void Component::attachToSystem(System* system)
+{
+	m_system = system;
+}
+
+void Component::detachFromSystem()
+{
+	if (m_system != nullptr)
+	{
+		m_system->detachFromSystem(this);
+	}
+}

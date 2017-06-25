@@ -367,8 +367,8 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 	WCHAR wc[512] = { '\0' };
 	wcscpy_s(wc, L"Frustum:\n");
 	for (int i = 0; i < 8; ++i)
-		swprintf(wc, L"%s\n% 8.3f,  % 8.3f,  % 8.3f", wc, vertices[i].x, vertices[i].y, vertices[i].z);
-	swprintf(wc, L"%s\n\nLFRMin/Max\n% 8.3f,  % 8.3f,  % 8.3f\n% 8.3f,  % 8.3f,  % 8.3f", wc, frustumMin.x, frustumMin.y, frustumMin.z, frustumMax.x, frustumMax.y, frustumMax.z);
+		swprintf(wc, 512, L"%s\n% 8.3f,  % 8.3f,  % 8.3f", wc, vertices[i].x, vertices[i].y, vertices[i].z);
+	swprintf(wc, 512, L"%s\n\nLFRMin/Max\n% 8.3f,  % 8.3f,  % 8.3f\n% 8.3f,  % 8.3f,  % 8.3f", wc, frustumMin.x, frustumMin.y, frustumMin.z, frustumMax.x, frustumMax.y, frustumMax.z);
 	tv->setText(wc);
 }
 
@@ -488,7 +488,7 @@ void MeshRenderer::render(Shader* shader)
 
 
 	int envmapLoc = pShader->getUniformLocation("envMap");
-	if (envmapLoc >= 0) {
+	if (envmapLoc >= 0 && SkyBoxRenderer::uvTexMap != nullptr) {
 		glUniform1i(envmapLoc, 4);
 		glActiveTexture(GL_TEXTURE0 + 4);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, SkyBoxRenderer::uvTexMap->id());

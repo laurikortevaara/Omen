@@ -46,9 +46,27 @@ void GraphicsSystem::render(omen::Shader* shader, int layer) {
 		if (mr != nullptr && shader != nullptr)
 			mr->renderShadows(shader);
 		else
-		if (r != nullptr && shader == nullptr)
-			//renderers.push_back(r);
-			r->render(shader);
+			if (r != nullptr && shader == nullptr)
+				//renderers.push_back(r);
+			{
+				// If this is a 2D element set the clipping 
+				if (mr == nullptr)
+				{
+					Entity* entity = c->entity();
+
+					glm::vec2 pos = entity->pos2D();
+					glm::vec2 localPos = entity->localPos2D();
+
+					glm::vec3 bmin, bmax;
+					entity->tr()->getClippedBounds(bmin, bmax);
+					//glScissor(bmin.x, bmin.y, bmax.x-bmin.x, bmax.y-bmin.y);
+					float width = bmax.x - bmin.x;
+					float height = bmax.y - bmin.y;
+					
+					glScissor(pos.x+bmin.x, Engine::instance()->window()->height()-height-pos.y,width,height);
+				}
+				r->render(shader);
+			}
     }
 	/*std::sort(renderers.begin(), renderers.end(), [](Renderer* r1, Renderer* r2)-> bool {
 		float z1 = r1->entity() != nullptr && r1->entity()->getComponent<Transform>() != nullptr ? r1->entity()->getComponent<Transform>()->pos().z : 0.0f;

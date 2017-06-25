@@ -34,3 +34,12 @@
 [submodule "thirdparty/lodepng"]
 	path = thirdparty/lodepng
 	url = https://github.com/lvandeve/lodepng.git
+[submodule "thirdparty/openvr"]
+	path = thirdparty/openvr
+	url = https://github.com/ValveSoftware/openvr
+[submodule "thirdparty/steam-audio"]
+	path = thirdparty/steam-audio
+	url = https://github.com/ValveSoftware/steam-audio
+[submodule "thirdparty/openal-soft"]
+	path = thirdparty/openal-soft
+	url = https://github.com/kcat/openal-soft

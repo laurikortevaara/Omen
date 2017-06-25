@@ -66,7 +66,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 		m_velocity *= 0.90;
 			
 
-		float fov = std::any_cast<float>(Engine::instance()->properties()["FOV"]);
+		/*float fov = std::any_cast<float>(Engine::instance()->properties()["FOV"]);
 		setFov(fov);
 
 		float znear = std::any_cast<float>(Engine::instance()->properties()["zNear"]);
@@ -74,7 +74,7 @@ Camera::Camera(const std::string &name, const glm::vec3 &pos, const ::glm::vec3 
 
 		float zfar = std::any_cast<float>(Engine::instance()->properties()["zFar"]);
 		setFar(zfar);
-
+		*/
 		updateViewProjection();
 	});
 }

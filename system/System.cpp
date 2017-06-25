@@ -23,10 +23,15 @@ System::System():
 	e->signal_engine_shut_down.connect(this,[this]() {
 		this->shutDown();
 	});
+	
 }
 
 void System::add(Component* component)
 {
+	component->attachToSystem(this);
+	component->signal_component_destructed.connect(this, [this](omen::ecs::Component* c) {
+		remove(c);
+	});
 	m_components.push_back(component); 
 	component->signal_component_destructed.connect(this,[&](Component* c) {
 		if (std::find(m_components.begin(), m_components.end(), c) != m_components.end())
@@ -36,3 +41,7 @@ void System::add(Component* component)
 	});
 }
 
+void System::detachFromSystem(Component* component)
+{
+	m_components.erase(std::find(m_components.begin(), m_components.end(), component));
+}

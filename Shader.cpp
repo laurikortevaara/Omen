@@ -42,7 +42,7 @@ Shader::Shader(const char*shader_file) : m_shaderFile(shader_file) {
 bool Shader::createShader(GLenum shaderType, GLuint &shader_id, std::string shader_source) {
 	m_shaderType = shaderType;
 
-	std::string full_source;
+	std::string full_source = " ";
 	GLuint shader = 0;
 
 	switch (shaderType) {
@@ -267,7 +267,7 @@ bool Shader::readShaderFile(const char*shader_file) {
 		}
 	}
 	check_gl_error();
-	listAttribs();
+	//listAttribs();
 	std::cout << "--- Done Loading shader from file: " << shader_file << "---" << std::endl;
 	return true;
 }

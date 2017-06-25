@@ -39,6 +39,7 @@ namespace omen {
 			m_observers.push_back(std::pair<omen::Object*, T>(reinterpret_cast<omen::Object*>(owner), obs));
 		}
 
+		// Allow connecting a static method to this signal
 		void connect_static(T obs) 
 		{
 			m_observers.push_back(std::pair<omen::Object*, T>(reinterpret_cast<omen::Object*>(nullptr), obs));

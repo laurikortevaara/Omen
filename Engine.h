@@ -5,13 +5,18 @@
 #ifndef GLEW_TEST_ENGINE_H
 #define GLEW_TEST_ENGINE_H
 
+#include <list>
 #include <string>
 #include <iostream>
 #include <any>
 #include <glm/detail/type_mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <future>
+
+#pragma warning(push)
+#pragma warning(disable:4305)
 #include <btBulletDynamicsCommon.h>
+#pragma warning(pop)
 
 #include "Scene.h"
 #include "Camera.h"
@@ -76,7 +81,6 @@ namespace omen {
 		static long left_mbytes;*/
         static Engine* instance();
 
-        /** Signals **/
         Scene *scene();
 
         GLenum getPolygonMode();
@@ -121,6 +125,7 @@ namespace omen {
             return nullptr;
         }
 
+		
         class t_future_task {
         public:
 			t_future_task( std::unique_ptr<std::function<void()>> f, std::chrono::duration<omen::floatprec> timeout, bool repeat)
@@ -134,9 +139,13 @@ namespace omen {
             std::future<void> task;
 			std::unique_ptr<std::function<void()>> fun;
 
+			static int l;
+			
 			void run() {
-				task = std::async(std::launch::async, *fun);
-				task.get();
+				++l;
+				//std::cout << "Static int i: " << l << '\n';
+				/*task =*/// std::async(std::launch::async, *fun);
+				//task.get();
 			}
 			void reset() { 
 				task_created = std::chrono::system_clock::now(); 
@@ -146,16 +155,17 @@ namespace omen {
 				return  diff.count() < delay.count();
 			}
         } ;
-        std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
+
+		std::vector< t_future_task > m_future_tasks; // key,val == [seconds, task]
         void post(std::unique_ptr<std::function<void()>> task, omen::floatprec delay = 0.0, bool repeating = false );
 
 		const omen::floatprec fps() const { return m_fps; }
 		const omen::floatprec averageFps() const { return m_avg_fps; }
     private:
 		Window* m_current_window;
-        std::unique_ptr<Window> m_window;
-		std::unique_ptr<Window> m_window2;
-        Camera *m_camera;
+        std::list<std::unique_ptr<Window>> m_windows;
+        
+		Camera *m_camera;
         ui::Button *m_button;
         std::unique_ptr<Scene> m_scene;
         std::vector<ecs::System*> m_systems;

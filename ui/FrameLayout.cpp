@@ -15,6 +15,6 @@ FrameLayout::FrameLayout(View *parentView, const std::string& name, const glm::v
 }
 
 void FrameLayout::updateLayout() {
-
+	View::updateLayout();
 }
 

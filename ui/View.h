@@ -13,23 +13,45 @@
 
 namespace omen {
     namespace ui {
+		class LayoutParams {
+		public:
+			enum eLayoutSizing
+			{
+				Absolute,			 // Absolute pixel value
+				DeviceIndependent,	 // Device independent measure value (dip or dp)
+				WrapContent,		 // Takes as mucn space as content requires
+				MatchParent,		 // Expands to parent size (width,height) 
+				DefaultSizing = WrapContent
+			};
+
+			LayoutParams() : layoutSizingWidth(DefaultSizing), layoutSizingHeight(DefaultSizing) {}
+			eLayoutSizing layoutSizingWidth;
+			eLayoutSizing layoutSizingHeight;
+		protected:
+		private:
+
+		};
+
         class View : public ecs::Entity {
         public:
 
         protected:
-            View *m_parentView;
 
             View(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size);
 
-            virtual void updateLayout() = 0;
-            virtual void onMeasure(float maxwidth, float maxheight) = 0;
-            virtual void onLayout(bool changed, float left, float top, float right, float bottom);
+            virtual void updateLayout(); 
+            virtual void onMeasure(float maxwidth, float maxheight) = 0; // Called to determine the size requirements for this view and all of its children.
+            virtual void onLayout(bool changed, float left, float top, float right, float bottom); // Called when this view should assign a size and position to all of its children. 
+			virtual void onSizeChanged(glm::vec3 size, glm::vec3 oldSize); // Called when the size of this view has changed. 
         public:
             virtual ~View();
 
+			virtual bool addChild(std::unique_ptr<omen::ecs::Entity> child);
+			virtual bool removeChild(std::unique_ptr<omen::ecs::Entity> child);
+
             void measureSize();
 
-			View* parentView() const { return m_parentView; }
+			View* parentView() const { return dynamic_cast<View*>(parent()); }
 
             // Layout
             void layout(float left, float top, float right, float bottom);
@@ -56,6 +78,24 @@ namespace omen {
 
 			virtual float width() const { return Entity::width();}
 			virtual float height() const { return Entity::height(); }
+
+			virtual float minWidth() const { return m_minWidth >= 0 ? m_minWidth : 0.0f; }
+			virtual float maxWidth() const { return m_maxWidth >= 0 ? m_maxWidth : width(); }
+			virtual float minHeight() const { return m_minHeight >= 0 ? m_minHeight : 0.0f; }
+			virtual float maxHeight() const { return m_maxHeight >= 0 ? m_maxHeight : height(); }
+
+			virtual void setMinWidth(float minWidth) { m_minWidth = minWidth; }
+			virtual void setMaxWidth(float maxWidth) { m_maxWidth = maxWidth; }
+			virtual void setMinHeight(float minHeight) { m_minHeight = minHeight; }
+			virtual void setMaxHeight(float maxHeight) { m_maxHeight = maxHeight; }
+			
+			LayoutParams& layoutParams() { return m_layoutParams; }
+		private:
+			float m_minWidth, m_maxWidth;   // Minimum and maximum width in absolute pixel value, if -1.0f then 0.0f is returned 
+			float m_minHeight, m_maxHeight; // Minimum and maximum height in absolute pixel value, if -1.0f then 0.0f is returned
+			
+
+			LayoutParams m_layoutParams;
 
 		};
     } // namespace UI

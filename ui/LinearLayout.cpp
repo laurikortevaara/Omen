@@ -16,6 +16,7 @@ LinearLayout::LinearLayout(View *parentView, const std::string& name, const glm:
 }
 
 void LinearLayout::updateLayout() {
+	View::updateLayout();
     float y = 0;
     float x = 0;
     for(const auto& childView : children()) {
@@ -62,6 +63,6 @@ bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 		childPos.y = (h-eh)*0.5f;
 	}
 	e->setLocalPos2D(e->localPos2D()+childPos+glm::vec2(m_margins));
-	Entity::addChild(std::move(e));
+	View::addChild(std::move(e));
 	return true;
 }

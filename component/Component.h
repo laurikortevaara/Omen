@@ -12,6 +12,7 @@
 
 namespace omen {
     namespace ecs {
+		class System;
         class Entity;
         class Component : public omen::Object {
         protected:
@@ -30,6 +31,8 @@ namespace omen {
             ComponentDetached_t signal_component_detached;
 			Component_Destructed_t signal_component_destructed;
 
+			void attachToSystem(System* system);
+			void detachFromSystem();
 
         public:
 			Component();
@@ -44,6 +47,7 @@ namespace omen {
 
             void setEntity(omen::ecs::Entity *pEntity);
             Entity* entity() const;
+			System* m_system;
         };
     } // namespace ecs
 } // namespace omen

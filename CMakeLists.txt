@@ -8,6 +8,7 @@
 #
 ######################################################################
 cmake_minimum_required(VERSION 3.3)
+SET(MSVC_INCREMENTAL_DEFAULT ON)
 project(Omen)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
@@ -68,7 +69,7 @@ if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${GLEW_INCLUDE_DIRS}")
 else()
     set(GLEW_INCLUDE_DIR $(CMAKE_SOURCE_DIR)/thirdparty/glew/include)
-    set(GLEW_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/glew/lib/Release/Win32/glew32s.lib)
+    set(GLEW_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/glew/lib/Debug/libglew32d.lib)
     find_package(GLEW REQUIRED)
     if (GLEW_FOUND)
         include_directories(${GLEW_INCLUDE_DIRS})
@@ -135,6 +136,17 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
 ######################################################################
 include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openvr/headers)
 set(OPENVR_SDK_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openvr/lib/win32/openvr_api.lib)
+# add_custom_command(TARGET Omen POST_BUILD        # Adds a post-build event to MyTest
+#   COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+#        "${PROJECT_SOURCE_DIR}/thirdparty/openvr/bin/win32/*"      # <--this is in-file
+#        $<TARGET_FILE_DIR:Omen>)                 # <--this is out-file path
+
+######################################################################
+# OpenAL
+######################################################################
+#include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/include)
+#set(OPENAL_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/lib/win32/openvr_api.lib)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft)
 
 ######################################################################
 # Mono SDK
@@ -160,20 +172,27 @@ include_directories(${BULLET_INCLUDE_DIRS})
 include_directories(thirdparty/bullet/src)
 
 ######################################################################
+# ZLIB
+######################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+
+######################################################################
 # LIBPNG
 ######################################################################
-if (APPLE)
-  find_package(Png REQUIRED)
-  if(NOT PNG_FOUND)
-      message(FATAL_ERROR "Png not found")
-  endif (NOT PNG_FOUND)
-else(APPLE)
-  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
-  set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
-  set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-  set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
-  #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-endif(APPLE)
+#if (APPLE)
+#  find_package(Png REQUIRED)
+#  if(NOT PNG_FOUND)
+#      message(FATAL_ERROR "Png not found")
+#  endif (NOT PNG_FOUND)
+#else(APPLE)
+ # set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+ # set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
+ # set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+ # set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
+ # #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+#endif(APPLE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/Debug/libpng16d.lib)
 
 include_directories(${BULLET_INCLUDE_DIRS})
 
@@ -286,6 +305,9 @@ message(STATUS "Libs:" ${LIBRARIES})
 ######################################################################
 set(SOURCE_FILES
 # Main sources and headers
+Editor/EditorWindow.cpp
+Editor/GUILayout.cpp
+Editor/WindowDivider.cpp
 AudioSystem.cpp
 BoundingBox.cpp
 BoundingVolume.cpp
@@ -454,7 +476,7 @@ add_executable(Omen ${SOURCE_FILES})
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)
 
 set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++latest")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++latest /std:c++latest ")
 
 ######################################################################
 # Set the target link libraries

@@ -87,6 +87,12 @@ namespace omen {
 			virtual glm::vec2 localPos2D() const { return glm::vec2(Entity::tr_const()->pos()); }
 			virtual void setLocalPos2D(const glm::vec2& pos) { Entity::tr()->setPos(glm::vec3(pos,Entity::tr()->pos().z)); }
 
+			// setWidth/Height/Depth will affect the bounds max
+			virtual void setWidth(float width) { glm::vec3 oldSize = size(); glm::vec3 bmax = tr()->boundsMin(); bmax.x += width; bmax.y += oldSize.y; bmax.z += oldSize.z; tr()->setBounds(tr()->boundsMin(), bmax); onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); }
+			virtual void setHeight(float height) { glm::vec3 oldSize = size(); glm::vec3 bmax = tr()->boundsMin(); bmax.x += oldSize.x; bmax.y += height; bmax.z += oldSize.z; tr()->setBounds(tr()->boundsMin(), bmax); onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize);}
+			virtual void setDepth(float depth) { glm::vec3 oldSize = size(); glm::vec3 bmax = tr()->boundsMin(); bmax.x += oldSize.x; bmax.y += oldSize.y; bmax.z += depth; tr()->setBounds(tr()->boundsMin(), bmax); onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); }
+			virtual void onSizeChanged(glm::vec3 size, glm::vec3 oldSize); // Called when the size of this entity has changed. 
+
 			virtual float width() const { return tr_const()->boundsMax().x - tr_const()->boundsMin().x; }
 			virtual float height() const { return tr_const()->boundsMax().y - tr_const()->boundsMin().y; }
 			virtual float depth() const { return tr_const()->boundsMax().z - tr_const()->boundsMin().z; }
@@ -94,8 +100,9 @@ namespace omen {
 			virtual glm::vec3 size() const { return glm::vec3(width(), height(), depth()); }
 			virtual glm::vec2 size2D() const { return glm::vec2(width(), height()); }
 
-			virtual void setSize(const glm::vec3& size) { tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + size); }
-			virtual void setSize2D(const glm::vec2& size) { tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + glm::vec3(size.x,size.y,0)); }
+			virtual void setSize(const glm::vec3& size) { glm::vec3 oldSize = this->size(); tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + size); onSizeChanged(this->size(), oldSize); }
+			virtual void setSize2D(const glm::vec2& size) { glm::vec3 oldSize = this->size(); tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + glm::vec3(size.x,size.y,0)); onSizeChanged(this->size(), oldSize);
+			}
 
 			bool hovered() const { return m_is_hovered; }
 			bool pressed() const { return m_is_pressed; }

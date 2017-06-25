@@ -46,6 +46,8 @@
 
 using namespace omen;
 
+int Engine::t_future_task::l = 0;
+
 // Singleton instance
 Engine *Engine::m_instance = nullptr;
 static long Engine_left_bytes = 0;
@@ -156,7 +158,6 @@ Engine::Engine() :
 	Object("Omen_Engine"),
 	m_scene(nullptr),
 	m_camera(nullptr),
-	m_window(nullptr),
 	m_joystick(nullptr),
 	m_time(0),
 	m_timeDelta(0),
@@ -178,7 +179,7 @@ Engine::Engine() :
 	properties()["DrawNormals"] = 1;
 
 	Window::signal_window_created.connect(this,[this](Window* window) {
-		if (window != m_window.get())
+		if (window != m_windows.front().get())
 			return;
 		initializeSystems();
 		check_gl_error();
@@ -239,7 +240,8 @@ Engine *Engine::instance() {
 }
 
 void Engine::initPhysics() {
-	m_broadphase = new btDbvtBroadphase();
+	//TODO: Lauri Create the Physics system
+	/*m_broadphase = new btDbvtBroadphase();
 	m_collisionConfiguration = new btDefaultCollisionConfiguration();
 	m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
 	m_solver = new btSequentialImpulseConstraintSolver;
@@ -271,7 +273,7 @@ void Engine::initPhysics() {
 	m_fallRigidBodyCI.m_restitution = rest;
 	m_fallRigidBodyCI.m_friction = friction;
 	m_fallRigidBody = new btRigidBody(m_fallRigidBodyCI);
-	m_dynamicsWorld->addRigidBody(m_fallRigidBody);
+	m_dynamicsWorld->addRigidBody(m_fallRigidBody);*/
 }
 
 void Engine::doPhysics(omen::floatprec dt) {
@@ -366,9 +368,9 @@ void Engine::initializeSystems() {
 	} );
 
 	// Connect key-hit, -press and -release signals to observers
-	m_window->signal_window_size_changed.connect(this,[this](int width, int height) {
-		m_camera->onWindowSizeChanged(width, height);
-	});
+	//m_window->signal_window_size_changed.connect(this,[this](int width, int height) {
+	//	m_camera->onWindowSizeChanged(width, height);
+	//});
 
 
 	CameraController *cameraController = new CameraController();
@@ -382,7 +384,7 @@ void Engine::initializeSystems() {
 	ecs::ScriptSystem *scriptSystem = new ecs::ScriptSystem();
 	m_systems.push_back(scriptSystem);
 
-	scriptSystem->addComponent(new ecs::Script("scripts/main.cs"));
+	//scriptSystem->addComponent(new ecs::Script("scripts/main.cs"));
 
 	//ecs::OpenVRSystem* openVRSystem = new ecs::OpenVRSystem();
 	//m_systems.push_back(openVRSystem);
@@ -593,9 +595,11 @@ void Engine::render() {
 
 
 const std::unique_ptr<Window>& Engine::createWindow(unsigned int width, unsigned int height) {
-	m_window = std::make_unique<Window>();
-	m_current_window = m_window.get();
-	m_window->createWindow(width, height);
+	std::unique_ptr<Window> window = std::make_unique<Window>();
+	m_windows.push_back(std::move(window));
+	const std::unique_ptr<Window>& wref = m_windows.front();
+	m_current_window = wref.get();
+	wref->createWindow(width, height);
 
 	check_gl_error();
 	glFrontFace(GL_CCW);
@@ -606,7 +610,8 @@ const std::unique_ptr<Window>& Engine::createWindow(unsigned int width, unsigned
 	glDepthFunc(GL_LESS);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	return m_window;
+	
+	return wref;
 }
 
 void abort_(const char *s, ...) {

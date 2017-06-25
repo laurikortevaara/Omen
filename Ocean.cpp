@@ -14,19 +14,19 @@
 using namespace omen;
 
 const int N = 256;
-const int log_2_N = log(N) / log(2);
+const int log_2_N = static_cast<const int>(log(N) / log(2));
 const int Nplus1 = N + 1;
 float ocean_length = N;
 const int Nx = N;
 const int Nz = N;
-float A = 0.0005; // Could be also 0.0005 Wave height adjustmet factor
-float g = 9.80665; // Gravity 9.81 m/s^2
-float damping = 0.001;
+float A = 0.0005f; // Could be also 0.0005 Wave height adjustmet factor
+float g = 9.80665f; // Gravity 9.81 m/s^2
+float damping = 0.001f;
 float wind_dir = 0.0f;
 float wind_power = 32.0f;
 float heightFactor = 1.0f;
 int		patchCount = 3;
-float	patchSize = 100;
+float	patchSize = 100.0f;
 
 FFT* fft = new FFT(N);
 
@@ -152,9 +152,9 @@ Complex gaussianRandomVariable()
 }
 
 float dispersion(int n_prime, int m_prime) {
-	float w_0 = 2.0f * M_PI / 200.0f;
-	float kx = M_PI * (2 * n_prime - N) / ocean_length;
-	float kz = M_PI * (2 * m_prime - N) / ocean_length;
+	float w_0 = static_cast<float>(2.0f * M_PI / 200.0f);
+	float kx = static_cast<float>(M_PI * (2 * n_prime - N) / ocean_length);
+	float kz = static_cast<float>(M_PI * (2 * m_prime - N) / ocean_length);
 	return floor(sqrt(g * sqrt(kx * kx + kz * kz)) / w_0) * w_0;
 }
 
@@ -197,10 +197,10 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 
 	for (int m_prime = 0; m_prime < N; m_prime++)
 	{
-		kz = 2.0f * M_PI * (m_prime - N / 2.0f) / ocean_length;
+		kz = static_cast<float>(2.0f * M_PI * (m_prime - N / 2.0f) / ocean_length);
 		for (int n_prime = 0; n_prime < N; n_prime++)
 		{
-			kx = 2.0f * M_PI * (n_prime - N / 2.0f) / ocean_length;
+			kx = static_cast<float>(2.0f * M_PI * (n_prime - N / 2.0f) / ocean_length);
 			k = glm::vec2(kx, kz);
 
 			k_length = glm::length(k);
@@ -212,7 +212,7 @@ ComplexVectorNormal h_D_and_n(glm::vec2 x, float t)
 			h = h + htilde_c;
 			n = n + glm::vec3(-kx * htilde_c.b, 0.0f, -kz * htilde_c.b);
 
-			if (k_length < 0.000001) continue;
+			if (k_length < 0.000001f) continue;
 			D = D + glm::vec2(kx / k_length * htilde_c.a, kz / k_length * htilde_c.b);
 		}
 	}
@@ -231,9 +231,9 @@ void evaluateWavesFFT(float t) {
 	int index, index1;
 
 	for (int m_prime = 0; m_prime < N; m_prime++) {
-		kz = M_PI * (2.0f * m_prime - N) / ocean_length;
+		kz = static_cast<float>(M_PI * (2.0f * m_prime - N) / ocean_length);
 		for (int n_prime = 0; n_prime < N; n_prime++) {
-			kx = M_PI*(2 * n_prime - N) / ocean_length;
+			kx = static_cast<float>(M_PI*(2 * n_prime - N) / ocean_length);
 			len = sqrt(kx * kx + kz * kz);
 			index = m_prime * N + n_prime;
 
@@ -274,22 +274,22 @@ void evaluateWavesFFT(float t) {
 			index = m_prime * N + n_prime;		// index into h_tilde..
 			index1 = m_prime * Nplus1 + n_prime;	// index into vertices
 
-			sign = signs[(n_prime + m_prime) & 1];
+			sign = static_cast<int>(signs[(n_prime + m_prime) & 1]);
 
-			h_tilde[index] = h_tilde[index] * sign;
+			h_tilde[index] = h_tilde[index] * static_cast<float>(sign);
 
 			// height
 			vertices[index1].pos.y = h_tilde[index].a;
 
 			// displacement
-			h_tilde_dx[index] = h_tilde_dx[index] * sign;
-			h_tilde_dz[index] = h_tilde_dz[index] * sign;
+			h_tilde_dx[index] = h_tilde_dx[index] * static_cast<float>(sign);
+			h_tilde_dz[index] = h_tilde_dz[index] * static_cast<float>(sign);
 			vertices[index1].pos.x = vertices[index1].opos.x + h_tilde_dx[index].a * lambda;
 			vertices[index1].pos.z = vertices[index1].opos.z + h_tilde_dz[index].a * lambda;
 
 			// normal
-			h_tilde_slopex[index] = h_tilde_slopex[index] * sign;
-			h_tilde_slopez[index] = h_tilde_slopez[index] * sign;
+			h_tilde_slopex[index] = h_tilde_slopex[index] * static_cast<float>(sign);
+			h_tilde_slopez[index] = h_tilde_slopez[index] * static_cast<float>(sign);
 			n = glm::normalize(glm::vec3(0.0f - h_tilde_slopex[index].a, 1.0f, 0.0f - h_tilde_slopez[index].a));
 			vertices[index1].normal.x = n.x;
 			vertices[index1].normal.y = n.y;
@@ -739,7 +739,7 @@ void OceanRenderer::compute_ocean_mapping()
 
 	compute_shader->use();
 	compute_shader->setUniform1i("N", N);
-	compute_shader->setUniform1i("len", 1.0f);
+	compute_shader->setUniform1i("len", 1);
 	GLuint block_index = 0;
 	block_index = glGetProgramResourceIndex(compute_shader->m_shader_program, GL_SHADER_STORAGE_BLOCK, "shader_data");
 	GLuint ssbo_binding_point_index = 2;

@@ -83,7 +83,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	// Create a draggable component and add it to the knot
 	std::unique_ptr<omen::ecs::Draggable> dragKnot = std::make_unique<omen::ecs::Draggable>(m_groovePos, glm::vec2(m_grooveSize.x-20,m_grooveSize.y));
 	dragKnot->signal_dragged.connect(this,[this](float value) -> void {
-		setCurrentValue(this->m_min_value + getBezierPoint(curve, 4, value).y*(this->m_max_value - this->m_min_value));
+		setValue(this->m_min_value + getBezierPoint(curve, 4, value).y*(this->m_max_value - this->m_min_value));
 	});
 
 	knot->addComponent(std::move(dragKnot));
@@ -96,7 +96,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
 	click->signal_entity_clicked.connect(this,[this](Entity* e, glm::vec2 pos, int button) {
 		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-			setCurrentValue(this->m_min_value + 0.5f*(this->m_max_value - this->m_min_value));
+			setSliderPosition(0.5);
 		}
 	});
 	layoutGroove->addComponent(std::move(click));
@@ -118,14 +118,14 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 }
 
 void Slider::updateLayout() {
-
+	View::updateLayout();
 }
 
 void Slider::onMeasure(float maxwidth, float maxheight) {
 
 }
 
-void Slider::setValue(float value) 
+/*void Slider::setValue(float value) 
 {
 	Entity* knot = findChild("Knot");
 	float width = size().x;
@@ -138,7 +138,7 @@ void Slider::setValue(float value)
 	tv->setText(to_wstring_with_precision(value,4));
 
 	knot->setLocalPos2D(glm::vec2(px, p.y));
-}
+}*/
 
 float Slider::value() const {
 	return m_current_value * size().x;
@@ -156,9 +156,36 @@ void Slider::setLabel(const std::wstring& label)
 	tvLabel->setText(label);
 }
 
-void Slider::setCurrentValue(float value) {
-	m_current_value = value / (this->m_max_value - this->m_min_value);
-	signal_slider_dragged.notify(this, m_current_value*(this->m_max_value - this->m_min_value));
+/*
+  Slider position [0..1]
+*/
+void Slider::setSliderPosition(float value) {
+	m_current_value = this->m_min_value + getBezierPoint(curve, 4, value).y*(this->m_max_value - this->m_min_value);
+	//m_current_value = value*(m_max_value - m_min_value);
+	signal_slider_dragged.notify(this, value);
 	if (m_pKnot != nullptr)
 		m_pKnot->setLocalPos2D(glm::vec2(m_current_value*(m_grooveSize.x - 40), m_pKnot->localPos2D().y));
+}
+
+float Slider::getSliderPosition(float value) {
+	float f = 0.0f;
+	while (f <= 1.0f)
+	{
+		float val = this->m_min_value + getBezierPoint(curve, 4, f).y*(this->m_max_value - this->m_min_value);
+		if (val >= value )
+			break;
+		f += 0.001f;
+	}
+	return f;
+}
+
+/*
+	CurrentValue [min_value, max_value]
+*/
+void Slider::setValue(float value) {
+	m_current_value = glm::clamp(value, this->m_min_value, this->m_max_value);
+	signal_slider_dragged.notify(this, m_current_value*(this->m_max_value - this->m_min_value));
+	/*if (m_pKnot != nullptr)
+		m_pKnot->setLocalPos2D(glm::vec2(m_current_value*(m_grooveSize.x - 40), m_pKnot->localPos2D().y));
+		*/
 }

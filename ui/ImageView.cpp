@@ -47,7 +47,7 @@ ImageView::ImageView(View* parentView, const std::string &name, const std::strin
 }
 
 void ImageView::updateLayout() {
-
+	View::updateLayout();
 }
 
 void ImageView::onMeasure(float maxwidth, float maxheight) {

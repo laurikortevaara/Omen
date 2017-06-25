@@ -31,6 +31,7 @@ SkyBoxRenderer::~SkyBoxRenderer() {
 }
 
 void SkyBoxRenderer::render(Shader* shader) {
+	
 	auto start = std::chrono::high_resolution_clock::now();
 	omen::Window::_size s = Engine::instance()->window()->size();
 
@@ -72,7 +73,7 @@ void SkyBoxRenderer::render(Shader* shader) {
 	polygonModeWireframe();
 	drawElementsInstanced(GL_TRIANGLES, m_indexBufferSize, GL_UNSIGNED_INT, (void*)0, 1);
 	restorePolygonMode();
-
+	return;
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> diff = end - start;
 	double ms = diff.count() * 1000.0f;

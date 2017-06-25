@@ -67,6 +67,7 @@ namespace omen {
 
 		void setBounds(glm::vec3 min, glm::vec3 max) { m_bounds_max = max; m_bounds_min = min; signal_transform_changed.notify(nullptr, this); }
         void getBounds(glm::vec3& min, glm::vec3& max)const {max = m_bounds_max ; min = m_bounds_min;}
+		void getClippedBounds(glm::vec3& min, glm::vec3& max)const;
 		glm::vec3 boundsMax() const;
 		glm::vec3 boundsMin() const;
     };

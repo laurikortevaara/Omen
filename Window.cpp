@@ -39,7 +39,7 @@ void Window::windowSizeChanged(GLFWwindow *window, int width, int height) {
 	m_height = height;
 	glViewport(0, 0, m_width, m_height);
 	glScissor(0, 0, m_width, m_height);
-	glClearColor(0, 0, 0, 1);
+	//glClearColor(0, 0, 0, 1);
 	signal_window_size_changed.notify(width, height);
 }
 
@@ -97,6 +97,7 @@ void Window::createWindow(int width, int height) {
 	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 	glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 	//glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.1
@@ -104,7 +105,7 @@ void Window::createWindow(int width, int height) {
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
 
-		/* Create a windowed mode window and its OpenGL context */
+	/* Create a windowed mode window and its OpenGL context */
 	m_window = glfwCreateWindow(width, height, "The omen Game engine", m_fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 	if (m_window == nullptr) {
 		glfwTerminate();
@@ -115,6 +116,7 @@ void Window::createWindow(int width, int height) {
 #endif
 	}
 
+	/*
 	Texture* ico_1 = new Texture("textures/Google-Drive-icon.png");
 	auto load_icon = [&ico_1](){
 	return (*new GLFWimage{ 48,48,(unsigned char*)ico_1->raw_data() });
@@ -123,6 +125,7 @@ void Window::createWindow(int width, int height) {
 	images[0] = load_icon();
 	images[1] = load_icon();
 	glfwSetWindowIcon(m_window, 1, images);
+	*/
 
 	glfwGetWindowSize(m_window, &width, &height);
 	m_width = width;
@@ -169,9 +172,9 @@ void Window::createWindow(int width, int height) {
 	glfwSwapInterval(m_swapInterval);
 	check_gl_error();
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.5f, 1.0f);
 	check_gl_error();
-	glClearColor(0, 0, 0, 1.0f);
+	//glClearColor(0, 0, 0, 1.0f);
 	check_gl_error();
 
 	//glfwSetCursor(m_window, nullptr);
@@ -190,7 +193,7 @@ void Window::createWindow(int width, int height) {
 
 	});*/
 
-	hideMouseCursor();
+	//hideMouseCursor();
 }
 
 Window::~Window() {
@@ -209,7 +212,7 @@ void Window::start_rendering() {
 
 	glViewport(0, 0, m_width, m_height);
 	glScissor(0, 0, m_width, m_height);
-	glClearColor(0, 0, 0, 1);
+	//glClearColor(0, 0, 0, 1);
 	
 	/*glFlush();
 	glViewport(0, 100, m_width, m_height - 100);
@@ -224,9 +227,6 @@ void Window::start_rendering() {
 void Window::end_rendering() {
 	/* Swap front and back buffers */
 	glfwSwapBuffers(m_window);
-
-	/* Poll for and process events */
-	glfwPollEvents();
 }
 
 unsigned int Window::width() const {

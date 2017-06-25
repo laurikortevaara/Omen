@@ -12,6 +12,8 @@
 #include <mmsystem.h>
 #include <Windows.h>
 #include <GLFW\glfw3.h>
+#include "Editor/EditorWindow.h"
+#include "Editor/GUILayout.h"
 
 using namespace omen;
 
@@ -24,9 +26,11 @@ int main(int argc, char *argv[])
 	srand(unsigned int(time(nullptr)));
 	omen::Engine *engine = omen::Engine::instance();
 	const std::unique_ptr<omen::Window>& window = engine->createWindow(1000,1000);
-	check_gl_error();
-
 	omen::ecs::System *inputSystem = engine->findSystem<ecs::InputSystem>();
+
+	/*check_gl_error();
+
+	
 	check_gl_error();
 	if (inputSystem != nullptr) {
 		omen::KeyboardInput *keyboardInput = dynamic_cast<omen::KeyboardInput *>(inputSystem->findComponent<omen::KeyboardInput>());
@@ -40,13 +44,24 @@ int main(int argc, char *argv[])
 			// TODO
 		});
 	}
-		
+	*/
+
+	std::unique_ptr<GUILayout> gui = std::make_unique<GUILayout>();
+
+	gui->addChild(std::move(std::make_unique<EditorWindow>("MainWindow")));
+	gui->addChild(std::move(std::make_unique<EditorWindow>("MainWindow2")));
+
+	Engine::instance()->scene()->addEntity(std::move(gui));
+
 	/* Loop until the user closes the window */
 	while (!window->shouldClose()) {
-		check_gl_error();
+		//check_gl_error();
 		engine->update();
 		check_gl_error();
 		engine->render();
+
+		/* Poll for and process events */
+		glfwPollEvents();
 	}
 
 	glfwTerminate();

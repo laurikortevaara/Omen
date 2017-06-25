@@ -29,7 +29,7 @@ Button::Button(View* parentView, const std::string &name,const std::string &spri
 }
 
 void Button::updateLayout() {
-
+	View::updateLayout();
 }
 
 void Button::onMeasure(float maxwidth, float maxheight) {

@@ -37,7 +37,7 @@ Entity::Entity(const std::string &name) :
 		signal_cursorpos_changed.connect(this, [this](float x, float y) -> void {
 		// Very slow function, just return!!!
 		// TODO: Lauri fix this
-		return;
+		
 		if (m_is_selected && this->name().compare("DIRECTION_RIGHT") == 0)
 		{
 			if (Engine::instance()->findComponent<MouseInput>()->mouseButtonStatesLR()[0])
@@ -53,14 +53,17 @@ Entity::Entity(const std::string &name) :
 		if (Entity::tr() != nullptr) {
 			glm::vec3 bmin, bmax;
 			Entity::tr()->getBounds(bmin, bmax);
-			if (m_cursorPos.x >= (pos().x + bmin.x) &&
-				m_cursorPos.x <= (pos().x + bmax.x) &&
-				m_cursorPos.y >= (pos().y + bmin.y) &&
-				m_cursorPos.y <= (pos().y + bmax.y)) {
+			const glm::vec3 p = this->pos();
+			std::cout << "Testing (" << m_cursorPos.x << ", " << m_cursorPos.y << "): " << this->name() << ", pos_x: " << p.x << ", " << p.y << ", bmax: " << bmax.x << ", bmay: " << bmax.y << "\n";
+			if (m_cursorPos.x >= (p.x + bmin.x) &&
+				m_cursorPos.x <= (p.x + bmax.x) &&
+				m_cursorPos.y >= (p.y + bmin.y) &&
+				m_cursorPos.y <= (p.y + bmax.y)) {
 				m_deltaPos = glm::vec2(m_cursorPos.x - pos().x, m_cursorPos.y - pos().y);
 				signal_hovered.notify(this, m_cursorPos);
 				if (!m_is_hovered)
 					signal_entered.notify(this, m_cursorPos);
+				std::cout << "Found: " << this->name() << ", pos: " << p.x << ", " << p.y << ", bmax: " << bmax.x << "\n";
 				m_is_hovered = true;
 			}
 			else {
@@ -98,6 +101,11 @@ bool Entity::addChild(std::unique_ptr<Entity> e) {
 	}
 	else 
 		return false;
+}
+
+void Entity::onSizeChanged(glm::vec3 size, glm::vec3 oldSize)
+{
+
 }
 
 bool Entity::removeChild(std::unique_ptr<Entity> e) { 

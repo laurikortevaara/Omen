@@ -56,3 +56,23 @@ glm::mat4 Transform::world_tr()
 	m_tr = translation * rotation * scale;
 	return parentTr*m_tr;
 }
+
+
+/*
+	Returns the bounding rectangle clipped by parent bounding rectangle
+*/
+void Transform::getClippedBounds(glm::vec3& min, glm::vec3& max)const
+{
+	omen::ecs::Entity* e = entity();
+	glm::vec3 bmin, bmax;
+	getBounds(bmin, bmax);
+	if(e->parent()!=nullptr)
+	{
+		glm::vec3 bminp, bmaxp;
+		e->parent()->tr_const()->getClippedBounds(bminp, bmaxp);
+		bmin = glm::max(bmin, bminp);
+		bmax = glm::min(bmax, bmaxp);
+	}
+	min = bmin;
+	max = bmax;
+}

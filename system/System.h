@@ -30,6 +30,8 @@ namespace omen {
 			virtual void addComponent(Component* component) {
 				add(component);
 			};
+
+			void detachFromSystem(Component* component);
 			virtual void shutDown() = 0;
 
             void remove(Component *component) {

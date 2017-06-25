@@ -69,7 +69,7 @@ GLuint Texture::createTexture()
 				int y_section = 0;
 				int x_section = 0;
 
-				typedef enum eSections { Right, Left, Top, Bottom, Front, Back };
+				enum eSections { Right, Left, Top, Bottom, Front, Back };
 
 				switch(i)
 				{
@@ -195,10 +195,8 @@ void Texture::unbindSampler()
 **/
 GLuint Texture::read_png_file(const char* file_name)
 {
-	int x, y;
 	png_structp png_ptr;
 	png_infop info_ptr;
-	int number_of_passes;
 	png_bytepp row_pointers;
 
 	unsigned int sig_read = 0;
@@ -292,7 +290,7 @@ GLuint Texture::read_png_file(const char* file_name)
 
 	unsigned int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 	row_pointers = png_get_rows(png_ptr, info_ptr);
-	float bpp = row_bytes / width;
+	float bpp = static_cast<float>(row_bytes / width);
 
 	if (outData[0] != nullptr)
 		delete outData[0];

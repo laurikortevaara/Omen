@@ -67,7 +67,9 @@ namespace omen {
 			Slider(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2 &pos, const glm::vec2& size, const glm::vec2& minMax = { 0.0f,1.0f }, EasingType easingType = eLinear);
 			virtual ~Slider();
 
-			void setValue(float value);
+			void setSliderPosition(float position); // [0,1], set's the slider knot position, as well as set's the value
+			float getSliderPosition(float position); // [0,1], set's the slider knot position, as well as set's the value
+			void setValue(float value); // [min_value,max_value], set's the value, as well as moves the slider knot to correct position
 			float value() const;
 
 			void setGroovePos(glm::vec2 groovePos) { m_groovePos = groovePos; }
@@ -76,7 +78,7 @@ namespace omen {
 			void setGrooveSize(glm::vec2 grooveSize) { m_grooveSize = grooveSize; }
 			glm::vec2 grooveSize() const { return m_grooveSize; }
 
-			void setCurrentValue(float value);
+			//void setCurrentValue(float value);
 			void setMinValue(float min) { m_min_value = min; }
 			void setMaxValue(float max) { m_max_value = max; }
 			float currentValue() const { return m_current_value; }

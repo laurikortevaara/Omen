@@ -38,7 +38,9 @@ void omen::ecs::SpriteRenderer::render(Shader* shader)
 	Engine::instance()->setViewport(0, 0, w, h);
 	int viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport );
-	m_sprite->render();
+	if(m_sprite.get())
+		m_sprite->render();
+	
 	Engine::instance()->setViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	restorePolygonMode();
 }
