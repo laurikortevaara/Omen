@@ -12,6 +12,9 @@
 
 using namespace omen::ecs;
 
+Draggable::DragStarted_t Draggable::signal_drag_started;
+Draggable::DragStopped_t Draggable::signal_drag_stopped;
+
 Draggable::Draggable(const glm::vec2& groovePos, const glm::vec2& grooveSize) :
 	m_is_pressed(false),
 	m_groovePos(glm::vec3(groovePos.x, groovePos.y, 0.0f)),
@@ -32,15 +35,18 @@ Draggable::Draggable(const glm::vec2& groovePos, const glm::vec2& grooveSize) :
                m_cursorPos.y <= (entity()->pos().y+bmax.y)) {
 				m_deltaPos = glm::vec2(m_cursorPos.x-entity()->pos().x, m_cursorPos.y-entity()->pos().y);
                 signal_clicked.notify(entity(),m_cursorPos);
+				Draggable::signal_drag_started.notify(this, pos());
 				m_is_pressed = true;
             
         }
     });
 
 	Engine::instance()->findComponent<MouseInput>()->
-		signal_mousebutton_released.connect(this,[&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
-		m_is_pressed = false;
-	});
+		signal_mousebutton_released.connect(this,[&](int button, int action, int mods, const glm::vec2& cursorPos) -> void 
+		{
+			m_is_pressed = false;
+			signal_drag_stopped.notify(this, pos());
+		});
 
     Engine::instance()->findComponent<MouseInput>()->
             signal_cursorpos_changed.connect(this,[&](float x, float y) -> void {
@@ -52,14 +58,16 @@ Draggable::Draggable(const glm::vec2& groovePos, const glm::vec2& grooveSize) :
 			glm::vec3 grooveSize;
 			tr->getBounds(bmin, bmax);
 
-			glm::vec2 newPos = { x - m_deltaPos.x - entity()->parent()->pos().x, tr->pos().y };
+			glm::vec2 newPos = { x - m_deltaPos.x - entity()->parent()->pos().x, y - m_deltaPos.y - entity()->parent()->pos().y };
 
 			grooveSize = this->m_grooveSize;
 
-			newPos.x = glm::clamp(newPos.x, 0.0f+groovePos.x, grooveSize.x+groovePos.x);
+			newPos.x = glm::clamp(newPos.x, 0.0f + groovePos.x, grooveSize.x + groovePos.x);
+			newPos.y = glm::clamp(newPos.y, 0.0f + groovePos.y, grooveSize.y + groovePos.y);
 
 			// Notify about slider change
 			signal_dragged.notify((newPos.x-groovePos.x)/grooveSize.x);
+			signal_draggedXY.notify( glm::vec2( (newPos.x - groovePos.x) / grooveSize.x,(newPos.y - groovePos.y) / grooveSize.y ) );
 			tr->setPos(glm::vec3(newPos,0));
 		}
     });

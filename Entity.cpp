@@ -7,10 +7,12 @@
 #include "Component/Transform.h"
 #include "component/MouseInput.h"
 #include "component/Picker.h"
+#include "component/Draggable.h"
 #include "Engine.h"
 
 using namespace omen::ecs;
 
+bool Entity::dragging = false;
 
 Entity::Entity(const std::string &name) :
 	Object(name), m_parent(nullptr), m_layer(-1), m_is_hovered(false), m_is_pressed(false), m_is_selected(false)
@@ -29,6 +31,15 @@ Entity::Entity(const std::string &name) :
 	};
 	Picker::signal_object_picked.connect(this, fn);
 
+	Draggable::signal_drag_started.connect(this, [this](omen::ecs::Draggable* e, float value)
+	{
+		dragging = true;
+	});
+
+	Draggable::signal_drag_stopped.connect(this, [this](omen::ecs::Draggable* e, float value)
+	{
+		dragging = false;
+	});
 
 	/**
 	Make Entity hoverable by mouse
@@ -38,6 +49,9 @@ Entity::Entity(const std::string &name) :
 		// Very slow function, just return!!!
 		// TODO: Lauri fix this
 		
+		if (dragging)
+			return;
+
 		if (m_is_selected && this->name().compare("DIRECTION_RIGHT") == 0)
 		{
 			if (Engine::instance()->findComponent<MouseInput>()->mouseButtonStatesLR()[0])
@@ -105,7 +119,7 @@ bool Entity::addChild(std::unique_ptr<Entity> e) {
 
 void Entity::onSizeChanged(glm::vec3 size, glm::vec3 oldSize)
 {
-	std::cout << "OnSizeChanged: " << name() << ", size: " << size.x << ", " << size.y << "\n";
+	//std::cout << "OnSizeChanged: " << name() << ", size: " << size.x << ", " << size.y << "\n";
 	signal_size_changed.notify(this, size, oldSize);
 }
 
@@ -211,18 +225,19 @@ glm::vec2 Entity::pos2D() const
 
 void Entity::setWidth(float width) 
 { 
-	glm::vec3 oldSize = size(); 
+	glm::vec3 oldSize = tr()->boundsMax();
 	glm::vec3 bmax = tr()->boundsMin(); 
 	bmax.x += width; 
 	bmax.y += oldSize.y; 
 	bmax.z += oldSize.z; 
+
 	tr()->setBounds(tr()->boundsMin(), bmax); 
 	onSizeChanged(tr()->boundsMax() - tr()->boundsMin(), oldSize); 
 }
 
 void Entity::setHeight(float height) 
 { 
-	glm::vec3 oldSize = size(); 
+	glm::vec3 oldSize = tr()->boundsMax();
 	glm::vec3 bmax = tr()->boundsMin(); 
 	bmax.x += oldSize.x;
 	bmax.y += height; 

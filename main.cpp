@@ -14,6 +14,7 @@
 #include <GLFW\glfw3.h>
 #include "Editor/EditorWindow.h"
 #include "Editor/GUILayout.h"
+#include "ui/LinearLayout.h"
 
 using namespace omen;
 
@@ -48,8 +49,34 @@ int main(int argc, char *argv[])
 
 	std::unique_ptr<GUILayout> gui = std::make_unique<GUILayout>();
 
-	gui->addChild(std::move(std::make_unique<EditorWindow>("MainWindow")));
-	gui->addChild(std::move(std::make_unique<EditorWindow>("MainWindow2")));
+	using namespace omen::ui;
+	using namespace std;
+
+	unique_ptr<LinearLayout> layout = make_unique<LinearLayout>(nullptr, "MainLayout", glm::vec2( { .0f,.0f } ), glm::vec2({ .0f,.0f }), LinearLayout::VERTICAL);
+	unique_ptr<LinearLayout> toolbar = make_unique<LinearLayout>(nullptr, "ToolbarLayout", glm::vec2({ .0f,.0f }), glm::vec2({ .0f,.0f }), LinearLayout::HORIZONTAL);
+	
+	unique_ptr<ImageView> button1 = make_unique<ImageView>(nullptr, "Button1", "textures/UI/Button_Rect_Normal.png");
+	unique_ptr<ImageView> button2 = make_unique<ImageView>(nullptr, "Button2", "textures/UI/CheckBox_On.png");
+	unique_ptr<ImageView> button3 = make_unique<ImageView>(nullptr, "Button3", "textures/UI/Switch_On.png");
+	unique_ptr<ImageView> button4 = make_unique<ImageView>(nullptr, "Button4", "textures/UI/Focus.png");
+	toolbar->addChild(move(button1));
+	toolbar->addChild(move(button2));
+	toolbar->addChild(move(button3));
+	toolbar->addChild(move(button4));
+
+	unique_ptr<EditorWindow> w1 = make_unique<EditorWindow>("MainWindow");
+	unique_ptr<EditorWindow> w2 = make_unique<EditorWindow>("MainWindow2");
+	unique_ptr<EditorWindow> w3 = make_unique<EditorWindow>("MainWindow3");
+	w1->setResizeMode(VERTICAL_RESIZE_ENABLED);
+	w3->setResizeMode(VERTICAL_RESIZE_ENABLED);
+	w1->setResizeMode(VERTICAL_RESIZE_ENABLED);
+
+	layout->addChild(move(toolbar));
+	layout->addChild(move(w1));
+	layout->addChild(move(w3));
+
+	gui->addChild(move(layout));
+	gui->addChild(move(w2));
 
 	Engine::instance()->scene()->addEntity(std::move(gui));
 

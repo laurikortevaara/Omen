@@ -4,12 +4,19 @@
 #include "../component/Draggable.h"
 #include "../Engine.h"
 
-WindowDivider::WindowDivider(GUILayout* parent, omen::ecs::Entity* leftView, omen::ecs::Entity* rightView) :
-	View(nullptr, "WinDiv", { 0.0f,0.0f }, { 0.0f,0.0f }),
+using namespace omen::ui;
+
+WindowDivider::WindowDivider(View* parent, omen::ecs::Entity* leftView, omen::ecs::Entity* rightView) :
+	View(parent, "WinDiv", { 0.0f,0.0f }, { 0.0f,0.0f }),
 	m_leftView(leftView),
 	m_rightView(rightView)
 {
-	omen::ui::LinearLayout* layout = reinterpret_cast<omen::ui::LinearLayout*>(parent->children().front().get());
+	LinearLayout* layout = dynamic_cast<LinearLayout*>(this->parent());
+	omen::ui::LinearLayout::LayoutDirection dir = layout->layoutDirection();
+	std::string name = layout->name();
+
+	glm::vec2 s = parent->size2D();
+
 	if (layout->layoutDirection() == omen::ui::LinearLayout::LayoutDirection::HORIZONTAL)
 		setSize2D({ 5.0f, parent->height() });
 	else
@@ -22,11 +29,22 @@ WindowDivider::WindowDivider(GUILayout* parent, omen::ecs::Entity* leftView, ome
 	parent->signal_size_changed.connect(this, [this](omen::ecs::Entity* e, glm::vec3 size, glm::vec3 oldSize) {
 		this->getComponent<omen::ecs::Draggable>()->setGrooveSize(size);
 	});
-	dragCtl->signal_dragged.connect(this, [this](float value) -> void {
+	dragCtl->signal_draggedXY.connect(this, [this](glm::vec2 value) -> void {
 		//std::cout << "Value: " << value << "\n";
-		m_leftView->setWidth(value*this->parent()->width());
-		m_rightView->setWidth((1.0f-value)*this->parent()->width());
-		m_rightView->setLocalPos2D(glm::vec2(this->localPos2D().x + this->width(), m_rightView->localPos2D().y));
+		LinearLayout* layout = dynamic_cast<LinearLayout*>(this->parent());
+		omen::ui::LinearLayout::LayoutDirection dir = layout->layoutDirection();
+		if (dir == LinearLayout::HORIZONTAL)
+		{
+			m_leftView->setWidth(value.x*this->parent()->width());
+			m_rightView->setWidth((1.0f - value.x)*this->parent()->width());
+			m_rightView->setLocalPos2D(glm::vec2(this->localPos2D().x + this->width(), m_rightView->localPos2D().y));
+		}
+		else
+		{
+			m_leftView->setHeight(value.y*this->parent()->height());
+			m_rightView->setHeight((1.0f - value.y)*this->parent()->height());
+			m_rightView->setLocalPos2D(glm::vec2(m_rightView->localPos2D().x, this->localPos2D().y + this->height()));
+		}
 
 	});
 	//dragCtl->setEnabled(false);
@@ -34,7 +52,12 @@ WindowDivider::WindowDivider(GUILayout* parent, omen::ecs::Entity* leftView, ome
 
 	signal_entered.connect(this, [this](omen::ecs::Entity* e, glm::vec2 pos) 
 	{
-		glfwSetCursor(omen::Engine::instance()->window()->window(), glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR));
+		LinearLayout* layout = dynamic_cast<LinearLayout*>(this->parent());
+		omen::ui::LinearLayout::LayoutDirection dir = layout->layoutDirection();
+		if(dir == omen::ui::LinearLayout::HORIZONTAL)
+			glfwSetCursor(omen::Engine::instance()->window()->window(), glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR));
+		else
+			glfwSetCursor(omen::Engine::instance()->window()->window(), glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR));
 		//this->getComponent<omen::ecs::Draggable>()->setEnabled(true);
 	});
 

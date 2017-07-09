@@ -6,7 +6,7 @@
 class WindowDivider : public omen::ui::View
 {
 public:
-	WindowDivider(GUILayout* parent, omen::ecs::Entity* left, omen::ecs::Entity* right);
+	WindowDivider(View* parent, omen::ecs::Entity* left, omen::ecs::Entity* right);
 protected:
 	virtual void updateLayout() {};
 	virtual void onMeasure(float maxwidth, float maxheight) {};

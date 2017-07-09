@@ -12,7 +12,15 @@
 #include "../Entity.h"
 
 namespace omen {
-    namespace ui {
+	namespace ui {
+		enum ResizeMode{
+			HORIZONTAL_RESIZE_ENABLED = 1,
+			VERTICAL_RESIZE_ENABLED = 2,
+			DIAGONAL_RESIZE_ENABLED = 4,
+			NOT_RESIZABLE = 0,
+			DEFAULT_RESIZE_MODE = NOT_RESIZABLE
+		};
+
 		class LayoutParams {
 		public:
 			enum eLayoutSizing
@@ -88,12 +96,19 @@ namespace omen {
 			virtual void setMaxWidth(float maxWidth) { m_maxWidth = maxWidth; }
 			virtual void setMinHeight(float minHeight) { m_minHeight = minHeight; }
 			virtual void setMaxHeight(float maxHeight) { m_maxHeight = maxHeight; }
+
+			bool resizable() const { return m_resizeMode != NOT_RESIZABLE; }
+			bool hResizable() const { return m_resizeMode == HORIZONTAL_RESIZE_ENABLED; }
+			bool vResizable() const { return m_resizeMode == VERTICAL_RESIZE_ENABLED; }
+			bool dResizable() const { return m_resizeMode == DIAGONAL_RESIZE_ENABLED; }
+			void setResizeMode(ResizeMode mode) { m_resizeMode = mode; }
+			ResizeMode resizeMode() const { return m_resizeMode; }
 			
 			LayoutParams& layoutParams() { return m_layoutParams; }
 		private:
 			float m_minWidth, m_maxWidth;   // Minimum and maximum width in absolute pixel value, if -1.0f then 0.0f is returned 
 			float m_minHeight, m_maxHeight; // Minimum and maximum height in absolute pixel value, if -1.0f then 0.0f is returned
-			
+			ResizeMode m_resizeMode; // if true this view may be resized, otherwise not
 
 			LayoutParams m_layoutParams;
 

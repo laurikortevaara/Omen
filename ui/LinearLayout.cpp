@@ -4,6 +4,7 @@
 
 #include "../component/Component.h"
 #include "LinearLayout.h"
+#include "../Editor/WindowDivider.h"
 
 using namespace omen;
 using namespace ui;
@@ -41,6 +42,13 @@ LinearLayout::LayoutDirection &LinearLayout::layoutDirection() {
 
 bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 {
+	if (!children().empty() && dynamic_cast<WindowDivider*>(e.get()) == nullptr)
+	{
+		View* v = static_cast<View*>(children().back().get());
+		if(v != nullptr && v->resizable())
+			addChild(std::move(std::make_unique<WindowDivider>(this, children().back().get(), e.get())));
+	}
+
 	glm::vec2 childPos(m_margins.x, m_margins.y);
 	for (const auto& child : children())
 	{

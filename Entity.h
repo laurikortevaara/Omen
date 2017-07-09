@@ -30,6 +30,8 @@ namespace omen {
 			bool m_is_selected;
 
 		public:
+			static bool dragging;
+
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalHovered_t;
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalEntered_t;
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalExited_t;

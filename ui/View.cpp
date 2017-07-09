@@ -9,7 +9,7 @@ using namespace omen;
 using namespace ui;
 
 View::View(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size) :
-	ecs::Entity(name)
+	ecs::Entity(name), m_resizeMode(DEFAULT_RESIZE_MODE)
 {
 	Entity::setParent(parentView);
 	setLayer(1);
@@ -85,6 +85,13 @@ void View::updateLayout()
 			setWidth(children_width);
 		if (m_layoutParams.layoutSizingHeight == LayoutParams::WrapContent)
 			setHeight(children_height);
+	}
+	if (!children().empty() && (m_layoutParams.layoutSizingWidth == LayoutParams::MatchParent || m_layoutParams.layoutSizingHeight == LayoutParams::MatchParent))
+	{
+		for(auto& c : children())
+		{
+			c->setSize2D(size2D());
+		}
 	}
 }
 
