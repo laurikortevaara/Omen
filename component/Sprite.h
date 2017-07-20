@@ -12,7 +12,7 @@ namespace omen {
         class Sprite : public Renderable {
         protected:
         public:
-			Sprite(const std::string &sprite, const glm::vec2& pos, const glm::vec2& size = { -1,-1 });
+			Sprite(const std::string &sprite, const glm::vec2& pos = { 0.0f,0.0f }, const glm::vec2& size = { -1,-1 });
 
             virtual ~Sprite();
 

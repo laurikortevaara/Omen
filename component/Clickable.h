@@ -14,9 +14,17 @@ namespace omen {
         protected:
             virtual void onAttach(ecs::Entity* e);
             virtual void onDetach(ecs::Entity* e);
+
+			bool cursorInsideEntity();
         public:
-            typedef omen::Signal<std::function<void(Entity*, glm::vec2, int button)> > EntityClicked_t;
-            EntityClicked_t signal_entity_clicked;
+			typedef omen::Signal<std::function<void(Entity*, glm::vec2, int button)> > EntityMouseClicked_t;
+			EntityMouseClicked_t signal_entity_mouse_clicked;
+
+			typedef omen::Signal<std::function<void(Entity*, glm::vec2, int button)> > EntityMousePressed_t;
+			EntityMousePressed_t signal_entity_mouse_pressed;
+
+            typedef omen::Signal<std::function<void(Entity*, glm::vec2, int button)> > EntityMouseReleased_t;
+			EntityMouseReleased_t signal_entity_mouse_released;
 
         public:
             Clickable();

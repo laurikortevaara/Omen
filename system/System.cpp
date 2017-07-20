@@ -13,6 +13,7 @@ void System::update(double time, double deltaTime) {
 }
 
 System::System():
+		Object(typeid(this).name()),
         m_isEnabled(false) {
     omen::Engine *e = omen::Engine::instance();
     e->signal_engine_update.connect(this,[this, e](double time, double deltaTime) {
@@ -43,5 +44,7 @@ void System::add(Component* component)
 
 void System::detachFromSystem(Component* component)
 {
-	m_components.erase(std::find(m_components.begin(), m_components.end(), component));
+	std::vector<ecs::Component*>::iterator iter = std::find(m_components.begin(), m_components.end(), component);
+	if(iter != m_components.end())
+		m_components.erase(iter);
 }

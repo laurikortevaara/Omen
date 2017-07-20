@@ -48,11 +48,14 @@ namespace omen {
 
 		std::vector<GLshort>& indices() {return m_indices;}
 		void setIndices(std::vector<GLshort>& indices) { m_indices = indices; }
+
+		void setTexture(Texture* texture) { m_texture = texture; }
+
     protected:
         Renderable(glm::vec2 pos, float width, float height, float depth = 0.0f);
 		
         void setShader(Shader* shader) {m_shader = shader;}
-        void setTexture(Texture* texture) {m_texture = texture;}
+        
 
 
         virtual void initializeShader() = 0;

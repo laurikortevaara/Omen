@@ -7,12 +7,20 @@
 
 
 #include <glm/glm.hpp>
-#include <vector>
-#include "../Signal.h"
 #include "../Entity.h"
 
 namespace omen {
+	// Forward declarations
+	class Color;
+
+	namespace ecs {
+		class Sprite;
+	}
+
+	// Enumerations and data classes
 	namespace ui {
+		
+
 		enum ResizeMode{
 			HORIZONTAL_RESIZE_ENABLED = 1,
 			VERTICAL_RESIZE_ENABLED = 2,
@@ -21,9 +29,21 @@ namespace omen {
 			DEFAULT_RESIZE_MODE = NOT_RESIZABLE
 		};
 
+		enum MeasureSpec {
+			AT_MOST = 1,
+			EXACTLY = 2,
+			UNSPECIFIED = 3
+		};
+
+		enum eViewState {
+			ViewState_Normal, // Idle state, render normally
+			ViewState_UpdatingLayout, // The layout is being updated. This prevents eternal loops when settings sizing
+			ViewStatue_Dirty // Requires redaring and relayouting if layout
+		};
+
 		class LayoutParams {
 		public:
-			enum eLayoutSizing
+			enum eSizing
 			{
 				Absolute,			 // Absolute pixel value
 				DeviceIndependent,	 // Device independent measure value (dip or dp)
@@ -33,13 +53,20 @@ namespace omen {
 			};
 
 			LayoutParams() : layoutSizingWidth(DefaultSizing), layoutSizingHeight(DefaultSizing) {}
-			eLayoutSizing layoutSizingWidth;
-			eLayoutSizing layoutSizingHeight;
+			eSizing layoutSizingWidth;
+			eSizing layoutSizingHeight;
+			float	weight; // Affects linear layouts
 		protected:
 		private:
 
 		};
 
+
+		/*
+		***
+		* The View class
+		**
+		*/
         class View : public ecs::Entity {
         public:
 
@@ -47,17 +74,19 @@ namespace omen {
 
             View(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size);
 
-            virtual void updateLayout(); 
-            virtual void onMeasure(float maxwidth, float maxheight) = 0; // Called to determine the size requirements for this view and all of its children.
+            virtual void onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas) = 0; // Called to determine the size requirements for this view and all of its children.
             virtual void onLayout(bool changed, float left, float top, float right, float bottom); // Called when this view should assign a size and position to all of its children. 
 			virtual void onSizeChanged(glm::vec3 size, glm::vec3 oldSize); // Called when the size of this view has changed. 
+
         public:
             virtual ~View();
+
+			virtual void updateLayout();
 
 			virtual bool addChild(std::unique_ptr<omen::ecs::Entity> child);
 			virtual bool removeChild(std::unique_ptr<omen::ecs::Entity> child);
 
-            void measureSize();
+            //void measureSize();
 
 			View* parentView() const { return dynamic_cast<View*>(parent()); }
 
@@ -66,14 +95,17 @@ namespace omen {
 
 			glm::vec4 margins() const { return m_margins; }
 			void setMargins(const glm::vec4& margins) { m_margins = margins; }
-			
 			enum MARGIN_POS {
 				left = 0,
 				top = 1,
 				right = 2,
 				bottom = 3
 			};
-			glm::vec4 m_margins; // left, top, right, bottom;
+			glm::vec4 m_margins; // left, top, right, bottom; // How much margin this view has 
+
+			glm::vec4 paddings() const { return m_paddings; }
+			void setPaddings(const glm::vec4& paddings) { m_paddings = paddings; }
+			glm::vec4 m_paddings; // left, top, right, bottom; // How much away from the edges the children are located
 			
 			virtual glm::vec3 pos() const { return Entity::pos() + glm::vec3(m_margins[left], m_margins[top], 0); }
 			virtual glm::vec2 pos2D() const { return Entity::pos2D() + glm::vec2(m_margins[left], m_margins[top]); };
@@ -84,8 +116,8 @@ namespace omen {
 			virtual glm::vec2 localPos2D() const { return glm::vec2(Entity::tr_const()->pos()); }
 			virtual void setLocalPos2D(const glm::vec2& pos) { Entity::tr()->setPos(glm::vec3(pos, Entity::tr()->pos().z)); }
 
-			virtual float width() const { return Entity::width();}
-			virtual float height() const { return Entity::height(); }
+			virtual float width() const;
+			virtual float height() const;
 
 			virtual float minWidth() const { return m_minWidth >= 0 ? m_minWidth : 0.0f; }
 			virtual float maxWidth() const { return m_maxWidth >= 0 ? m_maxWidth : width(); }
@@ -97,6 +129,15 @@ namespace omen {
 			virtual void setMinHeight(float minHeight) { m_minHeight = minHeight; }
 			virtual void setMaxHeight(float maxHeight) { m_maxHeight = maxHeight; }
 
+			glm::vec2 m_measuredSize;
+
+			virtual float measuredWidth() const { return m_measuredSize.x; }
+			virtual float measuredHeight() const { return m_measuredSize.y; }
+
+			void setMeasuredSize(float width, float height) { m_measuredSize = glm::vec2(width, height); }
+			virtual void measure(MeasureSpec horizontalMeas, MeasureSpec verticalMeas);
+
+
 			bool resizable() const { return m_resizeMode != NOT_RESIZABLE; }
 			bool hResizable() const { return m_resizeMode == HORIZONTAL_RESIZE_ENABLED; }
 			bool vResizable() const { return m_resizeMode == VERTICAL_RESIZE_ENABLED; }
@@ -105,12 +146,19 @@ namespace omen {
 			ResizeMode resizeMode() const { return m_resizeMode; }
 			
 			LayoutParams& layoutParams() { return m_layoutParams; }
+
+			eViewState viewState() const { return m_viewState; }
+
+			void setBackground(Color& color);
+			void setBackground(std::unique_ptr<ecs::Sprite> sprite);
+
 		private:
 			float m_minWidth, m_maxWidth;   // Minimum and maximum width in absolute pixel value, if -1.0f then 0.0f is returned 
 			float m_minHeight, m_maxHeight; // Minimum and maximum height in absolute pixel value, if -1.0f then 0.0f is returned
 			ResizeMode m_resizeMode; // if true this view may be resized, otherwise not
 
-			LayoutParams m_layoutParams;
+			LayoutParams	m_layoutParams;
+			eViewState		m_viewState;
 
 		};
     } // namespace UI

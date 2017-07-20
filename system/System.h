@@ -12,7 +12,7 @@
 
 namespace omen {
     namespace ecs {
-        class System {
+        class System : public omen::Object {
         private:
             std::vector<Component *> m_components;
 		

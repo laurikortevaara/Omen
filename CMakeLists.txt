@@ -13,6 +13,7 @@ project(Omen)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_CXX_STANDARsD 17)
+set(CMAKE_BUILD_TYPE Debug)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
 
@@ -36,6 +37,29 @@ set(BUILD_UNIT_TESTS OFF CACHE BOOL "Build Unit tests")
 ######################################################################
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MDd ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MDd -std:c++latest /std:c++latest ")
+
+if(MSVC)
+# We statically link to reduce dependencies
+foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    if(${flag_var} MATCHES "/MD")
+        string(REGEX REPLACE "/MD" "/MDd" ${flag_var} "${${flag_var}}")
+    endif(${flag_var} MATCHES "/MD")
+	if(${flag_var} MATCHES "/MDdd")
+        string(REGEX REPLACE "/MDdd" "/MDd" ${flag_var} "${${flag_var}}")
+    endif(${flag_var} MATCHES "/MDdd")
+	if(${flag_var} MATCHES "/MT")
+        string(REGEX REPLACE "/MT" "/MDd" ${flag_var} "${${flag_var}}")
+    endif(${flag_var} MATCHES "/MT")
+    #if(${flag_var} MATCHES "/MDd")
+    #    string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
+    #endif(${flag_var} MATCHES "/MDd")
+endforeach(flag_var)
+endif(MSVC)
+
+
 ######################################################################
 # FORCE OS X 10.8 DEPLOYMENT TARGET ON OS X TO SUPPORT GLUT
 ######################################################################
@@ -56,6 +80,11 @@ set(ENV{MALLOC_CHECK_} "2")
 
 set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG")
 set(CMAKE_GENERATOR_PLATFORM Visual Studio 14 2015)
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+endif()
 
 ######################################################################
 # GLEW - OpenGL extension wrangler library
@@ -174,6 +203,8 @@ include_directories(thirdparty/bullet/src)
 ######################################################################
 # ZLIB
 ######################################################################
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/zlib)
 
 ######################################################################
@@ -191,6 +222,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/zlib)
  # set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
  # #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
 #endif(APPLE)
+set(PNG_DEBUG ON)
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
 set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/Debug/libpng16d.lib)
 
@@ -306,7 +338,10 @@ message(STATUS "Libs:" ${LIBRARIES})
 set(SOURCE_FILES
 # Main sources and headers
 Editor/EditorWindow.cpp
+Editor/EditorCameraView.cpp
 Editor/GUILayout.cpp
+Editor/EditorScene.cpp
+component/EditorSceneRenderer.cpp
 Editor/WindowDivider.cpp
 AudioSystem.cpp
 BoundingBox.cpp
@@ -345,6 +380,14 @@ VertexArrayObject.cpp
 VertexBufferObject.cpp
 WavefrontLoader.cpp
 Window.cpp
+## Headers
+Editor/EditorWindow.h
+Editor/EditorCameraview.h
+Editor/GUILayout.h
+Editor/EditorScene.h
+component/EditorSceneRenderer.h
+Editor/WindowDivider.h
+component/PlainColorRenderer.h
 AnimationFrame.h
 AudioSystem.h
 BoundingBox.h
@@ -408,6 +451,7 @@ component/MeshController.cpp
 component/MeshRenderer.cpp
 component/MouseInput.cpp
 component/Picker.cpp
+component/PlainColorRenderer.cpp
 component/Renderer.cpp
 component/Script.cpp
 component/Sprite.cpp
@@ -474,9 +518,7 @@ Common/Common.h
 )
 add_executable(Omen ${SOURCE_FILES})
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)
-
 set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++latest /std:c++latest ")
 
 ######################################################################
 # Set the target link libraries

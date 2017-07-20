@@ -14,7 +14,7 @@ namespace omen {
 			virtual void onAttach(ecs::Entity* e) = 0;
 			virtual void onDetach(ecs::Entity* e) = 0;
 		public:
-			virtual void render(omen::Shader* shader = nullptr) = 0;
+			virtual void render(omen::Shader* shader = nullptr) const = 0;
 
 			Renderer& setShader(std::unique_ptr<Shader> shader) { m_shader = std::move(shader); return *this; }
 			Shader* shader() const { return m_shader.get(); }
@@ -22,10 +22,10 @@ namespace omen {
 			Renderer& setTexture(std::unique_ptr<Texture> texture) { m_texture = std::move(texture); return *this; }
 			Texture* texture() const { return m_texture.get(); }
 		public:
-			void storePolygonMode();
-			void polygonModeFill();
-			void polygonModeWireframe();
-			void restorePolygonMode();
+			void storePolygonMode() const;
+			void polygonModeFill() const;
+			void polygonModeWireframe() const;
+			void restorePolygonMode() const;
 		protected:
 			Renderer();
 		protected:

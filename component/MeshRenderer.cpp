@@ -363,6 +363,7 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 	std::cout << "[" << frustumMax.x << "," << frustumMax.y << "," << frustumMax.z << "," << frustumMax.w << "]\n";*/
 	proj = glm::ortho(-frustumMin.x, -frustumMax.x, frustumMin.y, frustumMax.y, frustumMin.z, frustumMax.z);
 
+	/*
 	ui::TextView* tv = (ui::TextView*)Engine::instance()->scene()->findEntity("textview");
 	WCHAR wc[512] = { '\0' };
 	wcscpy_s(wc, L"Frustum:\n");
@@ -370,9 +371,10 @@ void CalcProj(glm::mat4& view, glm::vec3& lightDir, glm::mat4& proj)
 		swprintf(wc, 512, L"%s\n% 8.3f,  % 8.3f,  % 8.3f", wc, vertices[i].x, vertices[i].y, vertices[i].z);
 	swprintf(wc, 512, L"%s\n\nLFRMin/Max\n% 8.3f,  % 8.3f,  % 8.3f\n% 8.3f,  % 8.3f,  % 8.3f", wc, frustumMin.x, frustumMin.y, frustumMin.z, frustumMax.x, frustumMax.y, frustumMax.z);
 	tv->setText(wc);
+	*/
 }
 
-void MeshRenderer::render(Shader* shader)
+void MeshRenderer::render(omen::Shader* shader) const
 {
 	Shader* pShader = shader == nullptr ? m_shader.get() : shader;
 

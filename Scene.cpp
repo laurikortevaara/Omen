@@ -128,48 +128,6 @@ Scene::Scene() : omen::Object("Scene") {
 		os << e;
 		bgFiles.push_back(os.str());
 	}
-	//bgTexture = new Texture(bgFiles.at(omen::random(0,bgFiles.size()-1)));
-	bgTexture = new Texture("textures/bg_gradient5.jpg");
-	
-	Engine::instance()->window()->signal_file_dropped.connect(this, [this](const std::vector<std::string>& files)
-	{
-		const std::string& file = *files.begin();
-		if (file.find(".MD3") != std::string::npos 
-			|| file.find(".md3") != std::string::npos) {
-			loadModel(file);
-		}
-		else
-			if (file.find(".FBX") != std::string::npos
-				|| file.find(".fbx") != std::string::npos) {
-				std::unique_ptr<ecs::GameObject> obj = createObject(file);
-
-				if(false)
-				{
-					std::unique_ptr<omen::ecs::GameObject> obj = std::make_unique<omen::ecs::GameObject>("obj");
-
-					std::unique_ptr<omen::ecs::MeshController> mc = std::make_unique<omen::ecs::MeshController>();
-					mc->setMesh(std::move(MeshProvider::createPlane(10000)));
-					std::unique_ptr<omen::ecs::MeshRenderer> mr = std::make_unique<omen::ecs::MeshRenderer>(mc.get());
-					obj->addCompnent(std::move(mr));
-					obj->addCompnent(std::move(mc));
-
-					obj->tr()->pos().x = -5000;
-					obj->tr()->pos().y = -2;
-					obj->tr()->pos().z = -5000;
-					obj->setName("plane");
-					/*Engine::instance()->signal_engine_update.connect(this,[file](float time, float delta_time) {
-					ecs::GameObject* obj = dynamic_cast<ecs::GameObject*>(Engine::instance()->scene()->findEntity(file));
-					obj->tr()->rotate(time, glm::vec3(0.75, 0, 0));
-					obj->tr()->rotate(time, glm::vec3(0, 0.34, 0));
-					});*/
-					addEntity(std::move(obj));
-				}
-			}/*
-			else if (file.find(".JPG") != std::string::npos
-				|| file.find(".jpg") != std::string::npos) {
-				Texture* t = new Texture(file);
-			}*/
-	});
 
 	JoystickInput* ji = (JoystickInput*)e->findComponent<JoystickInput>();
 	if (ji != nullptr) {
@@ -808,77 +766,6 @@ void Scene::renderArrow()
 		return;
 
 	
-}
-
-void Scene::renderBackground()
-{
-	renderBuffer->use();
-	bgTexture->bind();
-	int w, h;
-	glfwGetFramebufferSize(Engine::instance()->window()->window(), &w, &h);
-	Engine::instance()->setViewport(0, 0, w, h);
-
-	bgShaderPass1->use();
-	bgShaderPass1->setUniform1f("Blur", blur);
-
-	glm::vec2 v[4] = { {-1.0,1.0},{-1.0,-1.0},{ 1.0, 1.0 },{ 1.0,-1.0 } };
-	GLuint vbo = 0, vao = 0;
-
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	
-	glGenBuffers(1, &vbo);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	renderBuffer->unuse();
-	renderBuffer2->use();
-	glBindTexture(GL_TEXTURE_2D, renderBuffer->texture());
-
-	bgShaderPass2->use();
-	bgShaderPass2->setUniform1f("Blur", blur);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	
-
-	ecs::GraphicsSystem* gs = omen::Engine::instance()->findSystem<ecs::GraphicsSystem>();
-	gs->render();
-
-	
-
-	glBindTexture(GL_TEXTURE_2D, renderBuffer2->texture());
-
-	/*bgShaderPass3->use();
-	bgShaderPass3->setUniform1f("Blur", blur);
-
-	glBindVertexArray(vao);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDeleteBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &vao);
-	*/
 }
 
 void omen::Scene::addEntity(std::unique_ptr<ecs::Entity> entity, GLuint layer)

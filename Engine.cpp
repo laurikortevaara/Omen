@@ -157,6 +157,7 @@ void operator delete(void* ptr) noexcept
 Engine::Engine() :
 	Object("Omen_Engine"),
 	m_scene(nullptr),
+	m_editorScene(nullptr),
 	m_camera(nullptr),
 	m_joystick(nullptr),
 	m_time(0),
@@ -187,10 +188,15 @@ Engine::Engine() :
 		m_camera = new Camera("Camera1", { 0, 100.0, 0.0 }, { 0, 0, 0 }, 90.0f);
 		check_gl_error();
 		findComponent<CameraController>()->setCamera(m_camera);
-		check_gl_error();
+
+		// Create the game scene graph
 		m_scene = std::make_unique<Scene>();
-		check_gl_error();
 		m_scene->initialize();
+
+		// IF in editor mode
+		m_editorScene = std::make_unique<EditorScene>();
+		m_editorScene->initialize();
+
 		check_gl_error();
 		//m_text = std::make_unique<ecs::TextRenderer>();
 
@@ -481,6 +487,9 @@ omen::floatprec Engine::time() {
 
 void Engine::renderScene() {
 	omen::ecs::GraphicsSystem::resetDrawCounters();
+	if (m_editorScene != nullptr)
+		m_editorScene->render(m_camera->viewProjection(), m_camera->view());
+
 	if (m_scene != nullptr)
 		m_scene->render(m_camera->viewProjection(), m_camera->view());
 
@@ -834,6 +843,10 @@ void Engine::handle_task_queue() {
 
 Scene *Engine::scene() {
 	return m_scene.get();
+}
+
+EditorScene *Engine::editorScene() {
+	return m_editorScene.get();
 }
 
 void Engine::renderText() {

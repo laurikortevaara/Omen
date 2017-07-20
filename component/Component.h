@@ -27,7 +27,7 @@ namespace omen {
             typedef omen::Signal<std::function<void(Entity*, Component*)> > ComponentDetached_t;
 			typedef omen::Signal<std::function<void(Component*) > > Component_Destructed_t;
 
-            ComponentAttached_t signal_compnent_attached;
+            ComponentAttached_t signal_component_attached;
             ComponentDetached_t signal_component_detached;
 			Component_Destructed_t signal_component_destructed;
 

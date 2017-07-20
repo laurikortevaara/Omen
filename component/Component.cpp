@@ -13,11 +13,18 @@ Component::Component() :
 };
 
 void Component::setEntity(omen::ecs::Entity *pEntity) {
-    if(pEntity!= nullptr)
-        onAttach(pEntity);
-    else
-        onDetach(pEntity);
+	if (pEntity != nullptr)
+	{
+		onAttach(pEntity);
+		signal_component_attached.notify(pEntity, this);
+	}
+	else
+	{
+		onDetach(pEntity);
+		signal_component_detached.notify(pEntity, this);
+	}
     m_entity = pEntity;
+	
 }
 
 Entity *Component::entity() const {

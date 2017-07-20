@@ -45,6 +45,18 @@ namespace omen {
 			m_observers.push_back(std::pair<omen::Object*, T>(reinterpret_cast<omen::Object*>(nullptr), obs));
 		}
 
+		void removeObserver(omen::Object* o)
+		{
+			std::vector<std::pair<omen::Object*, T>>::iterator iter = m_observers.begin();
+			for (auto obs : m_observers)
+			{
+				if (obs.first == o)
+					break;
+				iter++;
+			}
+			if (iter != m_observers.end())
+				m_observers.erase(iter);
+		}
 
         template<typename... a>
         void notify(a... args) {

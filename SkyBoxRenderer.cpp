@@ -25,12 +25,14 @@ SkyBoxRenderer::SkyBoxRenderer(MeshController* mc) :
 }
 
 
-SkyBoxRenderer::~SkyBoxRenderer() {
+SkyBoxRenderer::~SkyBoxRenderer() 
+{
 
 	delete m_shader;
 }
 
-void SkyBoxRenderer::render(Shader* shader) {
+void SkyBoxRenderer::render(omen::Shader* shader) const 
+{
 	
 	auto start = std::chrono::high_resolution_clock::now();
 	omen::Window::_size s = Engine::instance()->window()->size();

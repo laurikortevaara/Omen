@@ -92,7 +92,7 @@ namespace omen {
 			EasingType easingType() const { return m_easingType; }
         protected:
             virtual void updateLayout();
-            virtual void onMeasure(float maxwidth, float maxheight);
+            virtual void onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas);
         private:
 			float m_min_value;
 			float m_max_value;

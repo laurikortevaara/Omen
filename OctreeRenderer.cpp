@@ -206,11 +206,11 @@ void OctreeRenderer::renderNode(Octree::Node* node, int level)
 			renderNode(child, level + 1);
 }
 
-void OctreeRenderer::render(omen::Shader * shader)
+void OctreeRenderer::render(omen::Shader * shader) const
 {
 	if (!m_octree->rootNode)
 		return;
 	m_shader->use();
 	
-	renderNode(m_octree->rootNode, 0);
+	const_cast<OctreeRenderer*>(this)->renderNode(m_octree->rootNode, 0);
 }

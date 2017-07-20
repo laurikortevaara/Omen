@@ -18,18 +18,28 @@ LinearLayout::LinearLayout(View *parentView, const std::string& name, const glm:
 
 void LinearLayout::updateLayout() {
 	View::updateLayout();
-    float y = 0;
-    float x = 0;
-    for(const auto& childView : children()) {
+	
+	float x = m_paddings[0];
+	float y = m_paddings[1];
+    
+    for(const auto& child : children()) {
+		View* childView = dynamic_cast<View*>(child.get());
+		childView->setLocalPos2D(glm::vec2(x, y));
         switch(m_layoutDirection){
             case VERTICAL:
-				y += childView->height();
+				y += childView->height() + childView->margins()[1]+childView->margins()[3];
                 break;
             case HORIZONTAL:
-				x += childView->width();
+				x += childView->width() + childView->margins()[0] + childView->margins()[2];
                 break;
         }
     }
+
+	for (const auto& child : children()) {
+		View* childView = dynamic_cast<View*>(child.get());
+		if (childView->gravity() == VERTICAL_CENTER)
+			childView->setLocalPos2D(glm::vec2(childView->localPos2D().x, (height()-childView->height()) / 2.0f));
+	}
 }
 
 void LinearLayout::setLayoutDirection(LinearLayout::LayoutDirection dir) {
@@ -49,16 +59,17 @@ bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 			addChild(std::move(std::make_unique<WindowDivider>(this, children().back().get(), e.get())));
 	}
 
-	glm::vec2 childPos(m_margins.x, m_margins.y);
+	glm::vec2 childPos(m_paddings.x, m_paddings.y);
 	for (const auto& child : children())
 	{
+		const View* v = dynamic_cast<const View*>(child.get());
 		switch (m_layoutDirection)
 		{
 		case VERTICAL:
-			childPos.y += child->height();
+			childPos.y += child->height() + v->margins()[1] + v->margins()[3];
 			break;
 		case HORIZONTAL:
-			childPos.x += child->width();
+			childPos.x += child->width() + v->margins()[0] + v->margins()[2];
 			break;
 		}
 	}
@@ -70,7 +81,7 @@ bool LinearLayout::addChild(std::unique_ptr<Entity> e)
 			h = eh;
 		childPos.y = (h-eh)*0.5f;
 	}
-	e->setLocalPos2D(e->localPos2D()+childPos+glm::vec2(m_margins));
+	e->setLocalPos2D(e->localPos2D()+childPos);
 	View::addChild(std::move(e));
 	return true;
 }

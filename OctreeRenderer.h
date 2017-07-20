@@ -21,7 +21,7 @@ namespace omen {
 
 			virtual void onDetach(ecs::Entity * e) override;
 
-			virtual void render(omen::Shader * shader = nullptr) override;
+			virtual void render(omen::Shader * shader = nullptr) const override;
 
 			void renderNode(Octree::Node* node, int level);
 		private:

@@ -27,22 +27,22 @@ Renderer::Renderer() :
 	int a = 1;
 };
 
-void Renderer::storePolygonMode()
+void Renderer::storePolygonMode() const
 {
 	glGetIntegerv(GL_POLYGON_MODE, polymode);
 }
 
-void Renderer::polygonModeFill()
+void Renderer::polygonModeFill() const
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void Renderer::polygonModeWireframe()
+void Renderer::polygonModeWireframe() const
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
 }
 
-void Renderer::restorePolygonMode()
+void Renderer::restorePolygonMode() const
 {
 	glPolygonMode(GL_FRONT, polymode[0]);
 	glPolygonMode(GL_BACK, polymode[1]);

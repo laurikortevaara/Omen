@@ -50,7 +50,7 @@ void ImageView::updateLayout() {
 	View::updateLayout();
 }
 
-void ImageView::onMeasure(float maxwidth, float maxheight) {
+void ImageView::onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas) {
 
 }
 

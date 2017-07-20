@@ -105,10 +105,15 @@ Entity::~Entity()
 	signal_entity_destructed.notify(this);
 }
 
+void Entity::onParentChanged()
+{
+}
+
 bool Entity::addChild(std::unique_ptr<Entity> e) {
 	if(std::find(m_children.begin(), m_children.end(), e)==m_children.end())
 	{
 		e->m_parent = this;
+		e->onParentChanged();
 		Engine::instance()->scene()->signal_entity_added.notify(e.get());
 		m_children.push_back(std::move(e));		
 		return true;

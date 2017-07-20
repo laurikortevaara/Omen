@@ -31,7 +31,7 @@ namespace omen {
         OceanRenderer(ecs::MeshController* mc);
         virtual ~OceanRenderer();
 
-		virtual void render(Shader* shader = nullptr);
+		virtual void render(omen::Shader* shader = nullptr) const;
 
 		double phillips(glm::vec2 k, float max_l);
         

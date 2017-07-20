@@ -31,7 +31,7 @@ namespace omen {
 				return *this;
 			}
 
-			virtual void render(Shader* shader = nullptr);
+			virtual void render(omen::Shader* shader = nullptr) const;
 			void render2(Shader* shader = nullptr);
 			void renderShadows(Shader* shader);
 			

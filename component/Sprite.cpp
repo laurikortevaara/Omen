@@ -79,10 +79,14 @@ void Sprite::render() {
 	texture()->bind();
 
 	glm::mat4 model(1);
-	float fw = 2 * renderer()->entity()->width() / (float)Engine::instance()->window()->width();
-	float fh = 2 * renderer()->entity()->height() / (float)Engine::instance()->window()->height();
-	float fx = -1.0f + 2 * ((renderer()->entity()->pos().x + pos().x + pivot().x) / (float)Engine::instance()->window()->width());
-	float fy = 1.0f - 2 * ((renderer()->entity()->pos().y + pos().y + pivot().y) / (float)Engine::instance()->window()->height());
+	glm::vec2 layoutSize = renderer()->entity()->size2D();
+	glm::vec2 epos = renderer()->entity()->pos2D();
+	glm::vec2 elpos = renderer()->entity()->localPos2D();
+	glm::vec2 esize = renderer()->entity()->size2D();
+	float fw = 2.0f; // 2 * renderer()->entity()->width() / (float)Engine::instance()->window()->width();
+	float fh = 2.0f; // 2 * renderer()->entity()->height() / (float)Engine::instance()->window()->height();
+	float fx = -1.0f; // +2 * ((elpos.x + pos().x + pivot().x) / (float)layoutSize.x);
+	float fy = 1.0f;
 	model = glm::translate(model, glm::vec3(fx, fy, 0));
 	model = glm::scale(model, glm::vec3(fw, fh, 1));
 	shader()->setUniformMatrix4fv("Model", 1, &model[0][0], false);

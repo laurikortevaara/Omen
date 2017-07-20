@@ -37,8 +37,8 @@ void Window::windowSizeChanged(GLFWwindow *window, int width, int height) {
 	// notify about window size changed event
 	m_width = width;
 	m_height = height;
-	glViewport(0, 0, m_width, m_height);
-	glScissor(0, 0, m_width, m_height);
+	//glViewport(0, 0, m_width, m_height);
+	//glScissor(0, 0, m_width, m_height);
 	//glClearColor(0, 0, 0, 1);
 	signal_window_size_changed.notify(width, height);
 }
@@ -205,20 +205,6 @@ Window::~Window() {
 void Window::start_rendering() {
 	glfwMakeContextCurrent(m_window);
 	glEnable(GL_SCISSOR_TEST);
-	// Set the clear color
-	//easeOutElastic: function (t) { return .04 * t / (--t) * Math.sin(25 * t) },
-	double t = Engine::instance()->time();
-	double w = 500+5000*(0.04*t / (--t)*sin(25 * t));
-
-	glViewport(0, 0, m_width, m_height);
-	glScissor(0, 0, m_width, m_height);
-	//glClearColor(0, 0, 0, 1);
-	
-	/*glFlush();
-	glViewport(0, 100, m_width, m_height - 100);
-	glScissor(0, 100, m_width, m_height - 100);
-	glClearColor(1, 0, 0, 1);
-	*/
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glFlush();
 
@@ -243,6 +229,10 @@ unsigned int Window::frameBufferWidth() const {
 
 unsigned int Window::frameBufferHeight() const {
 	return size().fb_height;
+}
+
+float Window::aspectRatio() const {
+	return (float)width() / (float)height();
 }
 
 Window::_size Window::size() const {

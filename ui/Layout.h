@@ -13,11 +13,11 @@ namespace omen {
 		
         class Layout : public View {
         public:
-			
+			virtual void updateLayout() = 0;
         protected:
             Layout(View *parentView, const std::string& name, const glm::vec2& pos, const glm::vec2& size);
-			virtual void updateLayout() = 0;
-			virtual void onMeasure(float maxwidth, float maxheight) = 0;
+			
+			virtual void onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas) = 0;
         };
     } // namespace ui
 } // namespace omen

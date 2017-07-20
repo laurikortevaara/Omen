@@ -23,15 +23,10 @@ Clickable::Clickable() :
 		omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
 
         if(tr!=nullptr){
-			glm::vec3 pos = entity()->pos();
-            glm::vec3 bmin, bmax;
-            tr->getBounds(bmin,bmax);
-            if(cursorPos.x >= (pos.x+bmin.x) &&
-				cursorPos.x <= (pos.x+bmax.x) &&
-				cursorPos.y >= (pos.y+bmin.y) &&
-				cursorPos.y <= (pos.y+bmax.y)) {
+			if(cursorInsideEntity()) {
+				glm::vec3 pos = entity()->pos();
 				m_deltaPos = glm::vec2(cursorPos.x-pos.x, cursorPos.y-pos.y);
-                signal_entity_clicked.notify(entity(), cursorPos, button);
+                signal_entity_mouse_pressed.notify(entity(), cursorPos, button);
 				m_is_pressed = true;
             }
         }
@@ -39,7 +34,11 @@ Clickable::Clickable() :
 
 	Engine::instance()->findComponent<MouseInput>()->
 		signal_mousebutton_released.connect(this,[&](int button, int action, int mods, const glm::vec2& cursorPos) -> void {
+		if (m_is_pressed)
+			signal_entity_mouse_clicked.notify(entity(), cursorPos, button);
 		m_is_pressed = false;
+		if(cursorInsideEntity())
+			signal_entity_mouse_released.notify(entity(), cursorPos, button);
 	});
 
 	Engine::instance()->findComponent<MouseInput>()->
@@ -57,4 +56,21 @@ void Clickable::onAttach(Entity *e) {
 
 void Clickable::onDetach(Entity *e) {
     m_entity = nullptr;
+}
+
+
+bool Clickable::cursorInsideEntity() {
+	omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
+	if (tr != nullptr)
+	{
+		glm::vec3 pos = entity()->pos();
+		glm::vec3 bmin, bmax;
+		tr->getBounds(bmin, bmax);
+		return (m_cursorPos.x >= (pos.x + bmin.x) &&
+			m_cursorPos.x <= (pos.x + bmax.x) &&
+			m_cursorPos.y >= (pos.y + bmin.y) &&
+			m_cursorPos.y <= (pos.y + bmax.y));
+	}
+	else
+		return false;
 }

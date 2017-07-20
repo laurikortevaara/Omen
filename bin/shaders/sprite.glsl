@@ -45,7 +45,8 @@ void main() {
     vec2 tcoord = dataIn.texcoord;
 
     out_color = texture(Texture, tcoord);
-    if(!Enabled)
+    /*
+	if(!Enabled)
         out_color = out_color*vec4(1.0);
     if(Pressed)
         out_color.b = 1;
@@ -55,6 +56,7 @@ void main() {
         if(texture(Texture, tcoord).a > 0)
             out_color.a = abs(cos(iGlobalTime*10));
     }
+	*/
 
 }
 

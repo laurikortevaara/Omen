@@ -94,7 +94,7 @@ Slider::Slider(View* parentView, const std::string &name, const std::string &spr
 	
 
 	std::unique_ptr<omen::ecs::Clickable> click = std::make_unique<omen::ecs::Clickable>();
-	click->signal_entity_clicked.connect(this,[this](Entity* e, glm::vec2 pos, int button) {
+	click->signal_entity_mouse_clicked.connect(this,[this](Entity* e, glm::vec2 pos, int button) {
 		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 			setSliderPosition(0.5);
 		}
@@ -121,7 +121,7 @@ void Slider::updateLayout() {
 	View::updateLayout();
 }
 
-void Slider::onMeasure(float maxwidth, float maxheight) {
+void Slider::onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas) {
 
 }
 

@@ -20,7 +20,7 @@ namespace omen {
 			SkyBoxRenderer(MeshController*);
 			virtual ~SkyBoxRenderer();
 
-			virtual void render(Shader* shader = nullptr);
+			virtual void render(Shader* shader = nullptr) const;
 
 		protected:
 			virtual void initializeShader() {};

@@ -5,6 +5,7 @@
 #include "../component/TextRenderer.h"
 #include "../component/Draggable.h"
 #include "TextView.h"
+#include "../utils.h"
 
 using namespace omen;
 using namespace ui;
@@ -15,6 +16,7 @@ TextView::TextView(View *parentView, const std::string& name, const glm::vec2& p
 	std::unique_ptr<ecs::TextRenderer> textRenderer = std::make_unique<ecs::TextRenderer>();
 	addComponent(std::move(textRenderer));
 
+	setText(string_to_wstring(name));
 	/*Entity* slider = Engine::instance()->scene()->findEntity("Slider1");
 	if (slider != nullptr)
 	{
@@ -26,4 +28,26 @@ void TextView::setText(const std::wstring& text) {
 	m_text = text; 
 	ecs::TextRenderer* tr = getComponent<ecs::TextRenderer>();
 	tr->setText(text);
+}
+
+void TextView::updateLayout()
+{
+	getComponent<ecs::TextRenderer>()->invalidate();
+}
+
+void TextView::onParentChanged()
+{
+	getComponent<ecs::TextRenderer>()->invalidate();
+}
+
+void TextView::setHeight(float height)
+{
+	Entity::setHeight(height);
+	getComponent<ecs::TextRenderer>()->invalidate();
+}
+
+void TextView::setWidth(float width)
+{
+	Entity::setWidth(width);
+	getComponent<ecs::TextRenderer>()->invalidate();
 }

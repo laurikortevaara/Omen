@@ -6,33 +6,53 @@
 #include "../ui/TextView.h"
 #include "../utils.h"
 #include "../ui/ImageView.h"
+#include "../Engine.h"
 #include "WindowDivider.h"
+#include "../component/SpriteRenderer.h"
+#include "../component/Sprite.h"
 
+using namespace omen;
 using namespace omen::ui;
+using namespace omen::editor;
 
-GUILayout::GUILayout() :
-	View(nullptr, "GUI Layout", { 0.0f,0.0f }, { 100.0f,100.0f })
+GUILayout::GUILayout(LinearLayout::LayoutDirection dir) :
+	LinearLayout(nullptr, "GUI Layout", { 0.0f,0.0f }, { 0.0f, 0.0f }, dir)
 {
-	layoutParams().layoutSizingHeight = LayoutParams::WrapContent;
-	layoutParams().layoutSizingWidth = LayoutParams::WrapContent;
-	std::unique_ptr<LinearLayout> layout = std::make_unique<LinearLayout>(nullptr, "GUI Main Layout", glm::vec2(0, 0), glm::vec2(width(), height()), LinearLayout::LayoutDirection::HORIZONTAL);
-	View::addChild(std::move(layout));
+	layoutParams().layoutSizingHeight = LayoutParams::MatchParent;
+	layoutParams().layoutSizingWidth = LayoutParams::MatchParent;
+
+	if (Engine::instance()->window() != nullptr)
+	{
+		setSize2D(glm::vec2(Engine::instance()->window()->width(), Engine::instance()->window()->height()));
+		updateLayout();
+	}
+	else {
+		Engine::instance()->window()->signal_window_created.connect(this, [this](Window* window) {
+			setSize2D(glm::vec2(window->width(), window->height()));
+			updateLayout();
+		});
+	}
+
+	Engine::instance()->window()->signal_window_size_changed.connect(this, [this](int width, int height) {
+		setSize2D(glm::vec2(width, height));
+		updateLayout();
+	});
 }
 
 void GUILayout::updateLayout()
 {
-	View::updateLayout();
+	LinearLayout::updateLayout();
 
 }
 
-void GUILayout::onMeasure(float maxwidth, float maxheight)
+void GUILayout::onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas)
 {
 
 }
 
 bool GUILayout::addChild(std::unique_ptr<View> e) {
-	LinearLayout* rootLayout = static_cast<LinearLayout*>(children().front().get());
+	LinearLayout* rootLayout = this;
 	if(!rootLayout->children().empty())
-		rootLayout->addChild(std::move(std::make_unique<WindowDivider>(rootLayout, children().front()->children().back().get(), e.get())));
-	return children().front()->addChild(std::move(e));
+		rootLayout->addChild(std::move(std::make_unique<WindowDivider>(rootLayout, children().back().get(), e.get())));
+	return LinearLayout::addChild(std::move(e));
 }

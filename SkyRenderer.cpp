@@ -70,7 +70,7 @@ SkyRenderer::~SkyRenderer() {
 	delete m_shader;
 }
 
-void SkyRenderer::render(Shader* shader) {
+void SkyRenderer::render(omen::Shader* shader) const {
 	auto start = std::chrono::high_resolution_clock::now();
 	omen::Window::_size s = Engine::instance()->window()->size();
 

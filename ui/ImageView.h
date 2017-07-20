@@ -7,6 +7,7 @@
 
 #include "../Entity.h"
 #include "../component/Sprite.h"
+#include "../component/SpriteRenderer.h"
 #include "../component/Clickable.h"
 #include "View.h"
 
@@ -25,9 +26,11 @@ namespace omen {
 			glm::vec2 pivot() const;
 			void setPivot(const glm::vec2& pivot);
 
+			omen::ecs::Sprite* sprite() { getComponent<omen::ecs::SpriteRenderer>()->sprite(); }
+
         protected:
             virtual void updateLayout();
-            virtual void onMeasure(float maxwidth, float maxheight);
+            virtual void onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas);
         private:
         };
     } // namespace ui

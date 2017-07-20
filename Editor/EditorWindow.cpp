@@ -3,12 +3,16 @@
 #include "../ui/LinearLayout.h"
 #include "../ui/TextView.h"
 #include "../utils.h"
-#include "../ui/ImageView.h"
-#include "WindowDivider.h"
+
+
+using namespace omen::ui;
+using namespace omen::editor;
 
 EditorWindow::EditorWindow(const std::string& title) :
-	View(nullptr, title, { 0.0f,0.0f }, { 100.0f,0.0f })
+	View(nullptr, title, { 0.0f,0.0f }, { 100.0f,100.0f })
 {
+	layoutParams().layoutSizingHeight = LayoutParams::Absolute;
+	layoutParams().layoutSizingWidth = LayoutParams::Absolute;
 	Entity* left = nullptr;
 	Entity* right = nullptr;
 	
@@ -20,11 +24,6 @@ EditorWindow::EditorWindow(const std::string& title) :
 	titleView->setText(omen::string_to_wstring(title));
 	
 	lp->addChild(std::move(titleView));
-
-	std::unique_ptr<omen::ui::ImageView> imgView = std::make_unique<omen::ui::ImageView>(nullptr, "EditorWindow_ImageView", "textures/smoke.jpg", glm::vec2(0, 0));
-	lp->addChild(std::move(imgView));
-	
-	
 }
 
 void EditorWindow::updateLayout()
@@ -33,7 +32,7 @@ void EditorWindow::updateLayout()
 	int i = 1;
 }
 
-void EditorWindow::onMeasure(float maxwidth, float maxheight)
+void EditorWindow::onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas)
 {
 	int i = 1;
 }

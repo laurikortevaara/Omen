@@ -9,6 +9,7 @@
 #include "MouseInput.h"
 #include "SpriteRenderer.h"
 #include "Sprite.h"
+#include "../ui/View.h"
 
 using namespace omen::ecs;
 

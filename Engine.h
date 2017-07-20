@@ -19,12 +19,12 @@
 #pragma warning(pop)
 
 #include "Scene.h"
+#include "Editor/EditorScene.h"
 #include "Camera.h"
 #include "Window.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "system/System.h"
-#include "ui/Button.h"
 #include "Property.h"
 #include "typedef.h"
 
@@ -82,6 +82,7 @@ namespace omen {
         static Engine* instance();
 
         Scene *scene();
+		EditorScene *editorScene();
 
         GLenum getPolygonMode();
 		static void getTextureMemoryInfo();
@@ -166,8 +167,9 @@ namespace omen {
         std::list<std::unique_ptr<Window>> m_windows;
         
 		Camera *m_camera;
-        ui::Button *m_button;
+
         std::unique_ptr<Scene> m_scene;
+		std::unique_ptr<EditorScene> m_editorScene;
         std::vector<ecs::System*> m_systems;
         std::unique_ptr<ecs::TextRenderer> m_text;
 		bool m_is_shutting_down;

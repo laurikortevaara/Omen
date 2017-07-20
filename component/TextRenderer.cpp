@@ -19,6 +19,9 @@ using namespace omen;
 using namespace ecs;
 
 /// Holds all state information relevant to a character as loaded using FreeType
+static const float FontSize = 14.0f;
+static float LineHeight = 0.0f;
+
 struct Character {
 	GLuint TextureID;   // ID handle of the glyph texture
 	glm::ivec2 Size;    // Size of glyph
@@ -29,45 +32,55 @@ struct Character {
 std::map<GLchar, Character> Characters;
 
 TextRenderer::TextRenderer() :
-	Renderer()
+	Renderer(),
+	is_single_line(false),
+	m_y_delta(0.0f),
+	m_textScale(1.0f)
 {
 	initializeShader();
 	initializeFreeType();
 }
 
-void TextRenderer::render(Shader* shader) {
+void TextRenderer::render(omen::Shader* shader) const {
 	storePolygonMode();
 	polygonModeFill();
 	omen::ui::View* e = dynamic_cast<omen::ui::View*>(entity());
 
-	float x = e->pos2D().x;
-	float y = -e->pos2D().y;
+	float x = 0.0f; // e->pos2D().x;
+	float y = -LineHeight; // Characters['X'].Size.y; // -e->pos2D().y;
 	if (e->gravity() == omen::ui::View::VERTICAL_CENTER)
 		y = -(e->pos2D().y+(e->size2D().y-Characters['X'].Size.y)*0.5f);
-	renderText(m_text, x, y, 1.0, glm::vec4(1));
+	renderText(m_text, x, y, m_textScale, glm::vec4(1));
 	restorePolygonMode();
 }
 
-void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color)
+void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat yd, GLfloat scale, glm::vec4 color) const
 {
+	float y = m_y_delta + yd;
 	auto start = std::chrono::high_resolution_clock::now();
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(1.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Activate corresponding render state	
 	m_shader->use();
 
-	omen::floatprec width = static_cast<omen::floatprec>(Engine::instance()->window()->width());
-	omen::floatprec height = static_cast<omen::floatprec>(Engine::instance()->window()->height());
+	omen::floatprec width = static_cast<omen::floatprec>(entity()->width());
+	omen::floatprec height = static_cast<omen::floatprec>(entity()->height());
 
 	glm::mat4 model;
 	model = glm::scale(model, glm::vec3(1));
-	model = glm::translate(model, glm::vec3(0, height-Characters['X'].Size.y, 0.0f));
+	model = glm::translate(model, glm::vec3(0, height, 0)); // height - Characters['X'].Size.y, 0.0f));
 	m_shader->setUniformMatrix4fv("Model", 1, glm::value_ptr(model), false);
 	m_shader->setUniform4fv("TextColor", 1, &color[0]);
 
+	
 	glm::mat4 projection = glm::ortho(0.0f, width, 0.0f, height);
+	float w = static_cast<float>(Engine::instance()->window()->width());
+	float h = static_cast<float>(Engine::instance()->window()->height());
+	//glm::mat4 projection = glm::ortho(0.0f, w, 0.0f, h);
 	m_shader->setUniformMatrix4fv("Projection", 1, glm::value_ptr(projection), false);
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
@@ -81,7 +94,8 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 	for (c = text.begin(); c != text.end(); c++)
 	{
 		Character ch = Characters[static_cast<const char>(*c)];
-		if (*c == '\n') {
+		//std::cout << "character: " << (int)*c << " is " << (char)*c << std::endl;
+		if (*c == '\n' || *c == 9) {
 			y -= (Characters['X'].Size.y + row_spacing)*scale;
 			x = origin_x;
 			continue;
@@ -93,17 +107,32 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 		GLfloat w = ch.Size.x * scale;
 		GLfloat h = ch.Size.y * scale;
 
-		/*if (xpos + w * 3 > m_entity->size().x) {
-			ch = Characters['.'];
-			xpos = x + ch.Bearing.x * scale;
-			ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+		if (is_single_line)
+		{
+			if (xpos + Characters['.'].Size.x * 3.0f > m_entity->size().x) {
+				ch = Characters['.'];
+				xpos = x + ch.Bearing.x * scale;
+				ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
 
-			w = ch.Size.x * scale;
-			h = ch.Size.y * scale;
+				w = ch.Size.x * scale;
+				h = ch.Size.y * scale;
+			}
+			if (xpos + w > (m_entity->pos().x + m_entity->size().x))
+				continue;
 		}
-		if (xpos + w > (m_entity->pos().x+m_entity->size().x))
-			continue;
-		*/
+		else
+		{
+			if (xpos + Characters['.'].Size.x * 3.0f > m_entity->size().x) {
+				x = 0;
+				y -= LineHeight;
+				xpos = x + ch.Bearing.x * scale;
+				ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+				
+			}
+		}
+		
+		
+
 		// Update VBO for each character
 		GLfloat vertices[6][4] = {
 			{ xpos,     ypos + h,   0.0, 0.0 },
@@ -135,6 +164,72 @@ void TextRenderer::renderText(const std::wstring& text, GLfloat x, GLfloat y, GL
 	//std::cout << "Text render: " << ms << "ms.\n";
 }
 
+glm::vec2 TextRenderer::getTextBounds()
+{
+	float y = 0.0f;
+	float x = 0.0f;
+	float maxx = 0.0f;
+	float maxy = 0.0f;
+	omen::floatprec width = static_cast<omen::floatprec>(entity()->width());
+	omen::floatprec height = static_cast<omen::floatprec>(entity()->height());
+
+	float w = static_cast<float>(Engine::instance()->window()->width());
+	float h = static_cast<float>(Engine::instance()->window()->height());
+
+	// Iterate through all characters
+	std::wstring::const_iterator c;
+	omen::floatprec origin_x = 0;
+	omen::floatprec row_spacing = Characters['X'].Size.y * 0.5f;
+
+	for (c = m_text.begin(); c != m_text.end(); c++)
+	{
+		Character ch = Characters[static_cast<const char>(*c)];
+		if (*c == '\n' || *c == 9) {
+			y -= (Characters['X'].Size.y + row_spacing)*m_textScale;
+			x = origin_x;
+			continue;
+		}
+
+		GLfloat xpos = x + ch.Bearing.x * m_textScale;
+		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * m_textScale;
+
+		GLfloat w = ch.Size.x * m_textScale;
+		GLfloat h = ch.Size.y * m_textScale;
+
+		if (is_single_line)
+		{
+			if (xpos + Characters['.'].Size.x * 3.0f > m_entity->size().x) {
+				ch = Characters['.'];
+				xpos = x + ch.Bearing.x * m_textScale;
+				ypos = y - (ch.Size.y - ch.Bearing.y) * m_textScale;
+
+				w = ch.Size.x * m_textScale;
+				h = ch.Size.y * m_textScale;
+			}
+			if (xpos + w > (m_entity->pos().x + m_entity->size().x))
+				continue;
+		}
+		else
+		{
+			if (xpos + Characters['.'].Size.x * 3.0f > m_entity->size().x) {
+				x = 0;
+				y -= LineHeight;
+				xpos = x + ch.Bearing.x * m_textScale;
+				ypos = y - (ch.Size.y - ch.Bearing.y) * m_textScale;
+
+			}
+		}
+
+		maxx = glm::max<float>(xpos, maxx);
+		maxy = glm::max<float>(-ypos, maxy);
+
+		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		x += (ch.Advance >> 6) * m_textScale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+	}
+
+	return { maxx,maxy+LineHeight };
+}
+
 bool TextRenderer::initializeFreeType() {
     if (FT_Init_FreeType(&m_freetype)) {
         std::cerr << "Could not init freetype library" << std::endl;
@@ -148,7 +243,7 @@ bool TextRenderer::initializeFreeType() {
 	// Disable byte-alignment restriction
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    FT_Set_Pixel_Sizes(m_fontFace, 0, 14);
+    FT_Set_Pixel_Sizes(m_fontFace, 0, static_cast<FT_UInt>(FontSize));
 
     if (FT_Load_Char(m_fontFace, 'X', FT_LOAD_RENDER)) {
         std::cerr << "Could not load character 'X'" << std::endl;
@@ -156,7 +251,7 @@ bool TextRenderer::initializeFreeType() {
     }
 
 	// Load first 128 characters of ASCII set
-	for (GLubyte c = 0; c < 128; c++)
+	for (GLubyte c = 0; c < 255; c++)
 	{
 		// Load character glyph 
 		if (FT_Load_Char(m_fontFace, c, FT_LOAD_RENDER))
@@ -168,6 +263,10 @@ bool TextRenderer::initializeFreeType() {
 		GLuint texture;
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		LineHeight = FontSize*(m_fontFace->height / (float)m_fontFace->units_per_EM);
+		//LineHeight = m_fontFace->size->metrics.height;
+		
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
@@ -218,4 +317,24 @@ void TextRenderer::initializeShader() {
 
 void TextRenderer::initializeTexture() {
     setTexture(nullptr);
+}
+
+void TextRenderer::setText(const std::wstring& text)
+{
+	m_text = text;
+	invalidate();
+}
+
+void TextRenderer::invalidate()
+{
+	glm::vec2 bounds = getTextBounds();
+	if (bounds.y>entity()->height())
+		Engine::instance()->signal_engine_update.connect(this, [&](omen::floatprec time, omen::floatprec dt) {
+		m_y_delta = bounds.y*sin(time);
+	});
+	else
+	{
+		Engine::instance()->signal_engine_update.removeObserver(this);
+		m_y_delta = 0.0f;
+	}
 }

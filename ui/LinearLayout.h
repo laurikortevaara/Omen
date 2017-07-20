@@ -30,7 +30,7 @@ namespace omen {
             LayoutDirection m_layoutDirection;
 
 			virtual void updateLayout();
-			virtual void onMeasure(float maxwidth, float maxheight) {};
+			virtual void onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas) {};
 
         private:
         };

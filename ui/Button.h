@@ -16,18 +16,20 @@ namespace omen {
 	}
 
     namespace ui {
-        class Button : public ImageView {
+        class Button : public ui::ImageView {
         public:
 			typedef omen::Signal<std::function<void(Button *, glm::vec2)> > ButtonClicked_t;
-
             ButtonClicked_t signal_button_clicked;
         public:
 			Button(View* parentView, const std::string &name, const std::string &sprite, const glm::vec2& pos = { 0,0 }, const glm::vec2& size = { -1,-1 });
 			virtual ~Button();
         protected:
             virtual void updateLayout();
-            virtual void onMeasure(float maxwidth, float maxheight);
+            virtual void onMeasure(MeasureSpec horintalMeas, MeasureSpec verticalMeas);
         private:
+			Texture* m_texture_normal;
+			Texture* m_texture_hovered;
+			Texture* m_texture_pressed;
         };
     } // namespace ui
 } // namespace omen

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 #include "Object.h"
 #include "component/Transform.h"
@@ -37,12 +38,14 @@ namespace omen {
 			typedef omen::Signal<std::function<void(Entity *, glm::vec2)> > SignalExited_t;
 			typedef omen::Signal<std::function<void(Entity*) > > Entity_Destructed_t;
 			typedef omen::Signal<std::function<void(Entity*, glm::vec3, glm::vec3) > > SignalSizeChanged_t;
+			typedef omen::Signal<std::function<void(Entity*) > > SignalLayerChanged_t;
 
 			SignalHovered_t signal_hovered;
 			SignalEntered_t signal_entered;
 			SignalExited_t  signal_exited;
 			Entity_Destructed_t signal_entity_destructed;
 			SignalSizeChanged_t signal_size_changed;
+			SignalLayerChanged_t signal_layer_changed;
 
 		public:
 			Entity(const std::string &name);
@@ -63,7 +66,10 @@ namespace omen {
 			Entity* findChild(const std::string& name);
 			Entity const* findChild_const(const std::string& name) const;
 
-			void setLayer(int layer) { m_layer = layer; }
+			void setLayer(int layer) {
+				m_layer = layer; 
+				signal_layer_changed.notify(this);
+			}
 			int layer() const { return m_layer; }
 
 			Transform* tr() { return getComponent<Transform>(); }
@@ -105,7 +111,11 @@ namespace omen {
 			virtual glm::vec2 size2D() const { return glm::vec2(width(), height()); }
 
 			virtual void setSize(const glm::vec3& size) { glm::vec3 oldSize = this->size(); tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + size); onSizeChanged(this->size(), oldSize); }
-			virtual void setSize2D(const glm::vec2& size) { glm::vec3 oldSize = this->size(); tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + glm::vec3(size.x,size.y,0)); onSizeChanged(this->size(), oldSize);
+			virtual void setSize2D(const glm::vec2& size) { 
+				glm::vec3 oldSize = this->size(); 
+				tr()->setBounds(tr()->boundsMin(), tr()->boundsMin() + glm::vec3(size.x,size.y,0)); 
+				onSizeChanged(this->size(), oldSize);
+				//std::cout << "View: " << name() << " size changed to " << size2D().x << ", " << size2D().y << "\n";
 			}
 
 			bool hovered() const { return m_is_hovered; }
@@ -137,6 +147,9 @@ namespace omen {
 			}
 
             bool addComponent(std::unique_ptr<Component> c);
+
+		protected:
+			virtual void onParentChanged();
         };
     } // namespace ecs
 } // namespace omen

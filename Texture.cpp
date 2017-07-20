@@ -282,6 +282,14 @@ GLuint Texture::read_png_file(const char* file_name)
 	* PNG_TRANSFORM_EXPAND forces to
 	*  expand a palette into RGB
 	*/
+	
+	/*png_read_info(png_ptr, info_ptr);
+
+	width = png_get_image_width(png_ptr, info_ptr);
+	height = png_get_image_height(png_ptr, info_ptr);
+	color_type = png_get_color_type(png_ptr, info_ptr);
+	bit_depth = png_get_bit_depth(png_ptr, info_ptr);*/
+
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_EXPAND, NULL);
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
 	
@@ -369,10 +377,11 @@ GLuint Texture::read_jpg_file(const char* fileName)
 		// note that png is ordered top to
 		// bottom, but OpenGL expect it bottom to top
 		// so the order or swapped
-		memcpy(outData[0] + (btm*x * (y - 1 - i)), (BYTE*)(image)+(i*btm*x), btm*x);
+		memcpy(outData[0] + (btm*x * (i)), (BYTE*)(image)+(i*btm*x), btm*x);
 	}
 	else
-		memcpy(outData[0], image, x*y*btm * sizeof(unsigned char));
+		for (size_t i = 0; i < m_height; i++)
+			memcpy(outData[0] + (btm*x * (y-1-i)), (BYTE*)(image)+(i*btm*x), btm*x);
 	m_bitmapType = btm == 3 ? GL_RGB : GL_RGBA;
 	stbi_image_free(image);
 	fclose(f);

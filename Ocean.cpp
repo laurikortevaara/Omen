@@ -889,11 +889,11 @@ void OceanRenderer::compute_fft(float t)
 	int a = 0;
 }
 
-void OceanRenderer::render(Shader* sh)
+void OceanRenderer::render(Shader* sh) const
 {
 	evaluateWavesFFT(Engine::instance()->time()*std::any_cast<float>(Engine::instance()->properties()["Time"]));
 
-	compute_ocean_mapping();
+	const_cast<OceanRenderer*>(this)->compute_ocean_mapping();
 	//compute_htilde0();
 	//compute_fft(Engine::instance()->time()*std::any_cast<float>(Engine::instance()->properties()["Time"]));
 
