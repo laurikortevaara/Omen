@@ -39,7 +39,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MDd ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MDd -std:c++latest /std:c++latest ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd -std:c++latest /std:c++latest ")
 
 if(MSVC)
 # We statically link to reduce dependencies
@@ -89,24 +89,6 @@ endif()
 ######################################################################
 # GLEW - OpenGL extension wrangler library
 ######################################################################
-if(APPLE)
-    set(GLEW_INCLUDE_DIR $(CMAKE_SOURCE_DIR)/thirdparty/glew/include)
-    set(GLEW_LIBRARY $(CMAKE_SOURCE_DIR)/thirdparty/glew/lib/Release/Win32)
-    find_package(GLEW REQUIRED)
-    include_directories($(CMAKE_SOURCE_DIR)/thirdparty/glew/include)
-    add_definitions(-DGLEW_STATIC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${GLEW_INCLUDE_DIRS}")
-else()
-    set(GLEW_INCLUDE_DIR $(CMAKE_SOURCE_DIR)/thirdparty/glew/include)
-    set(GLEW_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/glew/lib/Debug/libglew32d.lib)
-    find_package(GLEW REQUIRED)
-    if (GLEW_FOUND)
-        include_directories(${GLEW_INCLUDE_DIRS})
-        link_libraries(${GLEW_LIBRARIES})
-    endif()
-    include_directories($(CMAKE_SOURCE_DIR)/thirdparty/glew/include)
-    add_definitions(-DGLEW_STATIC)
-endif(APPLE)
 include_directories(thirdparty/glew/include)
 
 
@@ -143,6 +125,12 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/boxer/include)
 #if (NOT OPENGL)
 #    message(FATAL_ERROR "OpenGL not found")
 #endif ()
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glew/build/cmake)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/glew32d)
+else()
+	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/glew32)
+endif()
 
 ######################################################################
 # Google Test library (WIP)
@@ -152,13 +140,15 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/boxer/include)
 ######################################################################
 # FREETYPE
 ######################################################################
+set(FREETYPE_NO_DIST TRUE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/freetype)
 include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
-#FREETYPE_DIR
-#find_library(FREETYPE FreeType)
-#if (NOT FREETYPE)
-#    message(FATAL_ERROR "FreeType not found")
-#endif ()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/freetyped)
+else()
+	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/freetype)
+endif()
 
 ######################################################################
 # OpenVR SDK
@@ -175,13 +165,14 @@ set(OPENVR_SDK_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openvr/lib/win32/openvr_ap
 ######################################################################
 #include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/include)
 #set(OPENAL_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/lib/win32/openvr_api.lib)
-add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft)
+#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft)
 
 ######################################################################
 # Mono SDK
 ######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/include)
 include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/include/mono-2.0)
-set(MONO_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/mono/lib/mono-2.0-sgen.lib)
+set(MONO_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/build/sgen/Win32/lib/${CMAKE_BUILD_TYPE}/mono-2.0-sgen.lib)
 
 ######################################################################
 # BULLET PHYSICS
@@ -203,13 +194,21 @@ include_directories(thirdparty/bullet/src)
 ######################################################################
 # ZLIB
 ######################################################################
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+include_directories(${ZLIB_INCLUDE_DIRS})
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/zlibd)
+else()
+	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/zlib)
+endif()
+
 
 ######################################################################
 # LIBPNG
 ######################################################################
+set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+set(ZLIB_LIBRARY_DEBUG ${CMAKE_SOURCE_DIR}/build/lib/Debug/zlibd.lib)
+set(ZLIB_LIBRARY_RELEASE ${CMAKE_SOURCE_DIR}/build/lib/Release/zlib.lib)
 #if (APPLE)
 #  find_package(Png REQUIRED)
 #  if(NOT PNG_FOUND)
@@ -311,16 +310,16 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS} )
 
-set(FREETYPE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
-set(FREETYPE_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/freetype/lib/freetyped.lib)
-find_package(Freetype REQUIRED)
-include_directories(${FREETYPE_INCLUDE_DIRS})
+#set(FREETYPE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
+#set(FREETYPE_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/freetype/lib/freetyped.lib)
+#find_package(Freetype REQUIRED)
+#include_directories(${FREETYPE_INCLUDE_DIRS})
 
 set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/src)
-set(BULLET_DYNAMICS_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/BulletDynamics_Debug.lib)
-set(BULLET_COLLISION_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/BulletCollision_Debug.lib)
-set(BULLET_MATH_LIBRARY  ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/LinearMath_Debug.lib)
-set(BULLET_SOFTBODY_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/bullet/lib/Debug/BulletSoftBody_Debug.lib)
+set(BULLET_DYNAMICS_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/BulletDynamics.lib)
+set(BULLET_COLLISION_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/BulletCollision.lib)
+set(BULLET_MATH_LIBRARY  ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/LinearMath.lib)
+set(BULLET_SOFTBODY_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/BulletSoftBody.lib)
 
 find_package(Bullet REQUIRED)
 include_directories(${BULLET_INCLUDE_DIRS})
@@ -512,7 +511,7 @@ ui/TextView.h
 ui/View.h
 
 # thirdparty
-thirdparty/boxer/lib/boxer_win.cpp
+thirdparty/boxer/src/boxer_win.cpp
 Common/Common.cxx
 Common/Common.h
 )
@@ -524,3 +523,4 @@ set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
 # Set the target link libraries
 ######################################################################
 target_link_libraries(Omen ${LIBRARIES})
+set_target_properties(Omen PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

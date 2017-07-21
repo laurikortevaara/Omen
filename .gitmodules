@@ -58,3 +58,6 @@
 	path = thirdparty/openal-soft
 	url = https://github.com/kcat/openal-soft
 	ignore = dirty
+[submodule "thirdparty/mono"]
+	path = thirdparty/mono
+	url = https://github.com/mono/mono
