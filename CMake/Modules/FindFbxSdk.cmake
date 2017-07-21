@@ -76,7 +76,7 @@ FIND_PATH(FBX_INCLUDE_DIR "fbxsdk.h"
     PATH_SUFFIXES "include")
 FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
     PATHS ${FBX_SEARCH_PATHS}
-    PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug" "lib/${FBX_LIBDIR}")
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/release" "lib/${FBX_LIBDIR}")
 
 message(STATUS "FBX IncludeDir: " ${FBX_INCLUDE_DIR})
 message(STATUS "FBX Library: " ${FBX_LIBRARY})
@@ -84,12 +84,15 @@ message(STATUS "FBX Library: " ${FBX_LIBRARY})
 #Once one of the calls succeeds the result variable will be set and stored in the cache so that no call will search again.
 
 #no debug d suffix, search in debug folder only
-FIND_LIBRARY( FBX_LIBRARY_DEBUG ${FBX_LIBNAME}
-    PATHS ${FBX_SEARCH_PATHS}
-    PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug")
 FIND_LIBRARY( FBX_LIBRARY_DEBUG ${FBX_LIBNAME_DEBUG}
     PATHS ${FBX_SEARCH_PATHS}
-    PATH_SUFFIXES "lib/${FBX_LIBDIR}")
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug")
+FIND_LIBRARY( FBX_LIBRARY_RELEASE ${FBX_LIBNAME}
+    PATHS ${FBX_SEARCH_PATHS}
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/release")
+
+message(STATUS "FBX Library Release: " ${FBX_LIBRARY_RELEASE})
+message(STATUS "FBX Library Debug: " ${FBX_LIBRARY_DEBUG})
 
 IF(FBX_LIBRARY AND FBX_LIBRARY_DEBUG AND FBX_INCLUDE_DIR)
     SET(FBX_FOUND "YES")

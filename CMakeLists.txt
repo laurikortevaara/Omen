@@ -9,13 +9,20 @@
 ######################################################################
 cmake_minimum_required(VERSION 3.3)
 SET(MSVC_INCREMENTAL_DEFAULT ON)
+SET(CMAKE_CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo" CACHE PATH "Configuration types")
+
 project(Omen)
 
+message( "the build type: " ${CMAKE_BUILD_TYPE} )
+set(CMAKE_BUILD_DIR ${CMAKE_SOURCE_DIR}/build/)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_CXX_STANDARsD 17)
-set(CMAKE_BUILD_TYPE Debug)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
+
+set(CMAKE_DEBUG_POSTFIX "d")
+set(CMAKE_RELEASE_POSTFIX "")
+set(CMAKE_RELWITHDEBINFO_POSTFIX "")
 
 set(BUILD_CPU_DEMOS OFF CACHE BOOL "Build original Bullet CPU demos")
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "Set when you want to build the Bullet 2 demos")
@@ -41,296 +48,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MDd ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd -std:c++latest /std:c++latest ")
 
-if(MSVC)
-# We statically link to reduce dependencies
-foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MDd" ${flag_var} "${${flag_var}}")
-    endif(${flag_var} MATCHES "/MD")
-	if(${flag_var} MATCHES "/MDdd")
-        string(REGEX REPLACE "/MDdd" "/MDd" ${flag_var} "${${flag_var}}")
-    endif(${flag_var} MATCHES "/MDdd")
-	if(${flag_var} MATCHES "/MT")
-        string(REGEX REPLACE "/MT" "/MDd" ${flag_var} "${${flag_var}}")
-    endif(${flag_var} MATCHES "/MT")
-    #if(${flag_var} MATCHES "/MDd")
-    #    string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-    #endif(${flag_var} MATCHES "/MDd")
-endforeach(flag_var)
-endif(MSVC)
-
-
-######################################################################
-# FORCE OS X 10.8 DEPLOYMENT TARGET ON OS X TO SUPPORT GLUT
-######################################################################
-if (APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__gl_h_ -DGL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED")
-endif (APPLE)
-
-######################################################################
-# Compiler flags:
-# - C++14 - Use C++ standard 14
-# - libc++ - Use libc++ as the C++ standard library (http://libcxx.llvm.org/)
-######################################################################
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(MALLOC_CHECK_ 2)
-set(ENV{MALLOC_CHECK_} "2")
-
-set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG")
-set(CMAKE_GENERATOR_PLATFORM Visual Studio 14 2015)
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-endif()
-
-######################################################################
-# GLEW - OpenGL extension wrangler library
-######################################################################
-include_directories(thirdparty/glew/include)
-
-
-######################################################################
-# GLFW - Multiplatform OpenGL Window management library
-######################################################################
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glfw/include)
-if (APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
-    set(GLFW_BUILD_EXAMPLES OFF)
-    set(GLFW_BUILD_TESTS OFF)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glfw)
-    include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glfw/include)
-else()
-    add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glfw)
-endif()
-
-
-######################################################################
-# STB Image loading library
-######################################################################
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/stb)
-
-######################################################################
-# Cross platform message box
-######################################################################
-#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/boxer)
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/boxer/include)
-
-######################################################################
-# OpenGL library
-######################################################################
-#find_library(OPENGL OpenGL)
-#if (NOT OPENGL)
-#    message(FATAL_ERROR "OpenGL not found")
-#endif ()
-add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glew/build/cmake)
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/glew32d)
-else()
-	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/glew32)
-endif()
-
-######################################################################
-# Google Test library (WIP)
-######################################################################
-#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/googletest)
-
-######################################################################
-# FREETYPE
-######################################################################
-set(FREETYPE_NO_DIST TRUE)
-add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/freetype)
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/freetyped)
-else()
-	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/freetype)
-endif()
-
-######################################################################
-# OpenVR SDK
-######################################################################
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openvr/headers)
-set(OPENVR_SDK_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openvr/lib/win32/openvr_api.lib)
-# add_custom_command(TARGET Omen POST_BUILD        # Adds a post-build event to MyTest
-#   COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
-#        "${PROJECT_SOURCE_DIR}/thirdparty/openvr/bin/win32/*"      # <--this is in-file
-#        $<TARGET_FILE_DIR:Omen>)                 # <--this is out-file path
-
-######################################################################
-# OpenAL
-######################################################################
-#include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/include)
-#set(OPENAL_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/lib/win32/openvr_api.lib)
-#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft)
-
-######################################################################
-# Mono SDK
-######################################################################
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/include)
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/include/mono-2.0)
-set(MONO_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/build/sgen/Win32/lib/${CMAKE_BUILD_TYPE}/mono-2.0-sgen.lib)
-
-######################################################################
-# BULLET PHYSICS
-######################################################################
-#set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/include)
-#find_package(Bullet REQUIRED)
-#if(NOT BULLET_FOUND)
-#    message(FATAL_ERROR "Bullet not found")
-#endif ()
-
-add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/bullet)
-#find_package(Bullet REQUIRED)
-#if(NOT BULLET_FOUND)
-#    message(FATAL_ERROR "Bullet not found")
-#endif ()
-include_directories(${BULLET_INCLUDE_DIRS})
-include_directories(thirdparty/bullet/src)
-
-######################################################################
-# ZLIB
-######################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/zlib)
-include_directories(${ZLIB_INCLUDE_DIRS})
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/zlibd)
-else()
-	link_libraries(${CMAKE_BUILD_DIR}lib/${CMAKE_BUILD_TYPE}/zlib)
-endif()
-
-
-######################################################################
-# LIBPNG
-######################################################################
-set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
-set(ZLIB_LIBRARY_DEBUG ${CMAKE_SOURCE_DIR}/build/lib/Debug/zlibd.lib)
-set(ZLIB_LIBRARY_RELEASE ${CMAKE_SOURCE_DIR}/build/lib/Release/zlib.lib)
-#if (APPLE)
-#  find_package(Png REQUIRED)
-#  if(NOT PNG_FOUND)
-#      message(FATAL_ERROR "Png not found")
-#  endif (NOT PNG_FOUND)
-#else(APPLE)
- # set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
- # set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
- # set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
- # set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
- # #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-#endif(APPLE)
-set(PNG_DEBUG ON)
-add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/Debug/libpng16d.lib)
-
-include_directories(${BULLET_INCLUDE_DIRS})
-
-
-######################################################################
-# FBXSDK
-######################################################################
-find_package(FbxSdk REQUIRED)
-if(NOT FBX_INCLUDE_DIR)
-    message(FATAL_ERROR "FBX SDK not found: " ${FBX_INCLUDE_DIR})
-endif (NOT FBX_INCLUDE_DIR)
-
-include_directories(${FBX_INCLUDE_DIR})
-link_libraries(${FBX_LIBRARY})
-if(APPLE)
-  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
-  set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
-  set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-  set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
-  #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-endif(APPLE)
-
-
-######################################################################
-# tinydir
-######################################################################
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/tinydir)
-
-
-######################################################################
-# Os x specific libraries/frameworks
-######################################################################
-if (APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
-    find_library(CARBON Carbon)
-    if (NOT CARBON)
-        message(FATAL_ERROR "Carbon not found")
-    endif ()
-
-    find_library(CORE_FOUNDATION CoreFoundation)
-    if (NOT CORE_FOUNDATION)
-        message(FATAL_ERROR "CoreFoundation not found")
-    endif ()
-
-    find_library(COCOA Cocoa)
-    if (NOT COCOA)
-        message(FATAL_ERROR "Cocoa not found")
-    endif ()
-
-    find_library(IOKIT IOKit)
-    if (NOT IOKIT)
-        message(FATAL_ERROR "IOKit not found")
-    endif ()
-
-    find_library(CORE_VIDEO CoreVideo)
-    if (NOT CORE_VIDEO)
-        message(FATAL_ERROR "CoreVideo not found")
-    endif ()
-
-    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES} ${PNG_LIBRARY} {$ZLIB_LIBRARY})
-endif (APPLE)
-
-
-######################################################################
-# Windows platform specific libs
-######################################################################
-if (WINDOWS)
-
-    include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
-    find_package(OpenGL REQUIRED)
-    find_package(GLEW REQUIRED)
-    if (GLEW_FOUND)
-        include_directories(${GLEW_INCLUDE_DIRS})
-	message(FATAL_ERROR "Glew found at ${GLEW_INCLUDE_DIRS}")
-        link_libraries(${GLEW_LIBRARIES})
-    endif()
-    SET(LIBRARIES Boxer glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${FREETYPE} ${BULLET_LIBRARIES})
-endif(WINDOWS)
-
-message(STATUS "Glew found at " ${GLEW_INCLUDE_DIRS})
-
-
-include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
-find_package(OpenGL REQUIRED)
-include_directories( ${OPENGL_INCLUDE_DIRS} )
-
-#set(FREETYPE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
-#set(FREETYPE_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/freetype/lib/freetyped.lib)
-#find_package(Freetype REQUIRED)
-#include_directories(${FREETYPE_INCLUDE_DIRS})
-
-set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/src)
-set(BULLET_DYNAMICS_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/BulletDynamics.lib)
-set(BULLET_COLLISION_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/BulletCollision.lib)
-set(BULLET_MATH_LIBRARY  ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/LinearMath.lib)
-set(BULLET_SOFTBODY_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/${CMAKE_BUILD_TYPE}/BulletSoftBody.lib)
-
-find_package(Bullet REQUIRED)
-include_directories(${BULLET_INCLUDE_DIRS})
-set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
-include_directories(${PNG_INCLUDE_DIR})
-
-SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${OPENVR_SDK_LIBRARY} ${MONO_LIBRARY})
-
-message(STATUS "Libs:" ${LIBRARIES})
-
-
+## Define sources and target executable
 ######################################################################
 # Define the source files and the executable
 ######################################################################
@@ -516,6 +234,302 @@ Common/Common.cxx
 Common/Common.h
 )
 add_executable(Omen ${SOURCE_FILES})
+set_target_properties(Omen PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+##
+
+if(MSVC)
+set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_RELEASE
+        )
+foreach(CompilerFlag ${CompilerFlags})
+  string(REPLACE "/MT" "/MD" ${CompilerFlag} "${${CompilerFlag}}")
+  string(REPLACE "/MDd" "/MD" ${CompilerFlag} "${${CompilerFlag}}")
+endforeach()
+
+set(CompilerFlags
+        CMAKE_CXX_FLAGS_DEBUG
+		CMAKE_CXX_FLAGS_RELWITHDEBINFO
+        CMAKE_C_FLAGS_DEBUG
+		CMAKE_C_FLAGS_RELWITHDEBINFO
+        )
+foreach(CompilerFlag ${CompilerFlags})
+  string(REPLACE "/MD" "/MDd" ${CompilerFlag} "${${CompilerFlag}}")
+  string(REPLACE "/MT" "/MDd" ${CompilerFlag} "${${CompilerFlag}}")
+  # To fix already existing MDd -> MDdd conversion error
+  string(REPLACE "/MDdd" "/MDd" ${CompilerFlag} "${${CompilerFlag}}")
+endforeach()
+
+endif(MSVC)
+
+######################################################################
+# FORCE OS X 10.8 DEPLOYMENT TARGET ON OS X TO SUPPORT GLUT
+######################################################################
+if (APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__gl_h_ -DGL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED")
+endif (APPLE)
+
+######################################################################
+# Compiler flags:
+# - C++14 - Use C++ standard 14
+# - libc++ - Use libc++ as the C++ standard library (http://libcxx.llvm.org/)
+######################################################################
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(MALLOC_CHECK_ 2)
+set(ENV{MALLOC_CHECK_} "2")
+
+set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG")
+set(CMAKE_GENERATOR_PLATFORM Visual Studio 14 2015)
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MDd")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+endif()
+
+######################################################################
+# GLEW - OpenGL extension wrangler library
+######################################################################
+include_directories(thirdparty/glew/include)
+
+
+######################################################################
+# GLFW - Multiplatform OpenGL Window management library
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glfw/include)
+if (APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
+    set(GLFW_BUILD_EXAMPLES OFF)
+    set(GLFW_BUILD_TESTS OFF)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glfw)
+    include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glfw/include)
+else()
+    add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glfw)
+endif()
+
+
+######################################################################
+# STB Image loading library
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/stb)
+
+######################################################################
+# Cross platform message box
+######################################################################
+#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/boxer)
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/boxer/include)
+
+######################################################################
+# OpenGL library
+######################################################################
+#find_library(OPENGL OpenGL)
+#if (NOT OPENGL)
+#    message(FATAL_ERROR "OpenGL not found")
+#endif ()
+message( "Cmake build dir is: " ${CMAKE_BUILD_DIR})
+message( "Cmake source dir is: " ${CMAKE_SOURCE_DIR})
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/glew/build/cmake)
+target_link_libraries(Omen optimized ${CMAKE_BUILD_DIR}lib/$(ConfigurationName)/glew32.lib debug ${CMAKE_BUILD_DIR}lib/Debug/glew32${CMAKE_DEBUG_POSTFIX}.lib)
+
+######################################################################
+# Google Test library (WIP)
+######################################################################
+#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/googletest)
+
+######################################################################
+# FREETYPE
+######################################################################
+set(FREETYPE_NO_DIST TRUE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/freetype)
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
+target_link_libraries(Omen optimized ${CMAKE_BUILD_DIR}lib/$(ConfigurationName)/freetype.lib debug ${CMAKE_BUILD_DIR}lib/Debug/freetype${CMAKE_DEBUG_POSTFIX}.lib)
+
+######################################################################
+# OpenVR SDK
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openvr/headers)
+set(OPENVR_SDK_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openvr/lib/win32/openvr_api.lib)
+set(BUILD_SHARED TRUE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/openvr)
+# add_custom_command(TARGET Omen POST_BUILD        # Adds a post-build event to MyTest
+#   COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+#        "${PROJECT_SOURCE_DIR}/thirdparty/openvr/bin/win32/*"      # <--this is in-file
+#        $<TARGET_FILE_DIR:Omen>)                 # <--this is out-file path
+
+######################################################################
+# OpenAL
+######################################################################
+#include_directories(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/include)
+#set(OPENAL_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/openal-soft/lib/win32/openvr_api.lib)
+#add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/openal-soft)
+
+######################################################################
+# Mono SDK
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/include)
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/mono/include/mono-2.0)
+set(MONO_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/build/sgen/Win32/lib/${CMAKE_BUILD_TYPE}/mono-2.0-sgen.lib)
+set(MONO_BINARY ${CMAKE_SOURCE_DIR}/thirdparty/mono/msvc/build/sgen/Win32/bin/${CMAKE_BUILD_TYPE}/mono-2.0-sgen.dll)
+message("Mono library: " ${MONO_LIBRARY})
+target_link_libraries(Omen ${MONO_LIBRARY})
+
+######################################################################
+# BULLET PHYSICS
+######################################################################
+#set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/include)
+#find_package(Bullet REQUIRED)
+#if(NOT BULLET_FOUND)
+#    message(FATAL_ERROR "Bullet not found")
+#endif ()
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/bullet)
+#find_package(Bullet REQUIRED)
+#if(NOT BULLET_FOUND)
+#    message(FATAL_ERROR "Bullet not found")
+#endif ()
+include_directories(${BULLET_INCLUDE_DIRS})
+include_directories(thirdparty/bullet/src)
+
+######################################################################
+# ZLIB
+######################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+include_directories(${ZLIB_INCLUDE_DIRS})
+target_link_libraries(Omen optimized ${CMAKE_BUILD_DIR}lib/$(ConfigurationName)/zlib.lib debug ${CMAKE_BUILD_DIR}lib/Debug/zlib${CMAKE_DEBUG_POSTFIX}.lib)
+
+
+######################################################################
+# LIBPNG
+######################################################################
+set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+set(ZLIB_LIBRARY_DEBUG ${CMAKE_SOURCE_DIR}/build/lib/Debug/zlibd.lib)
+set(ZLIB_LIBRARY_RELEASE ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/zlib.lib)
+#if (APPLE)
+#  find_package(Png REQUIRED)
+#  if(NOT PNG_FOUND)
+#      message(FATAL_ERROR "Png not found")
+#  endif (NOT PNG_FOUND)
+#else(APPLE)
+ # set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+ # set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
+ # set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+ # set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
+ # #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+#endif(APPLE)
+set(PNG_DEBUG ON)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+target_link_libraries(Omen optimized ${CMAKE_BUILD_DIR}lib/$(ConfigurationName)/libpng16.lib debug ${CMAKE_BUILD_DIR}lib/Debug/libpng16${CMAKE_DEBUG_POSTFIX}.lib)
+
+
+######################################################################
+# FBXSDK
+######################################################################
+
+find_package(FbxSdk REQUIRED)
+if(NOT FBX_INCLUDE_DIR)
+    message(FATAL_ERROR "FBX SDK not found: " ${FBX_INCLUDE_DIR})
+endif (NOT FBX_INCLUDE_DIR)
+
+include_directories(${FBX_INCLUDE_DIR})
+#link_libraries(${FBX_LIBRARY})
+message( "FBX Library: " ${FBX_LIBRARY})
+target_link_libraries(Omen optimized ${FBX_LIBRARY_RELEASE} debug ${FBX_LIBRARY_DEBUG})
+if(APPLE)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/zlib)
+  set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/zlib/lib/zlibstaticd.lib)
+  set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+  set(PNG_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/libpng/lib/libpng16_staticd.lib)
+  #add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+endif(APPLE)
+
+
+######################################################################
+# tinydir
+######################################################################
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/tinydir)
+
+
+######################################################################
+# Os x specific libraries/frameworks
+######################################################################
+if (APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
+    find_library(CARBON Carbon)
+    if (NOT CARBON)
+        message(FATAL_ERROR "Carbon not found")
+    endif ()
+
+    find_library(CORE_FOUNDATION CoreFoundation)
+    if (NOT CORE_FOUNDATION)
+        message(FATAL_ERROR "CoreFoundation not found")
+    endif ()
+
+    find_library(COCOA Cocoa)
+    if (NOT COCOA)
+        message(FATAL_ERROR "Cocoa not found")
+    endif ()
+
+    find_library(IOKIT IOKit)
+    if (NOT IOKIT)
+        message(FATAL_ERROR "IOKit not found")
+    endif ()
+
+    find_library(CORE_VIDEO CoreVideo)
+    if (NOT CORE_VIDEO)
+        message(FATAL_ERROR "CoreVideo not found")
+    endif ()
+
+    SET(LIBRARIES ${PNG_LIBRARIES} Boxer glfw ${GLEW} ${OPENGL} ${CARBON} ${COCOA} ${CORE_VIDEO} ${IOKIT} ${CORE_FOUNDATION} ${FREETYPE} ${BULLET_LIBRARIES} ${PNG_LIBRARY} {$ZLIB_LIBRARY})
+endif (APPLE)
+
+
+######################################################################
+# Windows platform specific libs
+######################################################################
+if (WINDOWS)
+
+    include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
+    find_package(OpenGL REQUIRED)
+    find_package(GLEW REQUIRED)
+    if (GLEW_FOUND)
+        include_directories(${GLEW_INCLUDE_DIRS})
+	message(FATAL_ERROR "Glew found at ${GLEW_INCLUDE_DIRS}")
+        link_libraries(${GLEW_LIBRARIES})
+    endif()
+    SET(LIBRARIES Boxer glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${FREETYPE} ${BULLET_LIBRARIES})
+endif(WINDOWS)
+
+message(STATUS "Glew found at " ${GLEW_INCLUDE_DIRS})
+
+
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/glm/)
+find_package(OpenGL REQUIRED)
+include_directories( ${OPENGL_INCLUDE_DIRS} )
+
+#set(FREETYPE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/freetype/include)
+#set(FREETYPE_LIBRARY ${CMAKE_SOURCE_DIR}/thirdparty/freetype/lib/freetyped.lib)
+#find_package(Freetype REQUIRED)
+#include_directories(${FREETYPE_INCLUDE_DIRS})
+
+
+set(BULLET_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/bullet/src)
+include_directories(${BULLET_INCLUDE_DIRS})
+set(BULLET_DYNAMICS_LIBRARY optimized ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/BulletDynamics.lib debug ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/BulletDynamics.lib)
+set(BULLET_COLLISION_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/BulletCollision.lib  debug ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/BulletCollision.lib)
+set(BULLET_MATH_LIBRARY  ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/LinearMath.lib  debug ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/LinearMath.lib)
+set(BULLET_SOFTBODY_LIBRARY ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/BulletSoftBody.lib  debug ${CMAKE_SOURCE_DIR}/build/lib/$(ConfigurationName)/BulletSoftBody.lib)
+
+find_package(Bullet REQUIRED)
+include_directories(${BULLET_INCLUDE_DIRS})
+set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libpng)
+include_directories(${PNG_INCLUDE_DIR})
+
+SET(LIBRARIES glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}  ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${OPENVR_SDK_LIBRARY} ${MONO_LIBRARY})
+
 #SET_TARGET_PROPERTIES(Omen PROPERTIES LINKER_LANGUAGE C++)
 set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
 
@@ -523,4 +537,19 @@ set_property(TARGET Omen PROPERTY CXX_STANDARD 17)
 # Set the target link libraries
 ######################################################################
 target_link_libraries(Omen ${LIBRARIES})
-set_target_properties(Omen PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+add_dependencies(Omen BulletCollision BulletDynamics BulletSoftBody LinearMath freetype glew png zlib openvr)
+
+add_custom_command(TARGET Omen POST_BUILD 
+               COMMAND ${CMAKE_COMMAND} -E copy_directory
+               "${CMAKE_SOURCE_DIR}/build/bin/RelWithDebInfo/"              
+                $<TARGET_FILE_DIR:Omen>)
+
+add_custom_command(TARGET Omen POST_BUILD 
+               COMMAND ${CMAKE_COMMAND} -E copy_directory
+               "${CMAKE_SOURCE_DIR}/bin/win32/RelWithDebInfo/"              
+                $<TARGET_FILE_DIR:Omen>)
+
+add_custom_command(TARGET Omen POST_BUILD 
+               COMMAND ${CMAKE_COMMAND} -E copy_if_different
+               "${MONO_BINARY}"              
+                $<TARGET_FILE_DIR:Omen>)
