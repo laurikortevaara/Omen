@@ -6,6 +6,8 @@ omen Game Engine
 - http://github.com/lauri.kortevaara
 
 - Clone all submodules under thirdparty
+- $> git submodule init .
+- $> git submodule update --recursive
 ============================================================
 [submodule "thirdparty/glfw"]
 	path = thirdparty/glfw
@@ -76,3 +78,18 @@ omen Game Engine
  	- cmakelists.txt contains a zconf.h rename section which will mess up the build, so modify it not to rename the zconf.h
 - LibPNG:
 	- If you aren't using "configure", you may need to copy pnglibconf.h.prebuilt from the scripts directory to pnglibconf.h in your working directory. See Section III of the INSTALL file in your libpng source directory.
+
+
+
+Create the development and build projects with CMake
+============================================================
+- The cmakelists.txt is located in the root folder
+- Windows & MacOS:
+	- Open CMake IDE
+	or
+	- Open Command Line or appropriate terminal application and goto Omen repository root folder
+	```
+	$> mkdir build
+	$> cd build
+	$> cmake -G Xcode ..
+ ```	
