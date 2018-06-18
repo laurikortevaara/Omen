@@ -1,11 +1,13 @@
-#include <iostream>
+#ifdef BUILD_OMEN_SCRIPT_SYSTEM
+#include "Script.h"
+
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/mono-config.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
 
-#include "Script.h"
+#include <iostream>
 
 using namespace omen;
 using namespace ecs;
@@ -34,3 +36,5 @@ void Script::update(double t, double dt)
 {
 
 }
+
+#endif // BUILD_OMEN_SCRIPT_SYSTEM

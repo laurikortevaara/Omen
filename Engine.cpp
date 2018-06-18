@@ -1,7 +1,33 @@
 //
 // Created by Lauri Kortevaara(personal) on 20/12/15.
 //
+#include "Engine.h"
 
+#include "utils.h"
+#include "MD3Loader.h"
+#include "system/CoreSystem.h"
+#include "system/InputSystem.h"
+#include "AudioSystem.h"
+
+#include "component/KeyboardInput.h"
+#include "component/MouseInput.h"
+#include "component/Picker.h"
+#include "component/CameraController.h"
+#include "component/Transformer.h"
+#include "component/Sprite.h"
+#include "component/TextRenderer.h"
+#include "component/Script.h"
+
+#include "system/GraphicsSystem.h"
+#include "system/ScriptSystem.h"
+#include "ui/TextView.h"
+#include "SysInfo.h"
+
+#ifdef BUILD_OMEN_VR_SYSTEM
+#include "system/"
+#endif
+
+#include "Omen_OpenGL.h"
 
 #include <glm/glm.hpp>
 #include <sstream>
@@ -14,29 +40,10 @@
 #ifndef _WIN32
 #include <sys/unistd.h>
 #endif
+#include <iosfwd>
+#include <string>
+#include <vector>
 
-#include "Engine.h"
-#include "GL_error.h"
-#include "utils.h"
-#include "thirdparty/glfw/include/GLFW/glfw3.h"
-#include "MD3Loader.h"
-#include "system/CoreSystem.h"
-#include "system/InputSystem.h"
-#include "AudioSystem.h"
-#include "component/KeyboardInput.h"
-#include "component/MouseInput.h"
-#include "component/Picker.h"
-#include "component/CameraController.h"
-#include "component/Transformer.h"
-#include "component/Sprite.h"
-#include "component/TextRenderer.h"
-#include "component/Script.h"
-#include "system/GraphicsSystem.h"
-#include "system/ScriptSystem.h"
-#include "ui/TextView.h"
-#include "SysInfo.h"
-
-#include "system/OpenVRSystem.h"
 
 #define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
@@ -105,7 +112,6 @@ std::wstring wstringify(glm::vec3 v) {
 
 long long allocations = 0;
 
-#define _OWN_NEW
 #ifdef OWN_NEW
 void * operator new(size_t size)
 {   
@@ -218,7 +224,9 @@ Engine::Engine() :
 			 meshes.clear();
 		 }
 		 */
+#ifdef BUILD_OMEN_PHYSICS_SYSTEM
 		initPhysics();
+#endif
 		check_gl_error();
 		post(std::make_unique<std::function<void()>>(std::function<void()>([&](void) {
 			std::cout << "FPS: " << m_fps << std::endl;
@@ -245,6 +253,7 @@ Engine *Engine::instance() {
 	return m_instance;
 }
 
+#ifdef BUILD_OMEN_PHYSICS_SYSTEM
 void Engine::initPhysics() {
 	//TODO: Lauri Create the Physics system
 	/*m_broadphase = new btDbvtBroadphase();
@@ -293,6 +302,7 @@ void Engine::doPhysics(omen::floatprec dt) {
 	//													 trans.getOrigin().z() };
 	//}
 }
+#endif // BUILD_OMEN_PHYSICS_SYSTEM
 
 void Engine::initializeSystems() {
 	// Initialize Core system

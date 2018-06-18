@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 02/01/16.
+// Created by Lauri Kortevaara on 02/01/16.
 //
 
 #define foo

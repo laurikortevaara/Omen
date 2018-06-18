@@ -1,18 +1,14 @@
 //
 // Created by Lauri Kortevaara on 25/12/15.
 //
-
+#include "Engine.h"
 #include "Texture.h"
-#include <GLFW/glfw3.h>
 
+#include "Omen_OpenGL.h"
 
 #define STB_IMAGE_IMPLEMENTATION
+#include <png.h>
 #include <stb_image.h>
-#include "thirdparty/lodepng/lodepng.h"
-#include "thirdparty/libpng/png.h"
-
-#include "GL_error.h"
-#include "Engine.h"
 
 using namespace omen;
 

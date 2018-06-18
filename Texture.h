@@ -5,17 +5,8 @@
 #ifndef OMEN_TEXTURE_H
 #define OMEN_TEXTURE_H
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#elif __APPLE__
-#define GL3_PROTOTYPES
-#include <OpenGL/gl3.h>
-#else
-//#include <GL/glew.h>
-#include <glfw/glfw3.h>
-#endif
+#include "Omen_OpenGL.h"
+
 #include <iosfwd>
 #include <map>
 #include <string>

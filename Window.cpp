@@ -1,22 +1,19 @@
 //
 // Created by Lauri Kortevaara on 20/12/15.
 //
+#include "Window.h"
 
+#include "Engine.h"
+#include "system/InputSystem.h"
+#include "component/KeyboardInput.h"
 #include "Omen_OpenGL.h"
 
 #include <memory>
 #include <exception>
 #include <stdexcept>
 #include <iostream>
-#include "Window.h"
-#include "GL_error.h"
-#include "Engine.h"
-#include "system/InputSystem.h"
-#include "component/KeyboardInput.h"
 
-#define GLFW_EXPOSE_NATIVE_WIN32
-#define GLFW_EXPOSE_NATIVE_WGL
-#include <GLFW/glfw3native.h>
+
 using namespace omen;
 
 

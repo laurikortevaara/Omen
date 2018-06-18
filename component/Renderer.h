@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../system/GraphicsSystem.h"
-#include "../system/OpenVRSystem.h"
+#ifdef BUILD_OMEN_VR_SYSTEM
+#include "../system/"
+#endif
 #include "../Engine.h"
 #include "Component.h"
 

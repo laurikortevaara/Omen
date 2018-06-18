@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 04/02/16.
+// Created by Lauri Kortevaara on 04/02/16.
 //
 
 #include "Button.h"
@@ -7,8 +7,8 @@
 #include "../component/MouseInput.h"
 #include "../component/Sprite.h"
 #include "../component/SpriteRenderer.h"
-#include "../../component/Sprite.h"
-#include "../../component/BorderSprite.h"
+#include "../component/Sprite.h"
+#include "../component/BorderSprite.h"
 
 using namespace omen;
 using namespace ui;

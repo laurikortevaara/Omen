@@ -1,18 +1,17 @@
 //
 // Created by Lauri Kortevaara on 21/12/15.
 //
+#include "Shader.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#elif __APPLE__
-#define GL3_PROTOTYPES
-#include <OpenGL/gl3.h>
-#else
-#include <GL/glew.h>
-#include <glfw/glfw3.h>
-#endif
+#include "Texture.h"
+#include "Material.h"
+#include "utils.h"
+#include "Engine.h"
+#include "component/MouseInput.h"
+#include "StringTools.h"
+
+#include "GL_error.h"
+#include "Omen_OpenGL.h"
 
 #include <boxer/boxer.h>
 
@@ -22,15 +21,6 @@
 #include <sstream>
 #include <assert.h>
 #include <memory>
-
-#include "GL_error.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "Material.h"
-#include "utils.h"
-#include "Engine.h"
-#include "component/MouseInput.h"
-#include "StringTools.h"
 
 using namespace omen;
 
@@ -272,6 +262,17 @@ bool Shader::readShaderFile(const char*shader_file) {
 	return true;
 }
 
+/**
+ *
+*/
+void Shader::unuse() const
+{
+    glUseProgram(0);
+}
+
+/**
+*
+*/
 void Shader::use() {
 	check_gl_error();
 	if (!glIsProgram(m_shader_program))

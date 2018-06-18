@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 02/01/16.
+// Created by Lauri Kortevaara on 02/01/16.
 //
 
 #include "MD3Loader.h"
@@ -13,19 +13,18 @@
 
 #include <math.h>
 
-using namespace std;
 using namespace omen;
 
 
-bool MD3Loader::loadModel(const string &filepath) {
-	ifstream ifs(filepath, ios::ate | ios::binary | ios::in);
+bool MD3Loader::loadModel(const std::string &filepath) {
+	std::ifstream ifs(filepath, std::ios::ate | std::ios::binary | std::ios::in);
 	if (ifs.is_open()) {
 		m_bufferSize = static_cast<size_t>(ifs.tellg());
 
 		// Read the whole file into a buffer
 		m_buffer = new U8[m_bufferSize];
 		memset(m_buffer, 0, m_bufferSize);
-		ifs.seekg(0, ios::beg);
+		ifs.seekg(0, std::ios::beg);
 		ifs.read((char *)m_buffer, m_bufferSize);
 		ifs.close();
 
@@ -140,8 +139,6 @@ glm::vec3 rationalVec(glm::vec3 vec) {
 }
 
 glm::vec3 MD3Loader::fromSpherical(U8 spherical_coord[2]) {
-	glm::vec3 vec;
-
 	float lat = static_cast<float>(spherical_coord[0] * (2.0f * M_PI) / 255.0f);
 	float lng = static_cast<float>(spherical_coord[1] * (2.0f * M_PI) / 255.0f);
 	glm::vec3 wnorm = rationalVec(glm::normalize(glm::vec3(cos(lng) * sin(lat), sin(lng) * sin(lat), cos(lat))));

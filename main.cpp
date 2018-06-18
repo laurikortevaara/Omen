@@ -28,7 +28,6 @@
 using namespace omen;
 using namespace omen::ui;
 using namespace omen::editor;
-using namespace std;
 
 /**
 * the main

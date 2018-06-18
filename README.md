@@ -1,7 +1,7 @@
 omen Game Engine
 ================
 - A hobby project for learning the OpenGL rendering pipeline
-- Lauri Kortevaara (2015)
+- Lauri Kortevaara (2015-2018)
 - lauri.kortevaara@gmail.com
 - http://github.com/lauri.kortevaara
 
@@ -9,6 +9,7 @@ omen Game Engine
 - $> git submodule init .
 - $> git submodule update --recursive
 ============================================================
+```
 [submodule "thirdparty/glfw"]
 	path = thirdparty/glfw
 	url = https://github.com/glfw/glfw.git
@@ -69,6 +70,7 @@ omen Game Engine
 	path = thirdparty/openal-soft
 	url = https://github.com/kcat/openal-soft
 	ignore = dirty
+```
 ============================================================
 
 - Glew:
@@ -79,6 +81,8 @@ omen Game Engine
 - LibPNG:
 	- If you aren't using "configure", you may need to copy pnglibconf.h.prebuilt from the scripts directory to pnglibconf.h in your working directory. See Section III of the INSTALL file in your libpng source directory.
 
+- FBX SDK (REQUIRED):
+	- Download and install Autodesk FBX SDK from https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0
 
 
 Create the development and build projects with CMake
@@ -91,5 +95,13 @@ Create the development and build projects with CMake
 	```
 	$> mkdir build
 	$> cd build
+	```
+	Mac & XCode
+	```
 	$> cmake -G Xcode ..
- ```	
+ 	```
+
+ 	Windows & Visual Studio 15 2017
+ 	```
+ 	$> cmake -G "Visual Studio 15 2017" ..
+  ```

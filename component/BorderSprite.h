@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 04/02/16.
+// Created by Lauri Kortevaara on 04/02/16.
 //
 
 #ifndef OMEN_BORDER_SPRITE_H

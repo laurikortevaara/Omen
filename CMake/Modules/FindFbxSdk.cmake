@@ -38,14 +38,14 @@ ELSE()
     SET(FBX_LIBDIR ${FBX_LIBDIR}/x86)
 ENDIF()
 
-#try to use 2017.1, 2015.1 or 2014.2 version
+#try to use 2019.1, 2018.1, 2017.1, 2015.1 or 2014.2 version
 
 IF(APPLE)
     SET(FBX_LIBNAME "libfbxsdk")
 ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
     SET(FBX_LIBNAME "fbxsdk")
 ELSE()
-    SET(FBX_LIBNAME "libfbxsdk-md")
+    SET(FBX_LIBNAME "libfbxsdk")
 ENDIF()
 
 SET(FBX_LIBNAME_DEBUG ${FBX_LIBNAME}d)
@@ -54,7 +54,8 @@ message(STATUS "FBX LibDir: " ${FBX_LIBDIR})
 message(STATUS "FBX LibName: " ${FBX_LIBNAME})
 
 SET( FBX_SEARCH_PATHS
-
+    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2019.0"
+    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2018.1"
     "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2017.1"
     "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2017.0.1"
     "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2015.1"
@@ -81,12 +82,25 @@ FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
 message(STATUS "FBX IncludeDir: " ${FBX_INCLUDE_DIR})
 message(STATUS "FBX Library: " ${FBX_LIBRARY})
 
+# Find Dll
+#SET(CMAKE_FIND_LIBRARY_PREFIXES "")
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+FIND_LIBRARY( FBX_DLL ${FBX_LIBNAME}
+    PATHS ${FBX_SEARCH_PATHS}
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/release" "lib/${FBX_LIBDIR}")
+IF(FBX_DLL)
+	message(STATUS "FBX DLL: " ${FBX_DLL})
+ELSE()
+	MESSAGE("Did not find FBX DLL")
+ENDIF()
+
 #Once one of the calls succeeds the result variable will be set and stored in the cache so that no call will search again.
 
 #no debug d suffix, search in debug folder only
-FIND_LIBRARY( FBX_LIBRARY_DEBUG ${FBX_LIBNAME_DEBUG}
+FIND_LIBRARY( FBX_LIBRARY_DEBUG NAMES ${FBX_LIBNAME} ${FBX_LIBNAME_DEBUG}
     PATHS ${FBX_SEARCH_PATHS}
     PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug")
+
 FIND_LIBRARY( FBX_LIBRARY_RELEASE ${FBX_LIBNAME}
     PATHS ${FBX_SEARCH_PATHS}
     PATH_SUFFIXES "lib/${FBX_LIBDIR}/release")
@@ -123,13 +137,15 @@ IF(NOT FBX_FOUND)
     FIND_PATH(FBX_INCLUDE_DIR "fbxsdk.h"
         PATHS ${FBX_SEARCH_PATHS}
         PATH_SUFFIXES "include")
-    FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
+    
+	FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
         PATHS ${FBX_SEARCH_PATHS}
         PATH_SUFFIXES "lib/${FBX_LIBDIR}")
 
     FIND_LIBRARY( FBX_LIBRARY_DEBUG ${FBX_LIBNAME_DEBUG}
         PATHS ${FBX_SEARCH_PATHS}
         PATH_SUFFIXES "lib/${FBX_LIBDIR}")
+		
     IF(FBX_LIBRARY AND FBX_LIBRARY_DEBUG AND FBX_INCLUDE_DIR)
         SET(FBX_FOUND "YES")
     ELSE()
@@ -173,5 +189,4 @@ IF(NOT FBX_FOUND)
     ELSE()
         SET(FBX_FOUND "NO")
     ENDIF()
-
 ENDIF()

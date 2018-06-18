@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 04/02/16.
+// Created by Lauri Kortevaara on 04/02/16.
 //
 
 #include "Draggable.h"
@@ -54,7 +54,6 @@ Draggable::Draggable(const glm::vec2& groovePos, const glm::vec2& grooveSize) :
         m_cursorPos = glm::vec2(x,y);
 		if (m_is_pressed) {
 			omen::Transform* tr = const_cast<Transform*>(entity()->getComponent<Transform>());
-			glm::vec3 pbmin, pbmax; // Parent view bounding volume
 			glm::vec3 bmin, bmax; // Dragged view bounding volume
 			glm::vec3 grooveSize;
 			tr->getBounds(bmin, bmax);

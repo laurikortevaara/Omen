@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 06/02/16.
+// Created by Lauri Kortevaara on 06/02/16.
 //
 
 #include <chrono>

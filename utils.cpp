@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 29/12/15.
+// Created by Lauri Kortevaara on 29/12/15.
 //
 #include <string>
 #include "utils.h"

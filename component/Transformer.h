@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 10/01/16.
+// Created by Lauri Kortevaara on 10/01/16.
 //
 
 #ifndef OMEN_TRANSFORMER_H

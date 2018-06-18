@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 12/01/16.
+// Created by Lauri Kortevaara on 12/01/16.
 //
 
 #ifndef OMEN_OCEAN_H

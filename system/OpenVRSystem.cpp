@@ -1,4 +1,5 @@
-#include "OpenVRSystem.h"
+#ifdef BUILD_OMEN_VR_SYSTEM
+#include ""
 #include "../component/Renderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <openvr.h>
@@ -431,3 +432,4 @@ void OpenVRSystem::render(omen::Shader* shader, int layer)
 	m_renderVR = false;
 	Engine::instance()->setViewport(0, 0, 1920, 1080);
 }
+#endif //BUILD_OMEN_VR_SYSTEM

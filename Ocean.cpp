@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 11/01/16.
+// Created by Lauri Kortevaara on 11/01/16.
 //
 
 #include "Ocean.h"
@@ -335,7 +335,6 @@ void evaluate_waves(float t)
 	float lambda = -1.0;
 	int index;
 	glm::vec2 x;
-	glm::vec2 d;
 	ComplexVectorNormal h_d_and_n;
 	for (int m_prime = 0; m_prime < N; m_prime++) {
 		for (int n_prime = 0; n_prime < N; n_prime++) {

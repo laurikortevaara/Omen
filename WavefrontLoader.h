@@ -1,28 +1,20 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 29/12/15.
+// Created by Lauri Kortevaara on 29/12/15.
 //
 
 #ifndef OMEN_WAVEFRONTLOADER_H
 #define OMEN_WAVEFRONTLOADER_H
 
 
+#include "Material.h"
+#include "Mesh.h"
+#include "Omen_OpenGL.h"
+
 #include <iosfwd>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#ifdef _WIN32
-#include <Windows.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#elif __APPLE__
-#define GL3_PROTOTYPES
-#include <OpenGL/gl3.h>
-#else
-//#include <GL/glew.h>
-#include <glfw/glfw3.h>
-#endif
-#include "Material.h"
-#include "Mesh.h"
+
 
 namespace omen {
 	class WavefrontLoader {

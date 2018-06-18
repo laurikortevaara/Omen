@@ -13,10 +13,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <future>
 
+#ifdef BUILD_BULLET_PHYSICS
 #pragma warning(push)
 #pragma warning(disable:4305)
 #include <btBulletDynamicsCommon.h>
 #pragma warning(pop)
+#endif
 
 #include "Scene.h"
 #include "Editor/EditorScene.h"
@@ -194,8 +196,6 @@ namespace omen {
 
         Joystick *m_joystick;
 
-        void doPhysics(omen::floatprec dt);
-
         void handle_task_queue();
 
         GLclampf m_sample_coverage;
@@ -207,22 +207,26 @@ namespace omen {
         GLuint m_depthTexture;
 
         omen::Model* m_currentSelection;
+        omen::floatprec							m_mouse_x, m_mouse_y;
 
-        // Bullet phycics
-        btBroadphaseInterface*                  m_broadphase;
-        btDefaultCollisionConfiguration*        m_collisionConfiguration;
-        btCollisionDispatcher*                  m_dispatcher;
-        btSequentialImpulseConstraintSolver*    m_solver;
-        btDiscreteDynamicsWorld*                m_dynamicsWorld;
-        btCollisionShape*                       m_groundShape;
-        btCollisionShape*                       m_fallShape;
-        btDefaultMotionState*                   m_groundMotionState;
-        btRigidBody*                            m_groundRigidBody;
-        btDefaultMotionState*                   m_fallMotionState;
-        btRigidBody*                            m_fallRigidBody;
-		omen::floatprec							m_mouse_x, m_mouse_y;
-
+#ifdef BUILD_OMEN_PHYSICS_SYSTEM
+    #ifdef BUILD_BULLET_PHYSICS
+            // Bullet phycics
+            btBroadphaseInterface*                  m_broadphase;
+            btDefaultCollisionConfiguration*        m_collisionConfiguration;
+            btCollisionDispatcher*                  m_dispatcher;
+            btSequentialImpulseConstraintSolver*    m_solver;
+            btDiscreteDynamicsWorld*                m_dynamicsWorld;
+            btCollisionShape*                       m_groundShape;
+            btCollisionShape*                       m_fallShape;
+            btDefaultMotionState*                   m_groundMotionState;
+            btRigidBody*                            m_groundRigidBody;
+            btDefaultMotionState*                   m_fallMotionState;
+            btRigidBody*                            m_fallRigidBody;
+    #endif // BUILD_BULLET_PHYSICS
         void initPhysics();
+        void doPhysics(omen::floatprec dt);
+#endif //BUILD_OMEN_PHYSICS_SYSTEM
 
         void renderText();
 

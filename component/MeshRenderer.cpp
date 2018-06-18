@@ -1,20 +1,25 @@
-#include <limits>
+
+#include "MeshController.h"
 
 #include "Sprite.h"
 #include "MeshRenderer.h"
-#include "MeshController.h"
+#include "KeyboardInput.h"
+#include "Picker.h"
 #include "../Entity.h"
 #include "../Engine.h"
 #include "../GL_error.h"
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
-#include "../system/OpenVRSystem.h"
 #include "../ui/Slider.h"
 #include "../ui/Slider.h"
-#include "KeyboardInput.h"
-#include "Picker.h"
 #include "../ui/TextView.h"
 #include "../SkyBoxRenderer.h"
+
+#ifdef BUILD_OMEN_VR_SYSTEM
+#include "../system/"
+#endif
+
+#include <limits>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
 float points[] = {
 	0.0f,  0.5f,  -1.0f,
@@ -539,14 +544,17 @@ void MeshRenderer::render2(Shader* shader)
 
 	glEnable(GL_BLEND);
 	// Get matrices
+    glm::mat4 MVP = glm::mat4(1);
+
+#ifdef BUILD_OMEN_VR_SYSTEM
 	ecs::OpenVRSystem* vrsys = Engine::instance()->findSystem<ecs::OpenVRSystem>();
-	glm::mat4 MVP = glm::mat4(1);
 	if (vrsys != nullptr && vrsys->renderVR())
 	{
 		MVP = vrsys->getCurrentViewProjectionMatrix(vrsys->currentEye()) * entity()->tr()->tr();
 		pShader->setUniformMatrix4fv("ModelViewProjection", 1, glm::value_ptr(MVP), false);
 	}
 	else
+#endif
 	{
 		glm::mat4 viewMatrix = Engine::instance()->camera()->view();
 		glm::mat4 inverseViewMatrix = glm::inverse(viewMatrix);

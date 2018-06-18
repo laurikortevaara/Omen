@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 09/01/16.
+// Created by Lauri Kortevaara on 09/01/16.
 //
 
 #include "BoundingVolume.h"

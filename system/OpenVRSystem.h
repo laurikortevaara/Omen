@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _OMEN_OPENVR_SYSTEM_
+#define _OMEN_OPENVR_SYSTEM_
 
 #include "GraphicsSystem.h"
 #include <openvr.h>
@@ -87,3 +88,5 @@ namespace omen
 		};
 	}
 }
+
+#endif //_OMEN_OPENVR_SYSTEM_

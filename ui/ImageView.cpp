@@ -1,12 +1,13 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 04/02/16.
+// Created by Lauri Kortevaara on 04/02/16.
 //
 
 #include "ImageView.h"
+
+#include "../Engine.h"
 #include "../component/Sprite.h"
 #include "../component/SpriteRenderer.h"
-#include "../Engine.h"
-#include "../../component/BorderSprite.h"
+#include "../component/BorderSprite.h"
 
 using namespace omen;
 using namespace ui;

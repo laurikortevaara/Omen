@@ -1,5 +1,5 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 11/01/16.
+// Created by Lauri Kortevaara on 11/01/16.
 //
 
 #include "Sprite.h"

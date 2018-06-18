@@ -13,6 +13,13 @@
 
 #include <iostream>
 #include <list>
+#include <limits>
+
+#include <algorithm>
+// Undefine min max macros
+#undef min 
+#undef max
+
 
 #define gVerbose true
 
@@ -2025,9 +2032,9 @@ std::unique_ptr<omen::ecs::GameObject> MeshProvider::loadObject(const std::strin
 					// Compute Tangents and Bitangents from uv coordinates
 					if (!uv.empty())
 					{
-						glm::vec2& uv0 = uv[min(ti1, uv.size()-1)];
-						glm::vec2& uv1 = uv[min(ti2, uv.size()-1)];
-						glm::vec2& uv2 = uv[min(ti3, uv.size()-1)];
+						glm::vec2& uv0 = uv[std::min(ti1, uv.size()-1)];
+						glm::vec2& uv1 = uv[std::min(ti2, uv.size()-1)];
+						glm::vec2& uv2 = uv[std::min(ti3, uv.size()-1)];
 
 						glm::vec2 duv1 = uv1 - uv0;
 						glm::vec2 duv2 = uv2 - uv0;
@@ -2240,22 +2247,23 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 	/*for (int i = 0; i < size(vertexData); ++i) {
 		vertices.push_back(vertexData[i]);
 	}*/
-
-	glm::vec3 max_pos;
-	glm::vec3 min_pos;
+  
+    glm::vec3 max_pos = { std::numeric_limits<float>::lowest(),std::numeric_limits<float>::lowest(),std::numeric_limits<float>::lowest() };
+    glm::vec3 min_pos = { std::numeric_limits<float>::max(),std::numeric_limits<float>::max(),std::numeric_limits<float>::max() };
+    
 
 	for (size_t i = 0; i < vertices.size(); i += 3) {
 		glm::vec3& v1 = vertices[i];
 		glm::vec3& v2 = vertices[(i + 1) % (vertices.size())];
 		glm::vec3& v3 = vertices[(i + 2) % (vertices.size())];
-		max_pos.x = max(v1.x, max_pos.x); max_pos.y = max(v1.y, max_pos.y); max_pos.z = max(v1.z, max_pos.z);
-		min_pos.x = min(v1.x, min_pos.x); min_pos.y = min(v1.y, min_pos.y); min_pos.z = min(v1.z, min_pos.z);
+		max_pos.x = std::max(v1.x, max_pos.x); max_pos.y = std::max(v1.y, max_pos.y); max_pos.z = std::max(v1.z, max_pos.z);
+		min_pos.x = std::min(v1.x, min_pos.x); min_pos.y = std::min(v1.y, min_pos.y); min_pos.z = std::min(v1.z, min_pos.z);
 
-		max_pos.x = max(v2.x, max_pos.x); max_pos.y = max(v2.y, max_pos.y); max_pos.z = max(v2.z, max_pos.z);
-		min_pos.x = min(v2.x, min_pos.x); min_pos.y = min(v2.y, min_pos.y); min_pos.z = min(v2.z, min_pos.z);
+		max_pos.x = std::max(v2.x, max_pos.x); max_pos.y = std::max(v2.y, max_pos.y); max_pos.z = std::max(v2.z, max_pos.z);
+		min_pos.x = std::min(v2.x, min_pos.x); min_pos.y = std::min(v2.y, min_pos.y); min_pos.z = std::min(v2.z, min_pos.z);
 
-		max_pos.x = max(v3.x, max_pos.x); max_pos.y = max(v3.y, max_pos.y); max_pos.z = max(v3.z, max_pos.z);
-		min_pos.x = min(v3.x, min_pos.x); min_pos.y = min(v3.y, min_pos.y); min_pos.z = min(v3.z, min_pos.z);
+		max_pos.x = std::max(v3.x, max_pos.x); max_pos.y = std::max(v3.y, max_pos.y); max_pos.z = std::max(v3.z, max_pos.z);
+		min_pos.x = std::min(v3.x, min_pos.x); min_pos.y = std::min(v3.y, min_pos.y); min_pos.z = std::min(v3.z, min_pos.z);
 	}
 
 	for (size_t i = 0; i < vertices.size(); i+=3 ) {
@@ -2270,7 +2278,7 @@ std::unique_ptr<Mesh> MeshProvider::createCube()
 		// Create cube mapped UV coordinates
 		glm::vec2 uv1, uv2, uv3;
 
-		float max_value = max(fabs(n.x), max(fabs(n.y), fabs(n.z)));
+		float max_value = std::max(fabs(n.x), std::max(fabs(n.y), fabs(n.z)));
 		if (fabs(n.x) == max_value) {
 			if (n.z < 0) {
 				uv1.x = fabs((v1.z - min_pos.z) / (max_pos.z - min_pos.z));

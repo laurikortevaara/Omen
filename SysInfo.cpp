@@ -1,6 +1,6 @@
 #define _WIN32_DCOM
+#undef byte
 #include <iostream>
-using namespace std;
 #include <comdef.h>
 #include <Wbemidl.h>
 
@@ -24,8 +24,8 @@ int SysInfo::getValues()
 	hres = CoInitializeEx(0, COINIT_MULTITHREADED);
 	if (FAILED(hres))
 	{
-		cout << "Failed to initialize COM library. Error code = 0x"
-			<< hex << hres << endl;
+		std::cout << "Failed to initialize COM library. Error code = 0x"
+			<< std::hex << hres << std::endl;
 		return 1;                  // Program has failed.
 	}
 
@@ -47,8 +47,8 @@ int SysInfo::getValues()
 
 	if (FAILED(hres))
 	{
-		cout << "Failed to initialize security. Error code = 0x"
-			<< hex << hres << endl;
+        std::cout << "Failed to initialize security. Error code = 0x"
+			<< std::hex << hres << std::endl;
 		CoUninitialize();
 		return 1;                    // Program has failed.
 	}
@@ -66,9 +66,9 @@ int SysInfo::getValues()
 
 	if (FAILED(hres))
 	{
-		cout << "Failed to create IWbemLocator object."
+        std::cout << "Failed to create IWbemLocator object."
 			<< " Err code = 0x"
-			<< hex << hres << endl;
+			<< std::hex << hres << std::endl;
 		CoUninitialize();
 		return 1;                 // Program has failed.
 	}
@@ -94,14 +94,14 @@ int SysInfo::getValues()
 
 	if (FAILED(hres))
 	{
-		cout << "Could not connect. Error code = 0x"
-			<< hex << hres << endl;
+        std::cout << "Could not connect. Error code = 0x"
+			<< std::hex << hres << std::endl;
 		pLoc->Release();
 		CoUninitialize();
 		return 1;                // Program has failed.
 	}
 
-	cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
+    std::cout << "Connected to ROOT\\CIMV2 WMI namespace" << std::endl;
 
 
 	// Step 5: --------------------------------------------------
@@ -120,8 +120,8 @@ int SysInfo::getValues()
 
 	if (FAILED(hres))
 	{
-		cout << "Could not set proxy blanket. Error code = 0x"
-			<< hex << hres << endl;
+        std::cout << "Could not set proxy blanket. Error code = 0x"
+			<< std::hex << hres << std::endl;
 		pSvc->Release();
 		pLoc->Release();
 		CoUninitialize();
@@ -142,9 +142,9 @@ int SysInfo::getValues()
 
 	if (FAILED(hres))
 	{
-		cout << "Query for operating system name failed."
+        std::cout << "Query for operating system name failed."
 			<< " Error code = 0x"
-			<< hex << hres << endl;
+			<< std::hex << hres << std::endl;
 		pSvc->Release();
 		pLoc->Release();
 		CoUninitialize();
@@ -170,50 +170,50 @@ int SysInfo::getValues()
 
 		// Get the value of the Name property
 		hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-		wcout << " Processor Name : " << vtProp.bstrVal << endl;
+		std::wcout << " Processor Name : " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"Family", 0, &vtProp, 0, 0);
-		wcout << " Family: " << vtProp.uiVal << endl;
+		std::wcout << " Family: " << vtProp.uiVal << std::endl;
 
 		if (vtProp.uiVal == 1) {
 			hr = pclsObj->Get(L"OtherFamilyDescription", 0, &vtProp, 0, 0);
-			wcout << " Family Description : " << vtProp.bstrVal << endl;
+			std::wcout << " Family Description : " << vtProp.bstrVal << std::endl;
 		}
 
 		hr = pclsObj->Get(L"CurrentClockSpeed", 0, &vtProp, 0, 0);
-		wcout << "CurrentClockSpee (MHz): " << vtProp.ulVal << endl;
+		std::wcout << "CurrentClockSpee (MHz): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"L2CacheSize", 0, &vtProp, 0, 0);
-		wcout << "L2 Cache size (kb): " << vtProp.ulVal << endl;
+		std::wcout << "L2 Cache size (kb): " << vtProp.ulVal << std::endl;
 
 		CIMTYPE t;
 		long flavor;
 		hr = pclsObj->Get(L"L2CacheSpeed", 0, &vtProp, &t, &flavor);
-		wcout << "L2 Cache Speed (MHz): " << vtProp.ulVal << endl;
+		std::wcout << "L2 Cache Speed (MHz): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"L3CacheSize", 0, &vtProp, 0, 0);
-		wcout << "L3 Cache size (kb): " << vtProp.ulVal << endl;
+		std::wcout << "L3 Cache size (kb): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"L3CacheSpeed", 0, &vtProp, 0, 0);
-		wcout << "L3 Cache Speed (MHz): " << vtProp.ulVal << endl;
+		std::wcout << "L3 Cache Speed (MHz): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"LoadPercentage", 0, &vtProp, 0, 0);
-		wcout << "Load (%): " << vtProp.uiVal << endl;
+		std::wcout << "Load (%): " << vtProp.uiVal << std::endl;
 
 		hr = pclsObj->Get(L"MaxClockSpeed", 0, &vtProp, 0, 0);
-		wcout << "Max Clock Speed (MHz): " << vtProp.ulVal << endl;
+		std::wcout << "Max Clock Speed (MHz): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"NumberOfCores", 0, &vtProp, 0, 0);
-		wcout << "Number of cores (num): " << vtProp.ulVal << endl;
+		std::wcout << "Number of cores (num): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"NumberOfEnabledCores", 0, &vtProp, 0, 0);
-		wcout << "Number of Enabled cores (num): " << vtProp.ulVal << endl;
+		std::wcout << "Number of Enabled cores (num): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"NumberOfLogicalProcessors", 0, &vtProp, 0, 0);
-		wcout << "Number of Logical Processors (num): " << vtProp.ulVal << endl;
+		std::wcout << "Number of Logical Processors (num): " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"ThreadCount", 0, &vtProp, 0, 0);
-		wcout << "Number of Threads (num): " << vtProp.ulVal << endl;
+		std::wcout << "Number of Threads (num): " << vtProp.ulVal << std::endl;
 
 		VariantClear(&vtProp);
 
@@ -232,9 +232,9 @@ int SysInfo::getValues()
 
 	if (FAILED(hres))
 	{
-		cout << "Query for operating system name failed."
+        std::cout << "Query for operating system name failed."
 			<< " Error code = 0x"
-			<< hex << hres << endl;
+			<< std::hex << hres << std::endl;
 		pSvc->Release();
 		pLoc->Release();
 		CoUninitialize();
@@ -260,37 +260,37 @@ int SysInfo::getValues()
 
 		// Get the value of the Name property
 		hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-		wcout << " Video Controller Name : " << vtProp.bstrVal << endl;
+		std::wcout << " Video Controller Name : " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"Description", 0, &vtProp, 0, 0);
-		wcout << " Video Controller Description : " << vtProp.bstrVal << endl;
+		std::wcout << " Video Controller Description : " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"DriverVersion", 0, &vtProp, 0, 0);
-		wcout << " Video Controller DriverVersion : " << vtProp.bstrVal << endl;
+		std::wcout << " Video Controller DriverVersion : " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"AdapterCompatibility", 0, &vtProp, 0, 0);
-		wcout << " AdapterCompatibility: " << vtProp.bstrVal << endl;
+		std::wcout << " AdapterCompatibility: " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"AdapterDACType", 0, &vtProp, 0, 0);
-		wcout << "DACType: " << vtProp.bstrVal << endl;
+		std::wcout << "DACType: " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"AdapterRAM", 0, &vtProp, 0, 0);
-		wcout << "Adapter RAM (MegaBytes): " << static_cast<double>(vtProp.ulVal/1024/1024) << endl;
+		std::wcout << "Adapter RAM (MegaBytes): " << static_cast<double>(vtProp.ulVal/1024/1024) << std::endl;
 
 		hr = pclsObj->Get(L"Caption", 0, &vtProp, 0, 0);
-		wcout << "Caption: " << vtProp.bstrVal << endl;
+		std::wcout << "Caption: " << vtProp.bstrVal << std::endl;
 
 		hr = pclsObj->Get(L"CurrentBitsPerPixel", 0, &vtProp, 0, 0);
-		wcout << "CurrentBitsPerPixel: " << vtProp.ulVal << endl;
+		std::wcout << "CurrentBitsPerPixel: " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"CurrentHorizontalResolution", 0, &vtProp, 0, 0);
-		wcout << "CurrentHorizontalResolution: " << vtProp.ulVal << endl;
+		std::wcout << "CurrentHorizontalResolution: " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"CurrentVerticalResolution", 0, &vtProp, 0, 0);
-		wcout << "CurrentVerticalResolution: " << vtProp.ulVal << endl;
+		std::wcout << "CurrentVerticalResolution: " << vtProp.ulVal << std::endl;
 
 		hr = pclsObj->Get(L"CurrentNumberOfColors", 0, &vtProp, 0, 0);
-		wcout << "CurrentNumberOfColors: " << vtProp.ullVal << endl;
+		std::wcout << "CurrentNumberOfColors: " << vtProp.ullVal << std::endl;
 
 		VariantClear(&vtProp);
 

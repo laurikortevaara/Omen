@@ -1,15 +1,16 @@
 //
-// Created by Lauri Kortevaara(Intopalo) on 04/02/16.
+// Created by Lauri Kortevaara on 04/02/16.
 //
 
 #include "Slider.h"
+
 #include "ImageView.h"
+#include "../Engine.h"
 #include "../component/Draggable.h"
 #include "../component/Sprite.h"
 #include "../component/SpriteRenderer.h"
-#include "../Engine.h"
-#include "../../component/Sprite.h"
-#include "../../component/BorderSprite.h"
+#include "../component/Sprite.h"
+#include "../component/BorderSprite.h"
 #include "../ui/LinearLayout.h"
 #include "../ui/TextView.h"
 #include "../utils.h"
