@@ -14,16 +14,6 @@ IF(APPLE)
     SET(FBX_LIBDIR "gcc4/ub")
 ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
     SET(FBX_LIBDIR "gcc4")
-ELSEIF(MSVC80)
-    SET(FBX_LIBDIR "vs2005")
-ELSEIF(MSVC90)
-    SET(FBX_LIBDIR "vs2008")
-ELSEIF(MSVC10)
-    SET(FBX_LIBDIR "vs2010")
-ELSEIF(MSVC11)
-    SET(FBX_LIBDIR "vs2012")
-ELSEIF(MSVC12)
-    SET(FBX_LIBDIR "vs2013")
 ELSE()
     SET(FBX_LIBDIR "vs2015")
 ENDIF()
@@ -38,7 +28,7 @@ ELSE()
     SET(FBX_LIBDIR ${FBX_LIBDIR}/x86)
 ENDIF()
 
-#try to use 2019.1, 2018.1, 2017.1, 2015.1 or 2014.2 version
+#try to use 2019.0
 
 IF(APPLE)
     SET(FBX_LIBNAME "libfbxsdk")
@@ -55,19 +45,7 @@ message(STATUS "FBX LibName: " ${FBX_LIBNAME})
 
 SET( FBX_SEARCH_PATHS
     "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2019.0"
-    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2018.1"
-    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2017.1"
-    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2017.0.1"
-    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2015.1"
-    "$ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/2017.1"
-    "$ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/2015.1"
-    /Applications/Autodesk/FBXSDK20151
-    "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2014.2"
-    "$ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/2014.2"
-    /Applications/Autodesk/FBXSDK20142
-    /Applications/Autodesk/FBXSDK20141
 )
-#I think the last line in the search path is an old typo, but let's search for 2014.1 anyway - LV
 
 message(STATUS "FBX SearchPaths: " ${FBX_SEARCH_PATHS})
 
@@ -75,12 +53,33 @@ message(STATUS "FBX SearchPaths: " ${FBX_SEARCH_PATHS})
 FIND_PATH(FBX_INCLUDE_DIR "fbxsdk.h"
     PATHS ${FBX_SEARCH_PATHS}
     PATH_SUFFIXES "include")
-FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
+
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+FIND_LIBRARY( FBX_LIBRARY libfbxsdk.lib
+    PATHS ${FBX_SEARCH_PATHS}
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/release" "lib/${FBX_LIBDIR}")
+	
+FIND_LIBRARY( FBX_LIBRARY_DEBUG libfbxsdk.lib
+    PATHS ${FBX_SEARCH_PATHS}
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug" "lib/${FBX_LIBDIR}")
+
+message(STATUS "FBX IncludeDir: " ${FBX_INCLUDE_DIR})
+message(STATUS "FBX Library(Releaes): " ${FBX_LIBRARY})
+message(STATUS "FBX Library(Debug): " ${FBX_LIBRARY_DEBUG})
+
+#Once one of the calls succeeds the result variable will be set and stored in the cache so that no call will search again.
+
+#no debug d suffix, search in debug folder only
+FIND_LIBRARY( FBX_LIBRARY_DEBUG_SHARED NAMES ${FBX_LIBNAME} ${FBX_LIBNAME_DEBUG}
+    PATHS ${FBX_SEARCH_PATHS}
+    PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug" "lib/${FBX_LIBDIR}")
+
+FIND_LIBRARY( FBX_LIBRARY_RELEASE_SHARED ${FBX_LIBNAME}
     PATHS ${FBX_SEARCH_PATHS}
     PATH_SUFFIXES "lib/${FBX_LIBDIR}/release" "lib/${FBX_LIBDIR}")
 
-message(STATUS "FBX IncludeDir: " ${FBX_INCLUDE_DIR})
-message(STATUS "FBX Library: " ${FBX_LIBRARY})
+message(STATUS "FBX Library Release: " ${FBX_LIBRARY_RELEASE_SHARED})
+message(STATUS "FBX Library Debug: " ${FBX_LIBRARY_DEBUG_SHARED})
 
 # Find Dll
 #SET(CMAKE_FIND_LIBRARY_PREFIXES "")
@@ -94,99 +93,10 @@ ELSE()
 	MESSAGE("Did not find FBX DLL")
 ENDIF()
 
-#Once one of the calls succeeds the result variable will be set and stored in the cache so that no call will search again.
-
-#no debug d suffix, search in debug folder only
-FIND_LIBRARY( FBX_LIBRARY_DEBUG NAMES ${FBX_LIBNAME} ${FBX_LIBNAME_DEBUG}
-    PATHS ${FBX_SEARCH_PATHS}
-    PATH_SUFFIXES "lib/${FBX_LIBDIR}/debug")
-
-FIND_LIBRARY( FBX_LIBRARY_RELEASE ${FBX_LIBNAME}
-    PATHS ${FBX_SEARCH_PATHS}
-    PATH_SUFFIXES "lib/${FBX_LIBDIR}/release")
-
-message(STATUS "FBX Library Release: " ${FBX_LIBRARY_RELEASE})
-message(STATUS "FBX Library Debug: " ${FBX_LIBRARY_DEBUG})
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
 
 IF(FBX_LIBRARY AND FBX_LIBRARY_DEBUG AND FBX_INCLUDE_DIR)
     SET(FBX_FOUND "YES")
 ELSE()
     SET(FBX_FOUND "NO")
-ENDIF()
-
-IF(NOT FBX_FOUND)
-#try to use 2014.1 version
-    IF(APPLE)
-        SET(FBX_LIBNAME "fbxsdk-2014.1")
-    ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
-        SET(FBX_LIBNAME "fbxsdk-2014.1")
-    ELSE()
-        SET(FBX_LIBNAME "fbxsdk-2014.1")
-    ENDIF()
-
-    SET(FBX_LIBNAME_DEBUG ${FBX_LIBNAME}d)
-
-    SET( FBX_SEARCH_PATHS
-        $ENV{FBX_DIR}
-        $ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2014.1
-        $ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/2014.1
-        /Applications/Autodesk/FBXSDK20141
-    )
-
-    # search for headers & debug/release libraries
-    FIND_PATH(FBX_INCLUDE_DIR "fbxsdk.h"
-        PATHS ${FBX_SEARCH_PATHS}
-        PATH_SUFFIXES "include")
-    
-	FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
-        PATHS ${FBX_SEARCH_PATHS}
-        PATH_SUFFIXES "lib/${FBX_LIBDIR}")
-
-    FIND_LIBRARY( FBX_LIBRARY_DEBUG ${FBX_LIBNAME_DEBUG}
-        PATHS ${FBX_SEARCH_PATHS}
-        PATH_SUFFIXES "lib/${FBX_LIBDIR}")
-		
-    IF(FBX_LIBRARY AND FBX_LIBRARY_DEBUG AND FBX_INCLUDE_DIR)
-        SET(FBX_FOUND "YES")
-    ELSE()
-        SET(FBX_FOUND "NO")
-    ENDIF()
-
-ENDIF()
-
-IF(NOT FBX_FOUND)
-#try to use 2013.3 version
-    IF(APPLE)
-        SET(FBX_LIBNAME "fbxsdk-2013.3-static")
-    ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
-        SET(FBX_LIBNAME "fbxsdk-2013.3-static")
-    ELSE()
-        SET(FBX_LIBNAME "fbxsdk-2013.3-md")
-    ENDIF()
-
-    SET(FBX_LIBNAME_DEBUG ${FBX_LIBNAME}d)
-
-    SET( FBX_SEARCH_PATHS
-        $ENV{FBX_DIR}
-        $ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/2013.3
-        $ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/2013.3
-        /Applications/Autodesk/FBXSDK20133
-    )
-
-    # search for headers & debug/release libraries
-    FIND_PATH(FBX_INCLUDE_DIR "fbxsdk.h"
-        PATHS ${FBX_SEARCH_PATHS}
-        PATH_SUFFIXES "include")
-    FIND_LIBRARY( FBX_LIBRARY ${FBX_LIBNAME}
-        PATHS ${FBX_SEARCH_PATHS}
-        PATH_SUFFIXES "lib/${FBX_LIBDIR}")
-
-    FIND_LIBRARY( FBX_LIBRARY_DEBUG ${FBX_LIBNAME_DEBUG}
-        PATHS ${FBX_SEARCH_PATHS}
-        PATH_SUFFIXES "lib/${FBX_LIBDIR}")
-    IF(FBX_LIBRARY AND FBX_LIBRARY_DEBUG AND FBX_INCLUDE_DIR)
-        SET(FBX_FOUND "YES")
-    ELSE()
-        SET(FBX_FOUND "NO")
-    ENDIF()
 ENDIF()
