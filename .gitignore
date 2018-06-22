@@ -9,3 +9,5 @@ build/
 html
 latex
 *.orig
+bin/win32/
+bin/libfbxsdk.dll
