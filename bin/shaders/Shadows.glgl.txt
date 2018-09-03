@@ -1,0 +1,41 @@
+vec4 ShadowCoord = dataIn.ShadowCoord;
+    vec2 uv			 = dataIn.uv;
+	vec3 N			 = normalize(dataIn.normal);
+
+	vec3 normal = texture(NormalMap, uv).rgb;
+    normal = normalize(normal * 2.0 - 1.0);   
+	normal = normalize(dataIn.TBN * normal);
+   
+    vec3 L = dataIn.TBN * normalize(LightPos - dataIn.pos.xyz);
+    vec3 V = dataIn.TBN * normalize(ViewPos - dataIn.pos.xyz);    
+
+	// Calculate the Light vector
+	vec3 L2 = lightVector(dataIn.pos.xyz,LightPos);
+
+	// Calculate the view direction, eye to fragment vector
+	vec3 V2 = viewDirection(dataIn.pos.xyz);
+
+	// Shadow depth test
+	float visibility = 1.0;
+    float bias = 0.005;
+	float compare = (ShadowCoord.z-bias);
+	visibility = max(0.15,PCF3(shadowMap, vec2(8192.0), ShadowCoord.xy, compare,1)); //texture( shadowMap, ShadowCoord.xy/ShadowCoord.w ).z);
+   /* float fDepth = texture( shadowMap, ShadowCoord.xy/ShadowCoord.w ).z;
+    if (  fDepth < compare  )
+        visibility = 0.5;
+	*/
+
+	// texture or albedo color
+	vec4 Spec = texture(SpecularColorMap, uv);
+	vec4 NormalRGB = texture(NormalMap, uv);
+	vec4 DiffuseColor = texture(TextureMap,uv); //HasTexture ? texture(TextureMap, uv) : MaterialDiffuse;
+	//DiffuseColor = MaterialDiffuse;
+	// Final fragment color
+	float a = out_color.a;
+	out_color = DiffuseColor;
+	out_color = DiffuseColor*DiffuseIntensity*diffuseReflection(N,L);
+	out_color += vec4(specularReflection(V,N,L),1);
+	out_color *= visibility;
+	out_color.a = 1;
+	//out_color = vec4(abs(N),1);
+	

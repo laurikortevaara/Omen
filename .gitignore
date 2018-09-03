@@ -1,0 +1,13 @@
+bin/Debug/
+bin/Omen
+bin/fonts
+bin/textures
+bin/mono
+bin/models
+.idea/
+build/
+html
+latex
+*.orig
+bin/win32/
+bin/libfbxsdk.dll
